@@ -18,28 +18,28 @@ const qb = new QueryBuilder("test");
 const ddd = 8;
 const out = qb
   .derive({
-    a: d => d.Seattle + -d.Chicago
+    a: d => d.Seattle + -d.Chicago,
+    b: d => d.Seattle + d.Chicago,
+    c: d => d.Chicago,
+    d: _ => _,
+    e: d => (d.Seattle > 10 ? 'hi' : 'test') === 'hi',
+    // f: d => {  // will not support
+    //   let a = 10;
+    //   const b = 20;
+    //   return d.Seattle > a || d.Chicago > b;
+    // },
+    g: op.row_number(),
+    h: d => d['Seattle'] > 10,
+    i: d => `${d.Seattle} + ${d.Chicago}`
   })
-  // .derive({
-  //   b: d => d.Seattle + d.Chicago,
-  //   c: d => d.Chicago,
-  //   d: _ => _,
-  //   e: d => (d.Seattle > 10 ? 'hi' : 'test') === 'hi',
-  //   // f: d => {  // will not support
-  //   //   let a = 10;
-  //   //   const b = 20;
-  //   //   return d.Seattle > a || d.Chicago > b;
-  //   // },
-  //   g: op.row_number(),
-  //   h: d => d['Seattle'] > 10
-  // });
   .filter(d => d.Seattle > 100)
   .groupby({key: d => d.Seattle + d.Chicago})
+  .rollup({a: d => op.max(d.key)})
   .orderby(desc(d => d.Seattle))
   .orderby('Seattle', desc(d => d['Chicago']))
   .orderby(desc('Chicago'))
 
-console.log(JSON.stringify(out.toAST(), null, 2));
+// console.log(JSON.stringify(out.toAST(), null, 2));
 
 // walk_ast(out.toAST(), {}, {});
-// console.log(JSON.stringify(out.toAST().verbs.map(v => v.values.map(vv => toSql(vv))), null, 2));
+console.log(JSON.stringify(out.toAST().verbs.map(v => v.values.map(vv => toSql(vv))), null, 2));
