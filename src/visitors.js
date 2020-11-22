@@ -2,9 +2,25 @@ export const visit = (node, opt) => {
   return visitors[node.type](node, opt);
 };
 
+const binary = (node, opt) => {
+  return '(' + visit(node.left, opt) + node.operator + visit(node.right, opt) + ')';
+};
+
+const func = (node, opt) => {
+  return '(' + list(node.params, opt) + ')=>' + visit(node.body, opt);
+};
+
+const call = (node, opt) => {
+  return visit(node.callee, opt) + '(' + list(node.arguments, opt) + ')';
+};
+
+const list = (array, opt, delim=',') => {
+  return array.map(node => visit(node, opt)).join(delim);
+};
+
 const visitors = {
   Column: (node, opt) => {
-    if (table) throw new Error("table is not supported");
+    if (node.table) throw new Error("table is not supported");
     if (opt && 'index' in opt) throw new Error("row is not supported");
     return node.name;
   },
@@ -13,7 +29,11 @@ const visitors = {
     // return node.raw;
   },
   Function: node => {
-    throw new Error("TODO: implement Function visitor: " + JSON.stringify(node));
+    // throw new Error("TODO: implement Function visitor: " + JSON.stringify(node));
+    const {name} = node;
+    switch (name) {
+      case 'row_number': return 'ROW_NUMBER';
+    }
     // return `fn.${node.name}`;
   },
   Parameter: node => {
@@ -44,82 +64,111 @@ const visitors = {
     return 'CONCAT(' + t + ')';
   },
   MemberExpression: (node, opt) => {
-    const d = !node.computed;
-    const o = visit(node.object, opt);
-    const p = visit(node.property, opt);
-    return o + (d ? '.' + p : '[' + p + ']');
+    throw new Error("TODO: implement MemberExpression visitor: " + JSON.stringify(node));
+    // const d = !node.computed;
+    // const o = visit(node.object, opt);
+    // const p = visit(node.property, opt);
+    // return o + (d ? '.' + p : '[' + p + ']');
   },
   CallExpression: call,
-  NewExpression: (node, opt) => {
-    return 'new ' + call(node, opt);
+  NewExpression: node => {
+    throw new Error("NewExpression is not supported: " + JSON.stringify(node));
   },
   ArrayExpression: (node, opt) => {
-    return '[' + list(node.elements, opt) + ']';
+    throw new Error("ArrayExpression is not supported: " + JSON.stringify(node));
+    // return '[' + list(node.elements, opt) + ']';
   },
-  AssignmentExpression: binary,
+  AssignmentExpression: node => {
+    throw new Error("AssignmentExpression is not supported: " + JSON.stringify(node));
+  },
   BinaryExpression: binary,
   LogicalExpression: binary,
   UnaryExpression: (node, opt) => {
     return '(' + node.operator + visit(node.argument, opt) + ')';
   },
   ConditionalExpression: (node, opt) => {
-    return '(' + visit(node.test, opt) +
-      '?' + visit(node.consequent, opt) +
-      ':' + visit(node.alternate, opt) + ')';
+    return 'IF(' + visit(node.test, opt) +
+      ',' + visit(node.consequent, opt) +
+      ',' + visit(node.alternate, opt) + ')';
   },
   ObjectExpression: (node, opt) => {
-    return '({' + list(node.properties, opt) + '})';
+    throw new Error("ObjectExpression is not supported: " + JSON.stringify(node));
+    // return '({' + list(node.properties, opt) + '})';
   },
   Property: (node, opt) => {
-    return visit(node.key, opt) + ':' + visit(node.value, opt);
+    throw new Error("Property is not supported: " + JSON.stringify(node));
+    // return visit(node.key, opt) + ':' + visit(node.value, opt);
   },
 
-  ArrowFunctionExpression: func,
-  FunctionExpression: func,
-  FunctionDeclaration: func,
+  ArrowFunctionExpression: (node, opt) => {
+    throw new Error("TODO: implement ArrowFunctionExpression visitor: " + JSON.stringify(node));
+    // return func(node, opt);
+  },
+  FunctionExpression: (node, opt) => {
+    throw new Error("TODO: implement FunctionExpression visitor: " + JSON.stringify(node));
+    // return func(node, opt);
+  },
+  FunctionDeclaration: (node, opt) => {
+    throw new Error("TODO: implement FunctionDeclaration visitor: " + JSON.stringify(node));
+    // return func(node, opt);
+  },
 
   ArrayPattern: (node, opt) => {
-    return '[' + list(node.elements, opt) + ']';
+    throw new Error("ArrayPattern is not supported: " + JSON.stringify(node));
+    // return '[' + list(node.elements, opt) + ']';
   },
   ObjectPattern: (node, opt) => {
-    return '{' + list(node.properties, opt) + '}';
+    throw new Error("ObjectPattern is not supported: " + JSON.stringify(node));
+    // return '{' + list(node.properties, opt) + '}';
   },
   VariableDeclaration: (node, opt) => {
-    return node.kind + ' ' + list(node.declarations, opt, ',');
+    throw new Error("VariableDeclaration is not supported: " + JSON.stringify(node));
+    // return node.kind + ' ' + list(node.declarations, opt, ',');
   },
   VariableDeclarator: (node, opt) => {
-    return visit(node.id, opt) + '=' + visit(node.init, opt);
+    throw new Error("VariableDeclarator is not supported: " + JSON.stringify(node));
+    // return visit(node.id, opt) + '=' + visit(node.init, opt);
   },
   SpreadElement: (node, opt) => {
-    return '...' + visit(node.argument, opt);
+    throw new Error("SpreadElement is not supported: " + JSON.stringify(node));
+    // return '...' + visit(node.argument, opt);
   },
 
   BlockStatement: (node, opt) => {
-    return '{' + list(node.body, opt, ';') + ';}';
+    throw new Error("BlockStatement is not supported: " + JSON.stringify(node));
+    // return '{' + list(node.body, opt, ';') + ';}';
   },
   BreakStatement: () => {
-    return 'break';
+    throw new Error("BreakStatement is not supported: " + JSON.stringify(node));
+    // return 'break';
   },
   ExpressionStatement: (node, opt) => {
     return visit(node.expression, opt);
   },
   IfStatement: (node, opt) => {
-    return 'if (' + visit(node.test, opt) + ')'
-      + visit(node.consequent, opt)
-      + (node.alternate ? ' else ' + visit(node.alternate, opt) : '');
+    throw new Error("IfStatement is not supported: " + JSON.stringify(node));
+    // return 'if (' + visit(node.test, opt) + ')'
+    //   + visit(node.consequent, opt)
+    //   + (node.alternate ? ' else ' + visit(node.alternate, opt) : '');
   },
   SwitchStatement: (node, opt) => {
-    return 'switch (' + visit(node.discriminant, opt) + ') {'
-     + list(node.cases, opt, '')
-     + '}';
+    throw new Error("SwitchStatement is not supported: " + JSON.stringify(node));
+    // return 'switch (' + visit(node.discriminant, opt) + ') {'
+    //  + list(node.cases, opt, '')
+    //  + '}';
   },
   SwitchCase: (node, opt) => {
-    return (node.test ? 'case ' + visit(node.test, opt) : 'default')
-      + ': '
-      + list(node.consequent, opt, ';') + ';';
+    throw new Error("SwitchCase is not supported: " + JSON.stringify(node));
+    // return (node.test ? 'case ' + visit(node.test, opt) : 'default')
+    //   + ': '
+    //   + list(node.consequent, opt, ';') + ';';
   },
   ReturnStatement: (node, opt) => {
-    return 'return ' + visit(node.argument, opt);
+    throw new Error("ReturnStatement is not supported: " + JSON.stringify(node));
+    // return 'return ' + visit(node.argument, opt);
   },
-  Program: (node, opt) => visit(node.body[0], opt)
+  Program: (node, opt) => {
+    throw new Error("Program is not supported: " + JSON.stringify(node));
+    // return visit(node.body[0], opt)
+  }
 };
