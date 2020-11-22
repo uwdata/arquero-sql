@@ -1,0 +1,14 @@
+{
+  "name": "arquero-sql",
+  "version": "1.0.0",
+  "description": "A translator for Arquero queries to SQLs",
+  "main": "index.js",
+  "contributors": [
+    "Chanwut (Mick) Kittivorawong <chanwutk@gmail.com>",
+    "Yiming (Mike) Huang <yhuang27@uw.edu>"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "arquero": "^1.0.0"
+  }
+}
