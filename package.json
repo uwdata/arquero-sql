@@ -8,7 +8,21 @@
     "Yiming (Mike) Huang <yhuang27@uw.edu>"
   ],
   "license": "MIT",
+  "scripts": {
+    "prebuild": "rimraf dist && mkdir dist",
+    "build": "rollup -c",
+    "test": "TZ=America/Los_Angeles tape 'test/**/*-test.js' --require esm"
+  },
   "dependencies": {
     "arquero": "^1.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^10.0.0",
+    "mkdirp": "^1.0.4",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.33.3",
+    "rollup-plugin-bundle-size": "1.0.3",
+    "tape": "^5.0.1"
   }
 }
