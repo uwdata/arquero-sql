@@ -21,19 +21,17 @@ const list = (array, opt, tables, delim=',') => {
 const visitors = {
   Column: (node, opt, tables) => {
     if (opt && 'index' in opt) throw new Error("row is not supported");
-    return `${node.table ? (tables[node.table] + '.') : ''}${node.name}`;
+    return `${node.table && tables ? (tables[node.table] + '.') : ''}${node.name}`;
   },
   Constant: node => {
     throw new Error("TODO: implement Constant visitor: " + JSON.stringify(node));
     // return node.raw;
   },
   Function: node => {
-    // throw new Error("TODO: implement Function visitor: " + JSON.stringify(node));
-    const {name} = node;
-    switch (name) {
+    switch (node.name) {
       case 'row_number': return 'ROW_NUMBER';
+      case 'mean': return 'AVG';
     }
-    // return `fn.${node.name}`;
   },
   Parameter: node => {
     throw new Error("TODO: implement Parameter visitor: " + JSON.stringify(node));
@@ -53,12 +51,12 @@ const visitors = {
   },
   Literal: node => node.raw,
   Identifier: node => node.name,
-  TemplateLiteral: (node, opt) => {
+  TemplateLiteral: (node, opt, tables) => {
     const { quasis, expressions } = node;
     const n = expressions.length;
     let t = '"' + quasis[0].value.raw + '"';
     for (let i = 0; i < n;) {
-      t += ', ' + visit(expressions[i], opt) + ', "' + quasis[++i].value.raw + '"';
+      t += ', ' + visit(expressions[i], opt, tables) + ', "' + quasis[++i].value.raw + '"';
     }
     return 'CONCAT(' + t + ')';
   },
@@ -82,13 +80,13 @@ const visitors = {
   },
   BinaryExpression: binary,
   LogicalExpression: binary,
-  UnaryExpression: (node, opt) => {
-    return '(' + node.operator + visit(node.argument, opt) + ')';
+  UnaryExpression: (node, opt, tables) => {
+    return '(' + node.operator + visit(node.argument, opt, tables) + ')';
   },
-  ConditionalExpression: (node, opt) => {
-    return 'IF(' + visit(node.test, opt) +
-      ',' + visit(node.consequent, opt) +
-      ',' + visit(node.alternate, opt) + ')';
+  ConditionalExpression: (node, opt, tables) => {
+    return 'IF(' + visit(node.test, opt, tables) +
+      ',' + visit(node.consequent, opt, tables) +
+      ',' + visit(node.alternate, opt, tables) + ')';
   },
   ObjectExpression: (node, opt) => {
     throw new Error("ObjectExpression is not supported: " + JSON.stringify(node));
@@ -142,7 +140,7 @@ const visitors = {
     // return 'break';
   },
   ExpressionStatement: (node, opt) => {
-    return visit(node.expression, opt);
+    return visit(node.expression, opt, tables);
   },
   IfStatement: (node, opt) => {
     throw new Error("IfStatement is not supported: " + JSON.stringify(node));
