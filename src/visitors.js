@@ -1,28 +1,27 @@
-export const visit = (node, opt) => {
-  return visitors[node.type](node, opt);
+export const visit = (node, opt, tables) => {
+  return visitors[node.type](node, opt, tables);
 };
 
-const binary = (node, opt) => {
-  return '(' + visit(node.left, opt) + node.operator + visit(node.right, opt) + ')';
+const binary = (node, opt, tables) => {
+  return '(' + visit(node.left, opt, tables) + node.operator + visit(node.right, opt, tables) + ')';
 };
 
-const func = (node, opt) => {
-  return '(' + list(node.params, opt) + ')=>' + visit(node.body, opt);
+const func = (node, opt, tables) => {
+  return '(' + list(node.params, opt, tables) + ')=>' + visit(node.body, opt, tables);
 };
 
-const call = (node, opt) => {
-  return visit(node.callee, opt) + '(' + list(node.arguments, opt) + ')';
+const call = (node, opt, tables) => {
+  return visit(node.callee, opt, tables) + '(' + list(node.arguments, opt, tables) + ')';
 };
 
-const list = (array, opt, delim=',') => {
-  return array.map(node => visit(node, opt)).join(delim);
+const list = (array, opt, tables, delim=',') => {
+  return array.map(node => visit(node, opt, tables)).join(delim);
 };
 
 const visitors = {
-  Column: (node, opt) => {
-    if (node.table) throw new Error("table is not supported");
+  Column: (node, opt, tables) => {
     if (opt && 'index' in opt) throw new Error("row is not supported");
-    return node.name;
+    return `${node.table ? (tables[node.table] + '.') : ''}${node.name}`;
   },
   Constant: node => {
     throw new Error("TODO: implement Constant visitor: " + JSON.stringify(node));

@@ -7,7 +7,22 @@ const dt = table({
   'San Francisco': [165,182,251,281,314,330,300,272,267,243,189,156]
 });
 
-// dt.print();
+// dt.derive({d: d => op.mean(d.Chicago)}).print()
+
+dt
+  .filter(d => op.mean(d.Chicago) > 140)  // is not allowed in SQL
+  .groupby({key: d => d.Seattle > 100, S: d => d.Seattle}, 'Seattle')
+  // .derive({k: d => d.Chicago + 10})
+  // .filter(d => op.mean(d.Chicago) > 140)  // should becomes "having"
+  // .filter(d => d.Chicago > 200) // tricky case -> should becomes "where"
+  // .select('key')
+  .rollup({mean_chicago: d => op.mean(d.Chicago)})
+  .print();
+
+dt
+  .filter(d => d.Seattle > 100)
+  .orderby('Chicago')
+  .select('Seattle')
 
 function dd(d) {
   return d.Seattle * d.Chicago
@@ -34,14 +49,16 @@ const out = qb
   .filter(d => d.Seattle > 100)
   .groupby('Seattle', 'Chicago')
   .groupby({key: d => d.Seattle + d.Chicago})
-  .rollup({a: d => op.max(d.key + d.key2)})
-  .rollup({b: op.mean('Seattle')})
-  .rollup({c: op.count()})
-  .count({as: 'c'})
-  .count()
-  .orderby(desc(d => d.Seattle))
-  .orderby('Seattle', desc(d => d['Chicago']))
-  .orderby(desc('Chicago'))
+  .groupby({key: d => d.Seattle + d.Chicago, k: d => d.Seattle}, 'Seattle')
+  // .rollup({a: d => op.max(d.key + d.key2)})
+  // .rollup({b: op.mean('Seattle')})
+  // .rollup({c: op.count()})
+  // .count({as: 'c'})
+  // .count()
+  // .orderby(desc(d => d.Seattle))
+  // .orderby('Seattle', desc(d => d['Chicago']))
+  // .orderby(desc('Chicago'))
+  .join((new QueryBuilder("test")), (a, b) => op.equal(a.Seattle, b.Chicago), ['test1'])
 
 console.log(JSON.stringify(out.toAST(), null, 2));
 
@@ -59,3 +76,11 @@ console.log(JSON.stringify(out.toAST(), null, 2));
 //       }), {})
 //   }
 // }), null, 2));
+
+// const out2 = qb
+//   .filter(d => d.Seattle > 100)
+//   .groupby('Seattle')
+//   .rollup({max_Chicago: d => op.max(d.Chicago)})
+//   .orderby(desc(d => d.Seattle))
+//   .join((new QueryBuilder("test")), (a, b) => op.equal(a.Seattle, b.Chicago), ['test1'])
+// console.log(JSON.stringify(out.toAST(), null, 2));
