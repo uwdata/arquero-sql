@@ -29,8 +29,37 @@ export class SqlQuery {
   }
 
   toSql() {
-    let ret = "";
-    Object.keys(this._clauses).forEach(key => {
-    });
+    let ret = ""
+      if (this._clauses.select)ret += 'SELECT ' +
+          this._clauses.select.toAST().columns.map(c => toSql(c)).join(", ") + "\n"
+
+      if (this._clauses.join) ret += 'FROM' + '(' + this._source.toSql() + ')' + 'JOIN' +
+          toSql(this._clauses.join.toAST()) + 'ON' + toSql(this._clauses.join.on.toAST()) +
+          toSql(this._clauses.join.values)
+
+      if (!this._clauses.join) ret += 'FROM' + '(' +
+          (typeof this._source === 'string' ? this._source : this._source.toSql()) + ')' + "\n"
+
+      if (this._clauses.where){ret += 'WHERE ' +
+          this._clauses.where.map(c => toSql(c.toAST().criteria)).join(" AND ") + "\n"
+      }
+
+      if (this._clauses.groupby) ret += 'GROUP BY ' +
+          this._clauses.groupby.toAST().keys.map(c => toSql(c)).join(", ") + "\n"
+
+      if (this._clauses.having) ret += 'HAVING' +
+          this._clauses.having.map(verb =>
+              toSql(verb.toAST().criteria)).join(" AND ") + "\n"
+
+      if (this._clauses.orderby) ret += 'ORDER BY ' +
+          (this._clauses.orderby.toAST().keys.map(c => toSql(c)).join(", "))+ "\n"
+
+      // TODO: what to deal with tablerefList type
+      if (this._clauses.union) ret += 'UNION ' +
+          this._clauses.union.map(c => c.tables).join(" UNION ") + "\n"
+
+      if (this._clauses.intersect) ret += 'INTERSECT' +
+          this._clauses.intersect.toAST().tables.map(c => toSql(c)).join(" AND ")
+    return ret
   }
 }
