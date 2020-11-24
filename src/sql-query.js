@@ -28,22 +28,6 @@ export class SqlQuery {
     this._schema = schema;
   }
 
-  append(clauses_fn, schema_fn) {
-    return new SqlQuery(
-      this._source,
-      clauses_fn(this._clauses),
-      schema_fn(this._schema),
-    );
-  }
-
-  wrap(clauses_fn, schema_fn) {
-    return new SqlQuery(
-      this,
-      clauses_fn(this._clauses),
-      schema_fn(this._schema),
-    );
-  }
-
   toSql() {
     let ret = "";
     Object.keys(this._clauses).forEach(key => {
