@@ -1,4 +1,4 @@
-const {table, internal: {QueryBuilder}, op, desc} = require('arquero');
+const {table, internal: {QueryBuilder}, op, not, desc, all} = require('arquero');
 const {toSql} = require('./dist/arquero-sql');
 
 const dt = table({
@@ -23,6 +23,8 @@ dt
   .filter(d => d.Seattle > 100)
   .orderby('Chicago')
   .select('Seattle')
+  .lookup(dt, ['Seattle', 'Seattle'], [not('Chicago')])
+  .print()
 
 function dd(d) {
   return d.Seattle * d.Chicago
@@ -58,7 +60,8 @@ const out = qb
   // .orderby(desc(d => d.Seattle))
   // .orderby('Seattle', desc(d => d['Chicago']))
   // .orderby(desc('Chicago'))
-  .join((new QueryBuilder("test")), (a, b) => op.equal(a.Seattle, b.Chicago), ['test1'])
+  .lookup((new QueryBuilder("test")), (a, b) => op.equal(a.Seattle, b.Chicago), [not('test1')])
+  .select(not('col1', not('col2')), 'col2')
 
 console.log(JSON.stringify(out.toAST(), null, 2));
 
