@@ -27,6 +27,7 @@ dt
   .derive({ Chicago: d => 2, Seattle: d => 1})
   // .lookup(dt.derive({Seattle1: d => d.Seattle + 1000}), ['Chicago', 'Chicago'], ['Seattle1'])
   // .select(not(not('Seattle')), 'Chicago', 'Seattle')
+  .dedupe({Seattle: d => d.Chicago})
   .print()
 
 console.log(Verbs.select('d', 'ddd', all()).toAST())
@@ -67,9 +68,13 @@ const out = qb
   // .orderby(desc('Chicago'))
   // .lookup("hi", (a, b) => op.equal(a.Seattle, b.Chicago), [not('test1')])
   // .select(all())
-  .sample(5, {replace: true})
+  // .sample(5, {replace: true})
+  // .dedupe('a')
+  // .dedupe({abd: d => d.b})
+  // .concat('test2')
+  // .count({as: 'jk'})
 
-console.log(JSON.stringify(out.toAST(), null, 2));
+console.log(JSON.stringify(out.toAST(), null, 3));
 
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
 // // v.values.map(vv => toSql(vv))
