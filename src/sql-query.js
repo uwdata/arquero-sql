@@ -6,7 +6,7 @@ export class SqlQuery {
    * @param {object} clauses object of sql verbs
    */
   constructor(source, clauses, schema) {
-    this._source = source;
+    this._source = typeof source === 'string' ? {name: source, toSql: () => source} : source;
     /**
      * {
      *   select: Verbs.select,
