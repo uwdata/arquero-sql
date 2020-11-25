@@ -1,5 +1,9 @@
-const {table, internal: {QueryBuilder}, op, not, desc, all} = require('arquero');
+//import {SqlQuery} from "./src/sql-query";
+//import {Verbs} from "arquero/src/query/verb";
+
+const {table, internal: {QueryBuilder, Verbs}, op, not, desc, all} = require('arquero');
 const {toSql} = require('./dist/arquero-sql');
+const {SqlQuery} = require('./dist/arquero-sql');
 
 const dt = table({
   'Seattle': [69,108,178,207,253,268,312,281,221,142,72,52],
@@ -87,3 +91,11 @@ console.log(JSON.stringify(out.toAST(), null, 2));
 //   .orderby(desc(d => d.Seattle))
 //   .join((new QueryBuilder("test")), (a, b) => op.equal(a.Seattle, b.Chicago), ['test1'])
 // console.log(JSON.stringify(out.toAST(), null, 2));
+
+const sqlQuery = new SqlQuery(
+    'table',
+    {union: Verbs.union(['other1', 'others'])},
+    'foo'
+)
+
+console.log(sqlQuery.toSql());
