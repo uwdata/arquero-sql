@@ -1,36 +1,62 @@
 import { SqlQuery } from "./sql-query";
+import {EXCEPT, INTERSECT, ORDERBY} from './constants';
 
 /*
 SQL execution order:
-- from / join
-- where
-- group by
-- having
-- select
-- distinct
-- order by
-- limit / offset
+  - from / join
+  - where
+  - group by
+  - having
+  - select
+  - distinct
+  - order by
+  - limit / offset
 */
 
-const EXEC_ORDER = [
-  'where',
-  'groupby',
-  'having',
-  'join',  // joining in arquero includes select, always wrap?
-  'derive', // same as select?
-  'select',
-  'orderby',
-  'dedupe',
-  'sample', // sample includes limit + order, always wrap?
+const SET_OPS = [CONCAT, UNION, INTERSECT, EXCEPT];
 
-  // always wrap
-  'concat',
-  'union',
-  'intersect',
-  'except'
-]
+const CONFLICTS = {
+  derive: [ORDERBY, SAMPLE, ...SET_OPS],
+  filter: [SELECT, ORDERBY, SAMPLE, ...SET_OPS],
+  groupby: [GROUPBY, SELECT, ORDERBY, SAMPLE, ...SET_OPS],
+  select: [SELECT, ORDERBY, SAMPLE, ...SET_OPS],
+  orderby: [ORDERBY, SAMPLE, ...SET_OPS],
+  dedupe: [ORDERBY, SAMPLE, ...SET_OPS],
+}
+
+function newSchema(oldSchema, selection) {
+  
+}
 
 export class SqlQueryBuilder extends SqlQuery {
+  constructor(source, clauses, schema) {
+    super(source, clauses, schema);
+  }
+
+  append(clauses_fn, schema_fn) {
+    return new SqlQueryBuilder(
+      this._source,
+      clauses_fn(this._clauses),
+      schema_fn(this._schema),
+    );
+  }
+
+  wrap(clauses_fn, schema_fn) {
+    return new SqlQueryBuilder(
+      this,
+      clauses_fn(this._clauses),
+      schema_fn(this._schema),
+    );
+  }
+
+  /**
+   * check if current clauses have conflicts
+   * @param {string[]} conflicts list of conflicting clauses
+   */
+  hasConflict(conflicts) {
+    return Object.keys(this._clauses).some(clause => conflicts.includes(clause));
+  }
+
   derive(verb) {
     // return this.new_query(
     //   verbs => ({...verbs, derive: [...(this._verbs.derive || []), verb]}),
@@ -45,32 +71,21 @@ export class SqlQueryBuilder extends SqlQuery {
     }
   }
 
-  append(clauses_fn, schema_fn) {
-    return new SqlQuery(
-      this._source,
-      clauses_fn(this._clauses),
-      schema_fn(this._schema),
-    );
-  }
-
-  wrap(clauses_fn, schema_fn) {
-    return new SqlQuery(
-      this,
-      clauses_fn(this._clauses),
-      schema_fn(this._schema),
-    );
-  }
-
   filter(verb) {
 
   }
 
   groupby(verb) {
+    // TODO: if groupby has expression, need to desugar to derive -> groupby
 
   }
 
   orderby(verb) {
-
+    if (this.hasConflict(CONFLICTS.orderby)) {
+      return this.wrap(() => ({orderby: verb}), schema => schema);
+    } else {
+      return this.append(clauses => ({...clauses, orderby: verb}), schema => schema);
+    }
   }
 
   rollup(verb) {
@@ -82,24 +97,45 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   sample(verb) {
+    return this.wrap(() => ({sample: verb}), schema => schema)
   }
 
   select(verb) {
-
+    const fields = verbs.toAST().conlumns;
+    if (this.hasConflict(CONFLICTS.select)) {
+      return this.wrap(() => ({select: verb}), () => ({fields}));
+    } else {
+      return this.append(clauses => ({...clauses, select: verb}), schema => ({fields}));
+    }
   }
 
   lookup(verb) {
-    // always create new query when lookup / join
-    // TODO: do we need to wrap in another new query??
-    return new SqlQuery(
-      this,
-      {join: verb},
-      {fields: [...this._schema.fields, /* from other talbe */verb]}
-    )
+    return this.wrap(
+      () => ({join: verb}),
+      schema => schema && ({
+        ...schema,
+        fields: [
+          ...schema.fields,
+          // TODO: need to support field names with expressions (not, all)
+          verb.toAST().values.map(value => value.name)
+        ]
+      })
+    );
   }
 
   dedupe(verb) {
-
+    // TODO: if dedupe has expression, need to desugar to derive -> dedupe -> select
+    if (this.hasConflict(CONFLICTS.dedupe)) {
+      return this.wrap((() => ({dedupe: [verb]}), schema => schema))
+    } else {
+      return this.append(clauses => ({
+        ...clauses, 
+        dedupe: [
+          ...('dedupe' in clauses ? clauses.dedupe : []),
+          verb
+        ]
+      }), schema => schema)
+    }
   }
 
   concat(verb) {
