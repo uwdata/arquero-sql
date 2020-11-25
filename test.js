@@ -66,8 +66,9 @@ const out = qb
   // .orderby(desc('Chicago'))
   // .lookup("hi", (a, b) => op.equal(a.Seattle, b.Chicago), [not('test1')])
   // .select(all())
+  .sample(5, {replace: true})
 
-// console.log(JSON.stringify(out.toAST(), null, 2));
+console.log(JSON.stringify(out.toAST(), null, 2));
 
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
 // // v.values.map(vv => toSql(vv))
