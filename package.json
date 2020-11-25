@@ -11,7 +11,8 @@
   "scripts": {
     "prebuild": "rimraf dist && mkdir dist",
     "build": "rollup -c",
-    "test": "TZ=America/Los_Angeles tape 'test/**/*-test.js' --require esm"
+    "test": "TZ=America/Los_Angeles tape 'test/**/*-test.js' --require esm",
+    "format": "prettier 'src/**/*.js' --write"
   },
   "dependencies": {
     "arquero": "^1.0.0"
