@@ -1,6 +1,3 @@
-//import {SqlQuery} from "./src/sql-query";
-//import {Verbs} from "arquero/src/query/verb";
-
 const {table, internal: {QueryBuilder, Verbs}, op, not, desc, all} = require('arquero');
 const {toSql} = require('./dist/arquero-sql');
 const {SqlQuery} = require('./dist/arquero-sql');
@@ -26,9 +23,13 @@ dt
 dt
   .filter(d => d.Seattle > 100)
   .orderby('Chicago')
-  .select('Seattle')
-  .lookup(dt, ['Seattle', 'Seattle'], [not('Chicago')])
+  // .select('Seattle')
+  .derive({ Chicago: d => 2, Seattle: d => 1})
+  // .lookup(dt.derive({Seattle1: d => d.Seattle + 1000}), ['Chicago', 'Chicago'], ['Seattle1'])
+  // .select(not(not('Seattle')), 'Chicago', 'Seattle')
   .print()
+
+console.log(Verbs.select('d', 'ddd', all()).toAST())
 
 function dd(d) {
   return d.Seattle * d.Chicago
@@ -50,12 +51,12 @@ const out = qb
     // },
     g: op.row_number(),
     h: d => d['Seattle'] > 10,
-    i: d => `${d.Seattle} + ${d.Chicago}`
+    i: d => `${d.Seattle} + ${d.Chicago}`,
   })
-  .filter(d => d.Seattle > 100)
-  .groupby('Seattle', 'Chicago')
-  .groupby({key: d => d.Seattle + d.Chicago})
-  .groupby({key: d => d.Seattle + d.Chicago, k: d => d.Seattle}, 'Seattle')
+  // .filter(d => d.Seattle > 100)
+  // .groupby('Seattle', 'Chicago')
+  // .groupby({key: d => d.Seattle + d.Chicago})
+  // .groupby({key: d => d.Seattle + d.Chicago, k: d => d.Seattle}, 'Seattle')
   // .rollup({a: d => op.max(d.key + d.key2)})
   // .rollup({b: op.mean('Seattle')})
   // .rollup({c: op.count()})
@@ -64,10 +65,10 @@ const out = qb
   // .orderby(desc(d => d.Seattle))
   // .orderby('Seattle', desc(d => d['Chicago']))
   // .orderby(desc('Chicago'))
-  .lookup((new QueryBuilder("test")), (a, b) => op.equal(a.Seattle, b.Chicago), [not('test1')])
-  .select(not('col1', not('col2')), 'col2')
+  // .lookup("hi", (a, b) => op.equal(a.Seattle, b.Chicago), [not('test1')])
+  // .select(all())
 
-console.log(JSON.stringify(out.toAST(), null, 2));
+// console.log(JSON.stringify(out.toAST(), null, 2));
 
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
 // // v.values.map(vv => toSql(vv))
