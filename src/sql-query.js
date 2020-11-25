@@ -1,3 +1,5 @@
+import {toSql} from "./to-sql";
+
 export class SqlQuery {
 
   /**
@@ -55,11 +57,17 @@ export class SqlQuery {
           (this._clauses.orderby.toAST().keys.map(c => toSql(c)).join(", "))+ "\n"
 
       // TODO: what to deal with tablerefList type
-      if (this._clauses.union) ret += 'UNION ' +
-          this._clauses.union.map(c => c.tables).join(" UNION ") + "\n"
+      if (this._clauses.union) ret += 'UNION \nSELECT * FROM\n ' +
+          this._clauses.union.toAST().tables.map(c => c).
+          join("\nUNION \nSELECT * FROM \n") + "\n"
 
-      if (this._clauses.intersect) ret += 'INTERSECT' +
-          this._clauses.intersect.toAST().tables.map(c => toSql(c)).join(" AND ")
+      if (this._clauses.intersect) ret += 'INTERSECT \nSELECT * FROM\n ' +
+          this._clauses.intersect.toAST().tables.map(c => c).
+          join("\nINTERSECT \nSELECT * FROM \n") + "\n"
+
+    if (this._clauses.except) ret += 'EXCEPT \nSELECT * FROM\n ' +
+        this._clauses.intersect.toAST().tables.map(c => c).
+        join("\nEXCEPT \nSELECT * FROM \n") + "\n"
     return ret
   }
 }
