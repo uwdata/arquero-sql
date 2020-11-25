@@ -133,5 +133,5 @@ const visitors = {
   },
   Program: node => {
     throw new Error('Program is not supported: ' + JSON.stringify(node));
-  }
+  },
 };
