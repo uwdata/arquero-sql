@@ -49,6 +49,10 @@ function newSchema(oldSchema, selection) {
   return fields.filter((f, index) => fields.indexOf(f) === index);
 }
 
+function verbToAST(verb) {
+  return typeof verb.toAST === 'function' ? verb.toAST() : verb;
+}
+
 export class SqlQueryBuilder extends SqlQuery {
   constructor(source, clauses, schema) {
     super(source, clauses, schema);
@@ -79,8 +83,9 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   derive(verb) {
+    verb = verbToAST(verb);
     // TODO: check if derive does not have aggregated function
-    const newFields = verb.toAST().values;
+    const newFields = verb.values;
     const toKeep = newFields.map(() => true);
     return this.wrap(
       () => schema
@@ -100,27 +105,33 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   filter(verb) {
-
+    verb = verbToAST(verb);
+    throw new Error("TODO: implement filter");
   }
 
   groupby(verb) {
+    verb = verbToAST(verb);
     // TODO: if groupby has expression, need to desugar to derive -> groupby
-
+    throw new Error("TODO: implement groupby");
   }
 
   rollup(verb) {
-
+    verb = verbToAST(verb);
+    throw new Error("TODO: implement rollup");
   }
 
   count(verb) {
-
+    verb = verbToAST(verb);
+    return this.rollup(Verbs.rollup({[('options' in verb && verb.options.as) || 'count']: op.count()}))
   }
 
   orderby(verb) {
+    verb = verbToAST(verb);
     return this.wrap(() => ({orderby: verb}), schema => schema);
   }
 
   sample(verb) {
+    verb = verbToAST(verb);
     if ('options' in verb && verb.options.replace) {
       throw new Error("sample does not support replace");
     }
@@ -136,53 +147,67 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   select(verb) {
-    const fields = newSchema(this._schema, verbs.toAST().columns);
-    if (this.hasConflict(CONFLICTS.select)) {
-      return this.wrap(() => ({select: verb}), () => fields);
-    } else {
-      return this.append(clauses => ({...clauses, select: verb}), () => fields);
-    }
-  }
-
-  lookup(verb) {
+    verb = verbToAST(verb);
     return this.wrap(
-      () => ({join: verb}),
-      schema => schema && [
-        ...schema,
-        newSchema(verb.table._schema, verb.toAST().values)
-          .filter(f => schema.includes(f))
-      ]
+      () => ({select: verb.columns}),
+      () => newSchema(this._schema, verb.columns),
     );
   }
 
+  join(verb) {
+    verb = verbToAST(verb);
+    throw new Error("TODO: implement join");
+    // return this.wrap(
+    //   () => ({join: verb}),
+    //   schema => schema && [
+    //     ...schema,
+    //     newSchema(verb.table._schema, verb.toAST().values)
+    //       .filter(f => schema.includes(f))
+    //   ]
+    // );
+  }
+
   dedupe(verb) {
-    // TODO: if dedupe has expression, need to desugar to derive -> dedupe -> select
-    if (this.hasConflict(CONFLICTS.dedupe)) {
-      return this.wrap((() => ({dedupe: [verb]}), schema => schema))
+    verb = verbToAST(verb);
+    if (verb.keys.some(k => k.type !== 'Column')) {
+      const columns = verbs.keys.filter(k => k.type === 'Column');
+      const derives = verbs.keys
+        .filter(k => k.type !== 'Column')
+        .map((d, idx) => ({...d, as: `___arquero_sql_derive_tmp_${idx}___`}));
+      const deriveFields = derives.map(d => d.as);
+      return this
+        .derive({values: derives})
+        .append(
+          clauses => ({...clauses, distinct: [...columns.map(d => d.name), ...deriveFields]}),
+          schema => [...schema, ...deriveFields]
+        )
+        .select(Verbs.select(not(...deriveFields)));
     } else {
-      return this.append(clauses => ({
-        ...clauses, 
-        dedupe: [
-          ...('dedupe' in clauses ? clauses.dedupe : []),
-          verb
-        ]
-      }), schema => schema)
+      return this.wrap(
+        () => ({distinct: verb.keys.map(d => d.name)}),
+        schema => schema
+      );
     }
   }
 
   concat(verb) {
+    verb = verbToAST(verb);
+    // TODO: convert verb to SqlQuery of the table
     return this.wrap(() => ({concat: verb}), schema => schema)
   }
 
   union(verb) {
+    verb = verbToAST(verb);
     return this.wrap(() => ({union: verb}), schema => schema)
   }
 
   intersect(verb) {
+    verb = verbToAST(verb);
     return this.wrap(() => ({intersect: verb}), schema => schema)
   }
 
   except(verb) {
+    verb = verbToAST(verb);
     return this.wrap(() => ({except: verb}), schema => schema)
   }
 }
