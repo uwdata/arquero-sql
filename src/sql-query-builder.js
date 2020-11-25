@@ -1,6 +1,8 @@
 import { SqlQuery } from "./sql-query";
 import {EXCEPT, INTERSECT, ORDERBY} from './constants';
-import {internal, all} from 'arquero';
+import {internal, all, op} from 'arquero';
+
+const {Verbs} = internal;
 
 /*
 SQL execution order:
@@ -80,16 +82,16 @@ export class SqlQueryBuilder extends SqlQuery {
     // TODO: check if derive does not have aggregated function
     const newFields = verb.toAST().values;
     const toKeep = newFields.map(() => true);
-    this.wrap(
+    return this.wrap(
       () => schema
         ? ({select: [
-            ...internal.Verbs.select(schema).toAST().columns.map(column => {
+            ...Verbs.select(schema).toAST().columns.map(column => {
               const idx = newFields.find(v => v.as === column.name);
               return idx === -1 ? column : (toKeep[idx] = false, newFields[idx]);
             }),
             ...newFields.filter((_, i) => toKeep[i])
           ]})
-        : ({select: [internal.Verbs.select(all()).toAST().columns[0], ...newFields]}),
+        : ({select: [Verbs.select(all()).toAST().columns[0], ...newFields]}),
       schema => schema && [
         ...schema,
         newFields.filter((_, i) => toKeep[i]).map(f => f.as)
@@ -106,10 +108,6 @@ export class SqlQueryBuilder extends SqlQuery {
 
   }
 
-  orderby(verb) {
-    return this.wrap(() => ({orderby: verb}), schema => schema);
-  }
-
   rollup(verb) {
 
   }
@@ -118,8 +116,23 @@ export class SqlQueryBuilder extends SqlQuery {
 
   }
 
+  orderby(verb) {
+    return this.wrap(() => ({orderby: verb}), schema => schema);
+  }
+
   sample(verb) {
-    return this.wrap(() => ({sample: verb}), schema => schema)
+    if ('options' in verb && verb.options.replace) {
+      throw new Error("sample does not support replace");
+    }
+    return this
+      .derive(Verbs.derive({___arquero_sql_row_num_tmp___: op.row_number()}))
+      .append(clauses => ({
+        ...clauses,
+        orderby: Verbs.orderby(op.random()),
+        limit: verb.size
+      }))
+      .orderby(Verbs.orderby(d => d.___arquero_sql_row_num_tmp___))
+      .select(Verbs.select(not('___arquero_sql_row_num_tmp___')))
   }
 
   select(verb) {
