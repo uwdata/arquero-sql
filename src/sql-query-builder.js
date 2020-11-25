@@ -24,7 +24,7 @@ const CONFLICTS = {
   groupby: [GROUPBY, SELECT, ORDERBY, SAMPLE, ...SET_OPS],
   select: [SELECT, ORDERBY, SAMPLE, ...SET_OPS],
   orderby: [ORDERBY, SAMPLE, ...SET_OPS],
-  dedupe: [ORDERBY, SAMPLE, ...SET_OPS]
+  dedupe: [ORDERBY, SAMPLE, ...SET_OPS],
 };
 
 /**
@@ -79,17 +79,17 @@ export class SqlQueryBuilder extends SqlQuery {
               const idx = newFields.find(v => v.as === column.name);
               return idx === -1 ? column : ((toKeep[idx] = false), newFields[idx]);
             }),
-          ...newFields.filter((_, i) => toKeep[i])
-        ]
+          ...newFields.filter((_, i) => toKeep[i]),
+        ],
       };
     } else {
       clause = {
-        select: [Verbs.select(all()).toAST().columns[0], ...newFields]
+        select: [Verbs.select(all()).toAST().columns[0], ...newFields],
       };
     }
     return this._wrap(
       () => clauses,
-      schema => schema && [...schema, newFields.filter((_, i) => toKeep[i]).map(f => f.as)]
+      schema => schema && [...schema, newFields.filter((_, i) => toKeep[i]).map(f => f.as)],
     );
   }
 
@@ -114,7 +114,7 @@ export class SqlQueryBuilder extends SqlQuery {
   _orderby(verb) {
     return this._wrap(
       () => ({orderby: verb}),
-      schema => schema
+      schema => schema,
     );
   }
 
@@ -126,7 +126,7 @@ export class SqlQueryBuilder extends SqlQuery {
       ._append(clauses => ({
         ...clauses,
         orderby: Verbs.orderby(op.random()),
-        limit: verb.size
+        limit: verb.size,
       }))
       .orderby(Verbs.orderby(d => d.___arquero_sql_row_num_tmp___))
       .select(Verbs.select(not('___arquero_sql_row_num_tmp___')));
@@ -136,7 +136,7 @@ export class SqlQueryBuilder extends SqlQuery {
     return this._wrap(
       // TODO: use newSchema if possible (SQL does not have 'not')
       () => ({select: verb.columns}),
-      schema => newSchema(schema, verb.columns)
+      schema => newSchema(schema, verb.columns),
     );
   }
 
@@ -163,15 +163,15 @@ export class SqlQueryBuilder extends SqlQuery {
         ._append(
           clauses => ({
             ...clauses,
-            distinct: [...columns.map(d => d.name), ...deriveFields]
+            distinct: [...columns.map(d => d.name), ...deriveFields],
           }),
-          schema => [...schema, ...deriveFields]
+          schema => [...schema, ...deriveFields],
         )
         .select(Verbs.select(not(...deriveFields)));
     } else {
       return this._wrap(
         () => ({distinct: verb.keys.map(d => d.name)}),
-        schema => schema
+        schema => schema,
       );
     }
   }
@@ -180,28 +180,28 @@ export class SqlQueryBuilder extends SqlQuery {
     // TODO: convert verb to SqlQuery of the table
     return this._wrap(
       () => ({concat: verb}),
-      schema => schema
+      schema => schema,
     );
   }
 
   _union(verb) {
     return this._wrap(
       () => ({union: verb}),
-      schema => schema
+      schema => schema,
     );
   }
 
   _intersect(verb) {
     return this._wrap(
       () => ({intersect: verb}),
-      schema => schema
+      schema => schema,
     );
   }
 
   _except(verb) {
     return this._wrap(
       () => ({except: verb}),
-      schema => schema
+      schema => schema,
     );
   }
 
