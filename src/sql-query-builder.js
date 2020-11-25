@@ -1,5 +1,6 @@
 import { SqlQuery } from "./sql-query";
 import {EXCEPT, INTERSECT, ORDERBY} from './constants';
+import {internal, all} from 'arquero';
 
 /*
 SQL execution order:
@@ -24,8 +25,26 @@ const CONFLICTS = {
   dedupe: [ORDERBY, SAMPLE, ...SET_OPS],
 }
 
+/**
+ * 
+ * @param {object[]} oldSchema 
+ * @param {object[]} selection 
+ */
 function newSchema(oldSchema, selection) {
-  
+  const fields = selection.map(s => {
+    if (s.type === 'Selection') {
+      if (s.operator === 'not') {
+        return newSchema(oldSchema, s.arguments);
+      } else if (s.operator === 'all') {
+        return oldSchema;
+      }
+    } else if (s.type === 'Column') {
+      return s.name;
+    } else {
+      throw new Error('Selection should only contains Selection or Column but received: ', selection);
+    }
+  }).flat();
+  return fields.filter((f, index) => fields.indexOf(f) === index);
 }
 
 export class SqlQueryBuilder extends SqlQuery {
@@ -58,17 +77,24 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   derive(verb) {
-    // return this.new_query(
-    //   verbs => ({...verbs, derive: [...(this._verbs.derive || []), verb]}),
-    //   schema => schema && {
-    //     ...schema,
-    //     fields: [...schema.fields, ...verb.values.map(v => v.as)]
-    //   }
-    // )
-
-    if (this._clauses.select || this._clauses.orderby || this._clauses.sample) {
-
-    }
+    // TODO: check if derive does not have aggregated function
+    const newFields = verb.toAST().values;
+    const toKeep = newFields.map(() => true);
+    this.wrap(
+      () => schema
+        ? ({select: [
+            ...internal.Verbs.select(schema).toAST().columns.map(column => {
+              const idx = newFields.find(v => v.as === column.name);
+              return idx === -1 ? column : (toKeep[idx] = false, newFields[idx]);
+            }),
+            ...newFields.filter((_, i) => toKeep[i])
+          ]})
+        : ({select: [internal.Verbs.select(all()).toAST().columns[0], ...newFields]}),
+      schema => schema && [
+        ...schema,
+        newFields.filter((_, i) => toKeep[i]).map(f => f.as)
+      ]
+    )
   }
 
   filter(verb) {
@@ -81,11 +107,7 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   orderby(verb) {
-    if (this.hasConflict(CONFLICTS.orderby)) {
-      return this.wrap(() => ({orderby: verb}), schema => schema);
-    } else {
-      return this.append(clauses => ({...clauses, orderby: verb}), schema => schema);
-    }
+    return this.wrap(() => ({orderby: verb}), schema => schema);
   }
 
   rollup(verb) {
@@ -101,25 +123,22 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   select(verb) {
-    const fields = verbs.toAST().conlumns;
+    const fields = newSchema(this._schema, verbs.toAST().columns);
     if (this.hasConflict(CONFLICTS.select)) {
-      return this.wrap(() => ({select: verb}), () => ({fields}));
+      return this.wrap(() => ({select: verb}), () => fields);
     } else {
-      return this.append(clauses => ({...clauses, select: verb}), schema => ({fields}));
+      return this.append(clauses => ({...clauses, select: verb}), () => fields);
     }
   }
 
   lookup(verb) {
     return this.wrap(
       () => ({join: verb}),
-      schema => schema && ({
+      schema => schema && [
         ...schema,
-        fields: [
-          ...schema.fields,
-          // TODO: need to support field names with expressions (not, all)
-          verb.toAST().values.map(value => value.name)
-        ]
-      })
+        newSchema(verb.table._schema, verb.toAST().values)
+          .filter(f => schema.includes(f))
+      ]
     );
   }
 
