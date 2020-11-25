@@ -70,32 +70,27 @@ export class SqlQueryBuilder extends SqlQuery {
     );
   }
 
-  /**
-   * check if current clauses have conflicts
-   * @param {string[]} conflicts list of conflicting clauses
-   */
-  _hasConflict(conflicts) {
-    return Object.keys(this._clauses).some(clause => conflicts.includes(clause));
-  }
-
-  derive(verb) {
-    return this._derive(verb.toAST())
-  }
-
   _derive(verb) {
     // TODO: check if derive does not have aggregated function
     const newFields = verb.values;
     const toKeep = newFields.map(() => true);
+
+    let clauses;
+    if (this._schema) {
+      clauses = {
+        select: [
+          ...Verbs.select(this._schema).toAST().columns.map(column => {
+            const idx = newFields.find(v => v.as === column.name);
+            return idx === -1 ? column : (toKeep[idx] = false, newFields[idx]);
+          }),
+          ...newFields.filter((_, i) => toKeep[i])
+        ]
+      };
+    } else {
+      clause = {select: [Verbs.select(all()).toAST().columns[0], ...newFields]};
+    }
     return this._wrap(
-      () => schema
-        ? ({select: [
-            ...Verbs.select(schema).toAST().columns.map(column => {
-              const idx = newFields.find(v => v.as === column.name);
-              return idx === -1 ? column : (toKeep[idx] = false, newFields[idx]);
-            }),
-            ...newFields.filter((_, i) => toKeep[i])
-          ]})
-        : ({select: [Verbs.select(all()).toAST().columns[0], ...newFields]}),
+      () => clauses,
       schema => schema && [
         ...schema,
         newFields.filter((_, i) => toKeep[i]).map(f => f.as)
@@ -103,16 +98,8 @@ export class SqlQueryBuilder extends SqlQuery {
     )
   }
 
-  filter(verb) {
-    return this._filter(verb.toAST())
-  }
-
   _filter(verb) {
     throw new Error("TODO: implement filter");
-  }
-
-  groupby(verb) {
-    return this._groupby(verb.toAST());
   }
 
   _groupby(verb) {
@@ -120,32 +107,17 @@ export class SqlQueryBuilder extends SqlQuery {
     throw new Error("TODO: implement groupby");
   }
 
-  rollup(verb) {
-    return this._rollup(verb.toAST());
-  }
-
   _rollup(verb) {
     throw new Error("TODO: implement rollup");
   }
 
-  count(verb) {
-    return this._count(verb.toAST());
-  }
-
   _count(verb) {
-    return this.rollup(Verbs.rollup({[('options' in verb && verb.options.as) || 'count']: op.count()}))
-  }
-
-  orderby(verb) {
-    return this._orderby(verb.toAST());
+    const as = ('options' in verb && verb.options.as) || 'count';
+    return this.rollup(Verbs.rollup({[as]: op.count()}));
   }
 
   _orderby(verb) {
     return this._wrap(() => ({orderby: verb}), schema => schema);
-  }
-
-  sample(verb) {
-    return this._sample(verb.toAST());
   }
 
   _sample(verb) {
@@ -163,20 +135,12 @@ export class SqlQueryBuilder extends SqlQuery {
       .select(Verbs.select(not('___arquero_sql_row_num_tmp___')))
   }
 
-  select(verb) {
-    return this._select(verb.toAST());
-  }
-
   _select(verb) {
     return this._wrap(
       // TODO: use newSchema if possible (SQL does not have 'not')
       () => ({select: verb.columns}),
       schema => newSchema(schema, verb.columns),
     );
-  }
-
-  join(verb) {
-    return this._join(verb.toAST());
   }
 
   _join(verb) {
@@ -189,10 +153,6 @@ export class SqlQueryBuilder extends SqlQuery {
     //       .filter(f => schema.includes(f))
     //   ]
     // );
-  }
-
-  dedupe(verb) {
-    return this._dedupe(verb.toAST());
   }
 
   _dedupe(verb) {
@@ -217,36 +177,36 @@ export class SqlQueryBuilder extends SqlQuery {
     }
   }
 
-  concat(verb) {
-    return this._concat(verb.toAST());
-  }
-
   _concat(verb) {
     // TODO: convert verb to SqlQuery of the table
     return this._wrap(() => ({concat: verb}), schema => schema)
-  }
-
-  union(verb) {
-    return this._union(verb.toAST());
   }
 
   _union(verb) {
     return this._wrap(() => ({union: verb}), schema => schema)
   }
 
-  intersect(verb) {
-    return this._intersect(verb.toAST());
-  }
-
   _intersect(verb) {
     return this._wrap(() => ({intersect: verb}), schema => schema)
-  }
-
-  except(verb) {
-    return this._except(verb.toAST());
   }
 
   _except(verb) {
     return this._wrap(() => ({except: verb}), schema => schema)
   }
+
+
+  derive(verb)    { return this._derive(verb.toAST()); }
+  filter(verb)    { return this._filter(verb.toAST()); }
+  groupby(verb)   { return this._groupby(verb.toAST()); }
+  rollup(verb)    { return this._rollup(verb.toAST()); }
+  count(verb)     { return this._count(verb.toAST()); }
+  orderby(verb)   { return this._orderby(verb.toAST()); }
+  sample(verb)    { return this._sample(verb.toAST()); }
+  select(verb)    { return this._select(verb.toAST()); }
+  join(verb)      { return this._join(verb.toAST()); }
+  dedupe(verb)    { return this._dedupe(verb.toAST()); }
+  concat(verb)    { return this._concat(verb.toAST()); }
+  union(verb)     { return this._union(verb.toAST()); }
+  intersect(verb) { return this._intersect(verb.toAST()); }
+  except(verb)    { return this._except(verb.toAST()); }
 }
