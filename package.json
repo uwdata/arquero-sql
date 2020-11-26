@@ -11,7 +11,8 @@
   "scripts": {
     "prebuild": "rimraf dist && mkdir dist",
     "build": "rollup -c",
-    "test": "TZ=America/Los_Angeles tape 'test/**/*-test.js' --require esm"
+    "test": "TZ=America/Los_Angeles tape 'test/**/*-test.js' --require esm",
+    "format": "prettier 'src/**/*.js' --write"
   },
   "dependencies": {
     "arquero": "^1.0.0"
@@ -20,6 +21,7 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^10.0.0",
     "mkdirp": "^1.0.4",
+    "prettier": "^2.2.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.33.3",
     "rollup-plugin-bundle-size": "1.0.3",
