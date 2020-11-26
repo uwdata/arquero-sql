@@ -7,20 +7,19 @@ export class SqlQuery {
   constructor(source, clauses, schema) {
     this._source = typeof source === 'string' ? {name: source, toSql: () => source} : source;
     /**
-     * {
-     *   select: Verbs.select,
-     *   where: Verbs.filter[],
-     *   groupby: Verbs.groupby
-     *   having: Verbs.filter[],,
-     *   join: Verbs.join,
-     *   derive: Verbs.derive,
-     *   orderby: Verbs.orderby,
-     *   dedupe: Verbs.dedupe,
-     *   sample: Verbs.sample, // no implace -> throw error
-     *   concat: Verbs.concat,
-     *   union: Verbs.union,
-     *   intersect: Verbs.intersect,
-     *   ....
+     * clauses = {
+     *   select: expr[],
+     *   where: expr[],
+     *   groupby: Verbs.groupby??
+     *   having: expr[],
+     *   join: {table: ??, on: expr[]},
+     *   orderby: expr[],
+     *   distinct: string[],
+     *   limit: number,
+     *   concat: string[],
+     *   union: string[],
+     *   intersect: string[],
+     *   except: string[]
      * }
      */
     this._clauses = clauses || {};
