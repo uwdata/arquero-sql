@@ -12,7 +12,7 @@ export class SqlQuery {
      *   where: expr[],
      *   groupby: Verbs.groupby??
      *   having: expr[],
-     *   join: {table: ??, on: expr[]},
+     *   join: {table: ??, on: expr[], option: 'left' | 'right' | 'outer'},
      *   orderby: expr[],
      *   distinct: string[],
      *   limit: number,
