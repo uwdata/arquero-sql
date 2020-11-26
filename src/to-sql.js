@@ -1,5 +1,5 @@
-import {visit} from './visitors';
+import {genExp} from './visitors/gen-exp';
 
 export function toSql(expr, tables) {
-  return visit(expr, tables);
+  return genExp(expr, tables);
 }
