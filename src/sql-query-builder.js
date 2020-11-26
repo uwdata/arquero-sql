@@ -66,16 +66,16 @@ export class SqlQueryBuilder extends SqlQuery {
   _append(clauses, schema) {
     return new SqlQueryBuilder(
       this._source,
-      typeof clauses === 'function' ? clauses(this._clauses) : clauses,
-      typeof schema === 'function' ? schema(this._schema) : schema,
+      typeof clauses === 'function' ? clauses(this._clauses, this._schema) : clauses,
+      typeof schema === 'function' ? schema(this._schema, this._clauses) : schema,
     );
   }
 
   _wrap(clauses, schema) {
     return new SqlQueryBuilder(
       this,
-      typeof clauses === 'function' ? clauses(this._clauses) : clauses,
-      typeof schema === 'function' ? schema(this._schema) : schema,
+      typeof clauses === 'function' ? clauses(this._clauses, this._schema) : clauses,
+      typeof schema === 'function' ? schema(this._schema, this._clauses) : schema,
     );
   }
 
@@ -98,9 +98,8 @@ export class SqlQueryBuilder extends SqlQuery {
         ],
       };
     } else {
-      clause = {
-        select: [Verbs.select(all()).toAST().columns[0], ...fields],
-      };
+      const allfields = Verbs.select(all()).toAST().columns[0];
+      clauses = {select: [allfields, ...fields]};
     }
 
     const schema = this._schema && [...this._schema, fields.filter((_, i) => keep[i]).map(f => f.as)];
@@ -164,19 +163,22 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   _dedupe(verb) {
-    // TODO: need to support dedupe with 'not' and 'all'
     if (verb.keys.some(k => k.type !== 'Column' && k.type !== 'Selection')) {
+      if (!this._schema) {
+        throw new Error("Dedupe with expressions requires table's schema");
+      }
+
       const columns = verbs.keys.filter(k => k.type === 'Column' || k.type === 'Selection');
       const derives = verbs.keys
         .filter(k => k.type !== 'Column' && k.type !== 'Selection')
         .map((d, idx) => ({...d, as: `___arquero_sql_derive_tmp_${idx}___`}));
       const deriveFields = derives.map(d => d.as);
+
       return this._derive({values: derives})
         ._append(
-          clauses => ({
+          (clauses, schema) => ({
             ...clauses,
-            // TODO: use newSchema
-            distinct: [...columns.map(d => d.name), ...deriveFields],
+            distinct: [...selectFromSchema(schema, columns), ...deriveFields],
           }),
           schema => [...schema, ...deriveFields],
         )
