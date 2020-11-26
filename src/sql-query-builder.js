@@ -1,6 +1,7 @@
 import {SqlQuery} from './sql-query';
 import {EXCEPT, INTERSECT, ORDERBY} from './constants';
 import {internal, all, op} from 'arquero';
+import {selectFromSchema, isFunction} from './utils';
 
 const {Verbs} = internal;
 
@@ -27,37 +28,7 @@ const CONFLICTS = {
   dedupe: [ORDERBY, SAMPLE, ...SET_OPS],
 };
 
-/**
- *
- * @param {object} schema table schema
- * @param {object[]} selection list of expression in Verbs.select
- * @returns {string[] | null} list of selected field names
- */
-function selectFromSchema(schema, selection) {
-  if (!schema && selection.some(s => s.type === 'Selection')) {
-    // cannot resolve selection without schema
-    return null;
-  }
-  
-  const {columns} = schema;
-  const fields = selection
-    .map(s => {
-      if (s.type === 'Selection') {
-        if (s.operator === 'not') {
-          const toexclude = selectFromSchema(columns, s.arguments);
-          return columns && columns.filter(field => !toexclude.includes(field));
-        } else if (s.operator === 'all') {
-          return columns;
-        }
-      } else if (s.type === 'Column') {
-        return [s.name];
-      } else {
-        throw new Error('Selection should only contains Selection or Column but received: ', selection);
-      }
-    })
-    .flat();
-  return fields.filter((f, index) => fields.indexOf(f) === index);
-}
+const ROW_NUM_TMP = '___arquero_sql_row_num_tmp___';
 
 export class SqlQueryBuilder extends SqlQuery {
   constructor(source, clauses, schema) {
@@ -67,16 +38,16 @@ export class SqlQueryBuilder extends SqlQuery {
   _append(clauses, schema) {
     return new SqlQueryBuilder(
       this._source,
-      typeof clauses === 'function' ? clauses(this._clauses, this._schema) : clauses,
-      typeof schema === 'function' ? schema(this._schema, this._clauses) : schema,
+      isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
+      isFunction(schema) ? schema(this._schema, this._clauses) : schema,
     );
   }
 
   _wrap(clauses, schema) {
     return new SqlQueryBuilder(
       this,
-      typeof clauses === 'function' ? clauses(this._clauses, this._schema) : clauses,
-      typeof schema === 'function' ? schema(this._schema, this._clauses) : schema,
+      isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
+      isFunction(schema) ? schema(this._schema, this._clauses) : schema,
     );
   }
 
@@ -133,7 +104,8 @@ export class SqlQueryBuilder extends SqlQuery {
     if ('options' in verb && verb.options.replace) {
       throw new Error('sample does not support replace');
     }
-    return this.derive(Verbs.derive({___arquero_sql_row_num_tmp___: op.row_number()}))
+
+    return this.derive(Verbs.derive({[ROW_NUM_TMP]: op.row_number()}))
       ._append(
         clauses => ({
           ...clauses,
@@ -142,8 +114,8 @@ export class SqlQueryBuilder extends SqlQuery {
         }),
         schema => schema,
       )
-      .orderby(Verbs.orderby(d => d.___arquero_sql_row_num_tmp___))
-      .select(Verbs.select(not('___arquero_sql_row_num_tmp___')));
+      .orderby(Verbs.orderby(ROW_NUM_TMP))
+      .select(Verbs.select(not(ROW_NUM_TMP)));
   }
 
   _select(verb) {
@@ -205,46 +177,61 @@ export class SqlQueryBuilder extends SqlQuery {
     return this._wrap({except: verb.tables}, this._schema);
   }
 
+  _appendVerb(verb, name) {
+    if (this.isGrouped()) {
+      throw new Error('Need a rollup/count after a groupby before ' + name);
+    }
+    return this._appendVerbAllowingGroupby(verb, name);
+  }
+
+  _appendVerbAllowingGroupby(verb, name) {
+    return this['_' + name](verb.toAST());
+  }
+
+  isGrouped() {
+    return 'groupby' in this._schema;
+  }
+
   derive(verb) {
-    return this._derive(verb.toAST());
+    return this._appendVerb(verb, 'derive');
   }
   filter(verb) {
-    return this._filter(verb.toAST());
+    return this._appendVerbAllowingGroupby(verb, 'filter');
   }
   groupby(verb) {
-    return this._groupby(verb.toAST());
+    return this._appendVerb(verb, 'groupby');
   }
   rollup(verb) {
-    return this._rollup(verb.toAST());
+    return this._appendVerbAllowingGroupby(verb, 'rollup');
   }
   count(verb) {
-    return this._count(verb.toAST());
+    return this._appendVerbAllowingGroupby(verb, 'count');
   }
   orderby(verb) {
-    return this._orderby(verb.toAST());
+    return this._appendVerb(verb, 'orderby');
   }
   sample(verb) {
-    return this._sample(verb.toAST());
+    return this._appendVerb(verb, 'sample');
   }
   select(verb) {
-    return this._select(verb.toAST());
+    return this._appendVerb(verb, 'select');
   }
   join(verb) {
-    return this._join(verb.toAST());
+    return this._appendVerb(verb, 'join');
   }
   dedupe(verb) {
-    return this._dedupe(verb.toAST());
+    return this._appendVerb(verb, 'dedupe');
   }
   concat(verb) {
-    return this._concat(verb.toAST());
+    return this._appendVerb(verb, 'concat');
   }
   union(verb) {
-    return this._union(verb.toAST());
+    return this._appendVerb(verb, 'union');
   }
   intersect(verb) {
-    return this._intersect(verb.toAST());
+    return this._appendVerb(verb, 'intersect');
   }
   except(verb) {
-    return this._except(verb.toAST());
+    return this._appendVerb(verb, 'except');
   }
 }
