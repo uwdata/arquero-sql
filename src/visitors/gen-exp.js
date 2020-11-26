@@ -1,17 +1,17 @@
-export const visit = (node, opt, tables) => {
+export const genExp = (node, opt, tables) => {
   return visitors[node.type](node, opt, tables);
 };
 
 const binary = (node, opt, tables) => {
-  return '(' + visit(node.left, opt, tables) + node.operator + visit(node.right, opt, tables) + ')';
+  return '(' + genExp(node.left, opt, tables) + node.operator + genExp(node.right, opt, tables) + ')';
 };
 
 const call = (node, opt, tables) => {
-  return visit(node.callee, opt, tables) + '(' + list(node.arguments, opt, tables) + ')';
+  return genExp(node.callee, opt, tables) + '(' + list(node.arguments, opt, tables) + ')';
 };
 
 const list = (array, opt, tables, delim = ',') => {
-  return array.map(node => visit(node, opt, tables)).join(delim);
+  return array.map(node => genExp(node, opt, tables)).join(delim);
 };
 
 const visitors = {
@@ -44,7 +44,7 @@ const visitors = {
     const n = expressions.length;
     let t = '"' + quasis[0].value.raw + '"';
     for (let i = 0; i < n; ) {
-      t += ', ' + visit(expressions[i], opt, tables) + ', "' + quasis[++i].value.raw + '"';
+      t += ', ' + genExp(expressions[i], opt, tables) + ', "' + quasis[++i].value.raw + '"';
     }
     return 'CONCAT(' + t + ')';
   },
@@ -64,16 +64,16 @@ const visitors = {
   BinaryExpression: binary,
   LogicalExpression: binary,
   UnaryExpression: (node, opt, tables) => {
-    return '(' + node.operator + visit(node.argument, opt, tables) + ')';
+    return '(' + node.operator + genExp(node.argument, opt, tables) + ')';
   },
   ConditionalExpression: (node, opt, tables) => {
     return (
       'IF(' +
-      visit(node.test, opt, tables) +
+      genExp(node.test, opt, tables) +
       ',' +
-      visit(node.consequent, opt, tables) +
+      genExp(node.consequent, opt, tables) +
       ',' +
-      visit(node.alternate, opt, tables) +
+      genExp(node.alternate, opt, tables) +
       ')'
     );
   },
@@ -117,7 +117,7 @@ const visitors = {
     throw new Error('BreakStatement is not supported: ' + JSON.stringify(node));
   },
   ExpressionStatement: (node, opt) => {
-    return visit(node.expression, opt, tables);
+    return genExp(node.expression, opt, tables);
   },
   IfStatement: node => {
     throw new Error('IfStatement is not supported: ' + JSON.stringify(node));
