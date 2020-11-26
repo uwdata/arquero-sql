@@ -24,6 +24,12 @@ export class SqlQuery {
      * }
      */
     this._clauses = clauses || {};
+    /**
+     * schema = {
+     *   columns: string[],
+     *   groupby?: string[]
+     * }
+     */
     this._schema = schema;
   }
 
