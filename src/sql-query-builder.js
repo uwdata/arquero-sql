@@ -29,24 +29,25 @@ const CONFLICTS = {
 
 /**
  *
- * @param {string[]} schema
- * @param {object[]} selection
- * @returns {string[] | null}
+ * @param {object} schema table schema
+ * @param {object[]} selection list of expression in Verbs.select
+ * @returns {string[] | null} list of selected field names
  */
 function selectFromSchema(schema, selection) {
   if (!schema && selection.some(s => s.type === 'Selection')) {
     // cannot resolve selection without schema
     return null;
   }
-
+  
+  const {columns} = schema;
   const fields = selection
     .map(s => {
       if (s.type === 'Selection') {
         if (s.operator === 'not') {
-          const toexclude = selectFromSchema(schema, s.arguments);
-          return schema && schema.filter(field => !toexclude.includes(field));
+          const toexclude = selectFromSchema(columns, s.arguments);
+          return columns && columns.filter(field => !toexclude.includes(field));
         } else if (s.operator === 'all') {
-          return schema;
+          return columns;
         }
       } else if (s.type === 'Column') {
         return [s.name];
@@ -88,7 +89,7 @@ export class SqlQueryBuilder extends SqlQuery {
     if (this._schema) {
       clauses = {
         select: [
-          ...Verbs.select(this._schema)
+          ...Verbs.select(this._schema.columns)
             .toAST()
             .columns.map(column => {
               const idx = fields.find(v => v.as === column.name);
@@ -102,8 +103,8 @@ export class SqlQueryBuilder extends SqlQuery {
       clauses = {select: [allfields, ...fields]};
     }
 
-    const schema = this._schema && [...this._schema, fields.filter((_, i) => keep[i]).map(f => f.as)];
-    return this._wrap(clauses, schema);
+    const columns = this._schema && [...this._schema.columns, fields.filter((_, i) => keep[i]).map(f => f.as)];
+    return this._wrap(clauses, this._schema && {columns});
   }
 
   _filter(verb) {
@@ -146,8 +147,8 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   _select(verb) {
-    const schema = selectFromSchema(this._schema, verb.columns);
-    return this._wrap(schema ? schema : {select: verb.columns}, schema);
+    const columns = selectFromSchema(this._schema, verb.columns);
+    return this._wrap(columns ? columns : {select: verb.columns}, this._schema && {columns});
   }
 
   _join(verb) {
@@ -180,7 +181,7 @@ export class SqlQueryBuilder extends SqlQuery {
             ...clauses,
             distinct: [...selectFromSchema(schema, columns), ...deriveFields],
           }),
-          schema => [...schema, ...deriveFields],
+          schema => ({columns: [...schema.columns, ...deriveFields]}),
         )
         .select(Verbs.select(not(...deriveFields)));
     } else {
