@@ -70,6 +70,7 @@ export class SqlQueryBuilder extends SqlQuery {
         ],
       };
     } else {
+      // TODO: make this one cleaner.
       const allfields = Verbs.select(all()).toAST().columns[0];
       clauses = {select: [allfields, ...fields]};
     }
@@ -120,6 +121,7 @@ export class SqlQueryBuilder extends SqlQuery {
 
   _select(verb) {
     const columns = selectFromSchema(this._schema, verb.columns);
+    // TODO: look at this case: table.select({ colA: 'newA', colB: 'newB' })
     return this._wrap(columns ? columns : {select: verb.columns}, this._schema && {columns});
   }
 
@@ -157,7 +159,11 @@ export class SqlQueryBuilder extends SqlQuery {
         )
         .select(Verbs.select(not(...deriveFields)));
     } else {
-      return this._wrap({distinct: verb.keys.map(d => d.name)}, this._schema);
+      const distinct = selectFromSchema(this._schema, verb.keys);
+      if (!distinct) {
+        throw new Error("Dedupe with 'not' or 'all' requires table's schema");
+      }
+      return this._wrap({distinct}, this._schema);
     }
   }
 
