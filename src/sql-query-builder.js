@@ -138,32 +138,10 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   _dedupe(verb) {
-    if (verb.keys.some(k => k.type !== 'Column' && k.type !== 'Selection')) {
-      if (!this._schema) {
-        throw new Error("Dedupe with expressions requires table's schema");
-      }
-
-      const columns = verbs.keys.filter(k => k.type === 'Column' || k.type === 'Selection');
-      const derives = verbs.keys
-        .filter(k => k.type !== 'Column' && k.type !== 'Selection')
-        .map((d, idx) => ({...d, as: `___arquero_sql_derive_tmp_${idx}___`}));
-      const deriveFields = derives.map(d => d.as);
-
-      return this._derive({values: derives})
-        ._append(
-          (clauses, schema) => ({
-            ...clauses,
-            distinct: [...selectFromSchema(schema, columns), ...deriveFields],
-          }),
-          schema => ({columns: [...schema.columns, ...deriveFields]}),
-        )
-        .select(Verbs.select(not(...deriveFields)));
+    if (verb.keys.some(k => k.type !== 'Selection' || k.operator !== 'all')) {
+      throw new Error('SQL can only dedupe all fields');
     } else {
-      const distinct = selectFromSchema(this._schema, verb.keys);
-      if (!distinct) {
-        throw new Error("Dedupe with 'not' or 'all' requires table's schema");
-      }
-      return this._wrap({distinct}, this._schema);
+      return this._wrap({distinct: true}, this._schema);
     }
   }
 
