@@ -1,7 +1,7 @@
 import {SqlQuery} from './sql-query';
 import {EXCEPT, INTERSECT, ORDERBY} from './constants';
 import {internal, all, op} from 'arquero';
-import {resolveColumns, isFunction} from './utils';
+import {resolveColumns, isFunction, createColumn} from './utils';
 import {hasAggregation} from './visitors/has-aggregation';
 
 const {Verbs} = internal;
@@ -95,7 +95,7 @@ export class SqlQueryBuilder extends SqlQuery {
 
     verb.keys.forEach(key => {
       if (key.type === 'Selection') {
-        resolveColumns(this._schema, [key]).forEach(name => addKey({type: 'Column', name}));
+        resolveColumns(this._schema, [key]).forEach(name => addKey(createColumn(name)));
       } else {
         addKey(key);
       }
@@ -110,7 +110,24 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   _rollup(verb) {
-    throw new Error('TODO: implement rollup');
+    const columns = verb.values.map(value => value.as);
+    if (this.isGrouped()) {
+      return this._append(
+        clauses => ({
+          ...clauses,
+          select: [
+            ...this._schema.groupby.map(name => {
+              const index = verb.values.findIndex(value => value.as === name);
+              return index === -1 ? createColumn(name) : verb.values[index];
+            }),
+            ...verb.values.filter(value => !this._schema.groupby.includes(value)),
+          ],
+        }),
+        {columns: [...this._schema.groupby, ...columns]},
+      );
+    } else {
+      return this._wrap({select: verb.values}, {columns});
+    }
   }
 
   _count(verb) {
@@ -153,7 +170,7 @@ export class SqlQueryBuilder extends SqlQuery {
 
     verb.columns.forEach(column => {
       if (column.type === 'Selection') {
-        resolveColumns(this._schema, [column]).forEach(name => addColumn({type: 'Column', name}));
+        resolveColumns(this._schema, [column]).forEach(name => addColumn(createColumn(name)));
       } else if (column.type === 'Column') {
         addColumn(column);
       } else {
