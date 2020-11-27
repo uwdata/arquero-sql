@@ -60,12 +60,12 @@ const out = qb
     h: d => d['Seattle'] > 10,
     i: d => `${d.Seattle} + ${d.Chicago}`,
   })
-  // .filter(d => d.Seattle > 100)
+  .filter(d => d.Seattle > 100)
   // .groupby('Seattle', 'Chicago')
   // .groupby({key: d => d.Seattle + d.Chicago})
-  .groupby({key: d => d.Seattle + d.Chicago, k: d => d.Seattle}, 'Seattle')
+  // .groupby({key: d => d.Seattle + d.Chicago, k: d => d.Seattle}, 'Seattle')
   // .rollup({a: d => op.max(d.key + d.key2)})
-  .rollup({b: op.mean('Seattle')})
+  // .rollup({b: op.mean('Seattle')})
   // .rollup({c: op.count()})
   // .count({as: 'c'})
   // .count()
@@ -82,7 +82,7 @@ const out = qb
   // .concat(['tableq', 'table2'])
   // .dedupe(all())
 
-// console.log(JSON.stringify(out.toAST(), null, 3));
+console.log(JSON.stringify(out.toAST(), null, 3));
 
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
 // // v.values.map(vv => toSql(vv))
