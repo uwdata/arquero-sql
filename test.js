@@ -103,7 +103,12 @@ console.log(JSON.stringify(out.toAST(), null, 3));
 
 const sqlQuery = new SqlQuery(
     'table',
-    {union: Verbs.union(['other1', 'others'])},
+    {except: (['table1', 'table2']),
+        select: [Verbs.select('a').toAST().columns[0],
+            Verbs.derive({b: d => d.a + 1}).toAST().values[0]],
+        where: [Verbs.filter(d => d.a > 0)],
+        having: [Verbs.filter(d => op.mean(d.a))]},
+    // Verbs.select(['d => mean(d.foo)'])},
     'foo'
 )
 
