@@ -83,7 +83,20 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   _filter(verb) {
-    throw new Error('TODO: implement filter');
+    const containsAggregation = verb.criteria.some(criterion => hasAggregation(criterion));
+    if (this.isGrouped()) {
+      const clause = containsAggregation ? 'having' : 'where';
+      return this._append(
+        clauses => ({...clauses, [clause]: [...(clauses[clause] || []), ...verb.criteria]}),
+        this._schema,
+      );
+    } else {
+      if (containsAggregation) {
+        throw new Error('Cannot fillter using aggregate operations without groupby');
+      }
+
+      return this._wrap({where: verb.criteria}, this._schema);
+    }
   }
 
   _groupby(verb) {
