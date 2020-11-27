@@ -20,6 +20,7 @@ dt
   .rollup({mean_chicago: d => op.mean(d.Chicago)})
   .print();
 
+dt.print()
 dt
   .filter(d => d.Seattle > 100)
   .orderby('Chicago')
@@ -27,7 +28,7 @@ dt
   .derive({ Chicago: d => 2, Seattle: d => 1})
   // .lookup(dt.derive({Seattle1: d => d.Seattle + 1000}), ['Chicago', 'Chicago'], ['Seattle1'])
   // .select(not(not('Seattle')), 'Chicago', 'Seattle')
-  .dedupe(not('Seattle', 'San Francisco'))
+  // .dedupe(not('Seattle', 'San Francisco'))
   .print()
 
 console.log(Verbs.select('d', 'ddd', all()).toAST())
@@ -63,9 +64,9 @@ const out = qb
   // .rollup({c: op.count()})
   // .count({as: 'c'})
   // .count()
-  .orderby(desc(d => d.Seattle + d.Chicago))
-  .orderby('Seattle', desc(d => d['Chicago']))
-  .orderby(desc('Chicago'))
+  // .orderby(desc(d => d.Seattle + d.Chicago))
+  // .orderby('Seattle', desc(d => d['Chicago']))
+  // .orderby(desc('Chicago'))
   // .lookup("hi", (a, b) => op.equal(a.Seattle, b.Chicago), [not('test1')])
   // .select(all())
   // .sample(5, {replace: true})
@@ -73,8 +74,8 @@ const out = qb
   // .dedupe({abd: d => d.b})
   // .concat('test2')
   // .count({as: 'jk'})
-  .concat(['tableq', 'table2'])
-  .dedupe(all())
+  // .concat(['tableq', 'table2'])
+  // .dedupe(all())
 
 console.log(JSON.stringify(out.toAST(), null, 3));
 
