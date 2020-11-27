@@ -1,5 +1,5 @@
 import tape from 'tape';
-import {resolveColumns, createColumn} from '../src/utils';
+import {resolveColumns, createColumn, isFunction} from '../src/utils';
 import {internal, not, all} from 'arquero';
 
 const {Verbs} = internal;
@@ -72,3 +72,14 @@ tape('resolveColumns', t => {
 
   t.end();
 });
+
+tape('isFunction', t => {
+  t.ok(isFunction(() => 5), 'is function');
+  t.notOk(isFunction(5), 'is not function');
+  t.end();
+})
+
+tape('createColumn', t => {
+  t.deepEqual(createColumn('col1'), {type: 'Column', name: 'col1'}, 'create column correctly');
+  t.end();
+})
