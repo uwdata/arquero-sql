@@ -1,7 +1,7 @@
 import {SqlQuery} from './sql-query';
 import {EXCEPT, INTERSECT, ORDERBY} from './constants';
 import {internal, all, op} from 'arquero';
-import {selectFromSchema, isFunction} from './utils';
+import {resolveColumns, isFunction} from './utils';
 import {hasAggregation} from './visitors/has-aggregation';
 
 const {Verbs} = internal;
@@ -54,7 +54,7 @@ export class SqlQueryBuilder extends SqlQuery {
 
   _derive(verb) {
     if (verb.values.some(d => hasAggregation(d))) {
-      throw new Error("Derive does not allow aggregated operations");
+      throw new Error('Derive does not allow aggregated operations');
     }
 
     const fields = verb.values;
@@ -74,7 +74,6 @@ export class SqlQueryBuilder extends SqlQuery {
         ],
       };
     } else {
-      // TODO: make this one cleaner.
       const allfields = Verbs.select(all()).toAST().columns[0];
       clauses = {select: [allfields, ...fields]};
     }
@@ -124,9 +123,29 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   _select(verb) {
-    const columns = selectFromSchema(this._schema, verb.columns);
-    // TODO: look at this case: table.select({ colA: 'newA', colB: 'newB' })
-    return this._wrap(columns ? columns : {select: verb.columns}, this._schema && {columns});
+    if (!this._schema && verb.columns.some(column => column.type === 'Selection')) {
+      throw new Error("Cannot select with 'all' or 'not' without schema");
+    }
+
+    const columns = [];
+    const addColumns = column => {
+      const index = columns.findIndex(c => c.name === column.name);
+      index === -1 ? columns.push(column) : (columns[index] = column);
+    };
+
+    verb.columns.forEach(column => {
+      if (column.type === 'Selection') {
+        resolveColumns(this._schema, [column]).forEach(name => addColumns({type: 'Column', name}));
+      } else if (column.type === 'Column') {
+        addColumns(column);
+      } else {
+        throw new Error('Can only select with selection expressions or column names, but received: ', column);
+      }
+    });
+
+    return this._wrap({select: columns}, {
+      columns: columns.map(column => column.as || column.name),
+    });
   }
 
   _join(verb) {
