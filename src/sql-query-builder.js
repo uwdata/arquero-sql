@@ -87,8 +87,26 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   _groupby(verb) {
-    // TODO: if groupby has expression, need to desugar to derive -> groupby
-    throw new Error('TODO: implement groupby');
+    const keys = [];
+    const addKey = key => {
+      const index = keys.findIndex(k => (k.as || k.name) === (key.as || key.name));
+      index === -1 ? keys.push(key) : (keys[index] = key);
+    };
+
+    verb.keys.forEach(key => {
+      if (key.type === 'Selection') {
+        resolveColumns(this._schema, [key]).forEach(name => addKey({type: 'Column', name}));
+      } else {
+        addKey(key);
+      }
+    });
+
+    const groupby = keys.map(key => key.as || key.name);
+    if (keys.some(key => key.as)) {
+      return this._derive({values: keys.filter(key => key.as)})._groupby({keys: groupby});
+    } else {
+      return this._wrap({groupby}, {...this._schema, groupby});
+    }
   }
 
   _rollup(verb) {
@@ -128,24 +146,27 @@ export class SqlQueryBuilder extends SqlQuery {
     }
 
     const columns = [];
-    const addColumns = column => {
+    const addColumn = column => {
       const index = columns.findIndex(c => c.name === column.name);
       index === -1 ? columns.push(column) : (columns[index] = column);
     };
 
     verb.columns.forEach(column => {
       if (column.type === 'Selection') {
-        resolveColumns(this._schema, [column]).forEach(name => addColumns({type: 'Column', name}));
+        resolveColumns(this._schema, [column]).forEach(name => addColumn({type: 'Column', name}));
       } else if (column.type === 'Column') {
-        addColumns(column);
+        addColumn(column);
       } else {
         throw new Error('Can only select with selection expressions or column names, but received: ', column);
       }
     });
 
-    return this._wrap({select: columns}, {
-      columns: columns.map(column => column.as || column.name),
-    });
+    return this._wrap(
+      {select: columns},
+      {
+        columns: columns.map(column => column.as || column.name),
+      },
+    );
   }
 
   _join(verb) {
