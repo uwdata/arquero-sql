@@ -2,6 +2,7 @@ import {SqlQuery} from './sql-query';
 import {EXCEPT, INTERSECT, ORDERBY} from './constants';
 import {internal, all, op} from 'arquero';
 import {selectFromSchema, isFunction} from './utils';
+import {hasAggregation} from './visitors/has-aggregation';
 
 const {Verbs} = internal;
 
@@ -52,7 +53,10 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   _derive(verb) {
-    // TODO: check if derive does not have aggregated function
+    if (verb.values.some(d => hasAggregation(d))) {
+      throw new Error("Derive does not allow aggregated operations");
+    }
+
     const fields = verb.values;
     const keep = fields.map(() => true);
 
