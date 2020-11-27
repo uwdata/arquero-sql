@@ -10,7 +10,7 @@ export function resolveColumns(schema, selection) {
     return null;
   }
 
-  const {columns} = schema;
+  const columns = schema && schema.columns;
   const fields = selection
     .map(s => {
       if (s.type === 'Selection') {
@@ -21,6 +21,7 @@ export function resolveColumns(schema, selection) {
           return columns;
         }
       } else if (s.type === 'Column') {
+        // TODO: selection with as?
         return [s.name];
       } else {
         throw new Error('Selection should only contains Selection or Column but received: ', selection);
