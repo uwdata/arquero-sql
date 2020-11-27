@@ -4,7 +4,7 @@
  * @param {object[]} selection list of expression in Verbs.select
  * @returns {string[] | null} list of selected field names
  */
-export function selectFromSchema(schema, selection) {
+export function resolveColumns(schema, selection) {
   if (!schema && selection.some(s => s.type === 'Selection')) {
     // cannot resolve selection without schema
     return null;
@@ -15,7 +15,7 @@ export function selectFromSchema(schema, selection) {
     .map(s => {
       if (s.type === 'Selection') {
         if (s.operator === 'not') {
-          const toexclude = selectFromSchema(columns, s.arguments);
+          const toexclude = resolveColumns(columns, s.arguments);
           return columns && columns.filter(field => !toexclude.includes(field));
         } else if (s.operator === 'all') {
           return columns;
