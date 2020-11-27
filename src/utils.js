@@ -33,3 +33,7 @@ export function resolveColumns(schema, selection) {
 export function isFunction(fn) {
   return typeof fn === 'function';
 }
+
+export function createColumn(name) {
+  return {type: 'Column', name};
+}

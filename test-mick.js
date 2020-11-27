@@ -11,16 +11,17 @@ const dt = table({
 // dt.derive({d: d => op.mean(d.Chicago)}).print()
 
 dt
-  .filter(d => op.mean(d.Chicago) > 140)  // is not allowed in SQL
+  .filter(d => op.mean(d.Chicago) > 140 || d.Seattle > 100)  // is not allowed in SQL
   .groupby({key: d => d.Seattle > 100, S: d => d.Seattle}, 'Seattle')
   // .derive({k: d => d.Chicago + 10})
   // .filter(d => op.mean(d.Chicago) > 140)  // should becomes "having"
   // .filter(d => d.Chicago > 200) // tricky case -> should becomes "where"
   // .select('key')
-  .rollup({mean_chicago: d => op.mean(d.Chicago)})
+  .rollup({Chicago: d => op.mean(d.Chicago) + 1000})
+  // .select('Seattle')
   .print();
 
-dt.print()
+// dt.print()
 dt
   .filter(d => d.Seattle > 100)
   .orderby('Chicago')
@@ -33,7 +34,7 @@ dt
   // .select('Seattle', 'Chicago', {Seattle: 'Seattle1'}, 'Seattle', {Seattle: 'Seattle2'})
   .groupby(not('Seattle'), {k: d => d.Seattle + d.Chicago})
   .count()
-  .print()
+  // .print()
 
 // console.log(Verbs.select('d', 'ddd', all()).toAST())
 
@@ -64,7 +65,7 @@ const out = qb
   // .groupby({key: d => d.Seattle + d.Chicago})
   .groupby({key: d => d.Seattle + d.Chicago, k: d => d.Seattle}, 'Seattle')
   // .rollup({a: d => op.max(d.key + d.key2)})
-  // .rollup({b: op.mean('Seattle')})
+  .rollup({b: op.mean('Seattle')})
   // .rollup({c: op.count()})
   // .count({as: 'c'})
   // .count()
