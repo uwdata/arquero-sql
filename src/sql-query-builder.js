@@ -31,6 +31,13 @@ const CONFLICTS = {
 
 const ROW_NUM_TMP = '___arquero_sql_row_num_tmp___';
 
+export function fromQuery(query, schema) {
+  return query._verbs.reduce(
+    (acc, verb) => acc[verb.verb](verb),
+    new SqlQueryBuilder(query._table, {}, schema),
+  );
+}
+
 export class SqlQueryBuilder extends SqlQuery {
   constructor(source, clauses, schema) {
     super(source, clauses, schema);

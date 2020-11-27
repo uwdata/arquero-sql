@@ -67,9 +67,9 @@ const out = qb
   // .groupby({key: d => d.Seattle + d.Chicago, k: d => d.Seattle}, 'Seattle')
   // .rollup({a: d => op.max(d.key + d.key2)})
   // .rollup({b: op.mean('Seattle')})
-  // .rollup({c: op.count()})
-  // .count({as: 'c'})
-  // .count()
+  .rollup({c: op.count()})
+  .count({as: 'c'})
+  .count()
   // .orderby(desc(d => d.Seattle + d.Chicago))
   // .orderby('Seattle', desc(d => d['Chicago']))
   // .orderby(desc('Chicago'))
@@ -83,7 +83,7 @@ const out = qb
   // .concat(['tableq', 'table2'])
   // .dedupe(all())
 
-// console.log(JSON.stringify(out.toAST(), null, 3));
+console.log(JSON.stringify(out._verbs, null, 3));
 
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
 // // v.values.map(vv => toSql(vv))
