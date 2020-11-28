@@ -1,17 +1,17 @@
-export const genExp = (node, opt, tables) => {
+export const genExpr = (node, opt, tables) => {
   return visitors[node.type](node, opt, tables);
 };
 
 const binary = (node, opt, tables) => {
-  return '(' + genExp(node.left, opt, tables) + (BINARY_OPS[node.operator] || node.operator) + genExp(node.right, opt, tables) + ')';
+  return '(' + genExpr(node.left, opt, tables) + (BINARY_OPS[node.operator] || node.operator) + genExpr(node.right, opt, tables) + ')';
 };
 
 const call = (node, opt, tables) => {
-  return genExp(node.callee, opt, tables) + '(' + list(node.arguments, opt, tables) + ')';
+  return genExpr(node.callee, opt, tables) + '(' + list(node.arguments, opt, tables) + ')';
 };
 
 const list = (array, opt, tables, delim = ',') => {
-  return array.map(node => genExp(node, opt, tables)).join(delim);
+  return array.map(node => genExpr(node, opt, tables)).join(delim);
 };
 
 const ARQUERO_OPS_TO_SQL = {
@@ -49,7 +49,7 @@ const visitors = {
     const n = expressions.length;
     let t = '"' + quasis[0].value.raw + '"';
     for (let i = 0; i < n; ) {
-      t += ', ' + genExp(expressions[i], opt, tables) + ', "' + quasis[++i].value.raw + '"';
+      t += ', ' + genExpr(expressions[i], opt, tables) + ', "' + quasis[++i].value.raw + '"';
     }
     return 'CONCAT(' + t + ')';
   },
@@ -69,16 +69,16 @@ const visitors = {
   BinaryExpression: binary,
   LogicalExpression: binary,
   UnaryExpression: (node, opt, tables) => {
-    return '(' + node.operator + genExp(node.argument, opt, tables) + ')';
+    return '(' + node.operator + genExpr(node.argument, opt, tables) + ')';
   },
   ConditionalExpression: (node, opt, tables) => {
     return (
       'IF(' +
-      genExp(node.test, opt, tables) +
+      genExpr(node.test, opt, tables) +
       ',' +
-      genExp(node.consequent, opt, tables) +
+      genExpr(node.consequent, opt, tables) +
       ',' +
-      genExp(node.alternate, opt, tables) +
+      genExpr(node.alternate, opt, tables) +
       ')'
     );
   },
@@ -122,7 +122,7 @@ const visitors = {
     throw new Error('BreakStatement is not supported: ' + JSON.stringify(node));
   },
   ExpressionStatement: (node, opt) => {
-    return genExp(node.expression, opt, tables);
+    return genExpr(node.expression, opt, tables);
   },
   IfStatement: node => {
     throw new Error('IfStatement is not supported: ' + JSON.stringify(node));
