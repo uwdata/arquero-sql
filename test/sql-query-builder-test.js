@@ -84,12 +84,9 @@ tape('SqlQueryBuilder: derive', t => {
   t.deepEqual(genExpr(derive2._clauses.select[1]), '(1+1)', 'should select derived field');
   t.notOk(derive2._schema, 'should not produce schema');
 
-  t.throws(
-    () => {
-      base.derive(Verbs.derive({a: op.mean(a)}));
-    },
-    'Derive does not allow aggregated operations'
-  );
+  t.throws(() => {
+    base.derive(Verbs.derive({a: op.mean(a)}));
+  }, 'Derive does not allow aggregated operations');
 
   t.end();
 });
