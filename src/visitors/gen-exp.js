@@ -14,6 +14,11 @@ const list = (array, opt, tables, delim = ',') => {
   return array.map(node => genExp(node, opt, tables)).join(delim);
 };
 
+const ARQUERO_OPS_TO_SQL = {
+  row_number: 'ROW_NUMBER',
+  mean: 'AVG',
+};
+
 const visitors = {
   Column: (node, opt, tables) => {
     if (opt && 'index' in opt) throw new Error('row is not supported');
@@ -23,14 +28,7 @@ const visitors = {
     throw new Error('TODO: implement Constant visitor: ' + JSON.stringify(node));
     // return node.raw;
   },
-  Function: node => {
-    switch (node.name) {
-      case 'row_number':
-        return 'ROW_NUMBER';
-      case 'mean':
-        return 'AVG';
-    }
-  },
+  Function: node => ARQUERO_OPS_TO_SQL[node.name],
   Parameter: node => {
     throw new Error('Parameter is not supported: ' + JSON.stringify(node));
   },
