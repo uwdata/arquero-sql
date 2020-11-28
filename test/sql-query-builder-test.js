@@ -2,7 +2,7 @@ import tape from 'tape';
 import {SqlQueryBuilder} from '../src/sql-query-builder';
 import {createColumn} from '../src/utils';
 import {internal, op} from 'arquero';
-import {genExp} from '../src/visitors/gen-exp';
+import {genExpr} from '../src/visitors/gen-expr';
 
 const {Verbs} = internal;
 const base = new SqlQueryBuilder('table-name', null, {columns: ['a', 'b', 'c', 'd']});
@@ -81,7 +81,7 @@ tape('SqlQueryBuilder: derive', t => {
 
   const derive2 = noschema.derive(Verbs.derive({constant: () => 1 + 1}));
   t.deepEqual(derive2._clauses.select[0], createColumn('*'), 'should select *');
-  t.deepEqual(genExp(derive2._clauses.select[1]), '(1+1)', 'should select derived field');
+  t.deepEqual(genExpr(derive2._clauses.select[1]), '(1+1)', 'should select derived field');
   t.notOk(derive2._schema, 'should not produce schema');
 
   t.throws(
