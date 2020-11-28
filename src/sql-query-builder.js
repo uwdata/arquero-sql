@@ -20,10 +20,7 @@ SQL execution order:
 const ROW_NUM_TMP = '___arquero_sql_row_num_tmp___';
 
 export function fromQuery(query, schema) {
-  return query._verbs.reduce(
-    (acc, verb) => acc[verb.verb](verb),
-    new SqlQueryBuilder(query._table, {}, schema),
-  );
+  return query._verbs.reduce((acc, verb) => acc[verb.verb](verb), new SqlQueryBuilder(query._table, {}, schema));
 }
 
 export class SqlQueryBuilder extends SqlQuery {
@@ -55,23 +52,19 @@ export class SqlQueryBuilder extends SqlQuery {
     const fields = verb.values;
     const keep = fields.map(() => true);
 
-    let clauses;
-    if (this._schema) {
-      clauses = {
-        select: [
-          ...Verbs.select(this._schema.columns)
-            .toAST()
-            .columns.map(column => {
-              const idx = fields.findIndex(v => v.as === column.name);
-              return idx === -1 ? column : ((keep[idx] = false), fields[idx]);
-            }),
-          ...fields.filter((_, i) => keep[i]),
-        ],
-      };
-    } else {
-      const allfields = Verbs.select('*').toAST().columns[0];
-      clauses = {select: [allfields, ...fields]};
-    }
+    let clauses = this._schema
+      ? {
+          select: [
+            ...Verbs.select(this._schema.columns)
+              .toAST()
+              .columns.map(column => {
+                const idx = fields.findIndex(v => v.as === column.name);
+                return idx === -1 ? column : ((keep[idx] = false), fields[idx]);
+              }),
+            ...fields.filter((_, i) => keep[i]),
+          ],
+        }
+      : {select: [createColumn('*'), ...fields]};
 
     const columns = this._schema && [...this._schema.columns, ...fields.filter((_, i) => keep[i]).map(f => f.as)];
     return this._wrap(clauses, this._schema && {columns});
