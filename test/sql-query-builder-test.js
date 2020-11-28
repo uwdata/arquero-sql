@@ -88,8 +88,7 @@ tape('SqlQueryBuilder: derive', t => {
     () => {
       base.derive(Verbs.derive({a: op.mean(a)}));
     },
-    'Derive does not allow aggregated operations',
-    'should throw when derive with aggregated operstions',
+    'Derive does not allow aggregated operations'
   );
 
   t.end();
