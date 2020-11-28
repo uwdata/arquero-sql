@@ -1,6 +1,7 @@
 const {table, internal: {QueryBuilder, Verbs}, op, not, desc, all} = require('arquero');
 const {toSql} = require('./dist/arquero-sql');
 const {SqlQuery} = require('./dist/arquero-sql');
+const { fromQuery } = require('./src/sql-query-builder');
 
 const dt = table({
   'Seattle': [69,108,178,207,253,268,312,281,221,142,72,52],
@@ -83,7 +84,8 @@ const out = qb
   // .concat(['tableq', 'table2'])
   // .dedupe(all())
 
-console.log(JSON.stringify(out._verbs, null, 3));
+// console.log(JSON.stringify(out._verbs, null, 3));
+console.log(JSON.stringify(fromQuery(out, null), null, 3));
 
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
 // // v.values.map(vv => toSql(vv))
