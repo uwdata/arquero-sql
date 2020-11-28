@@ -10,7 +10,7 @@ tape('has-aggregation', t => {
     column1: d => d.a * d.b,
     column2: d => d.a * (d.b + 3),
     agg1: d => op.mean(d.a),
-    row_num: d => op.row_number(),
+    row_num: () => op.row_number(),
   }).toAST().values;
 
   t.deepEqual(

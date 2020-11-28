@@ -3,7 +3,7 @@ export const genExp = (node, opt, tables) => {
 };
 
 const binary = (node, opt, tables) => {
-  return '(' + genExp(node.left, opt, tables) + node.operator + genExp(node.right, opt, tables) + ')';
+  return '(' + genExp(node.left, opt, tables) + (BINARY_OPS[node.operator] || node.operator) + genExp(node.right, opt, tables) + ')';
 };
 
 const call = (node, opt, tables) => {
@@ -17,6 +17,13 @@ const list = (array, opt, tables, delim = ',') => {
 const ARQUERO_OPS_TO_SQL = {
   row_number: 'ROW_NUMBER',
   mean: 'AVG',
+};
+
+const BINARY_OPS = {
+  '===': '=',
+  '==': '=',
+  '!==': '<>',
+  '!=': '<>',
 };
 
 const visitors = {
