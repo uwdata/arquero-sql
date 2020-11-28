@@ -1,5 +1,4 @@
 import {SqlQuery} from './sql-query';
-import {EXCEPT, INTERSECT, ORDERBY} from './constants';
 import {internal, all, op} from 'arquero';
 import {resolveColumns, isFunction, createColumn} from './utils';
 import {hasAggregation} from './visitors/has-aggregation';
@@ -17,17 +16,6 @@ SQL execution order:
   - order by
   - limit / offset
 */
-
-const SET_OPS = [CONCAT, UNION, INTERSECT, EXCEPT];
-
-const CONFLICTS = {
-  derive: [ORDERBY, SAMPLE, ...SET_OPS],
-  filter: [SELECT, ORDERBY, SAMPLE, ...SET_OPS],
-  groupby: [GROUPBY, SELECT, ORDERBY, SAMPLE, ...SET_OPS],
-  select: [SELECT, ORDERBY, SAMPLE, ...SET_OPS],
-  orderby: [ORDERBY, SAMPLE, ...SET_OPS],
-  dedupe: [ORDERBY, SAMPLE, ...SET_OPS],
-};
 
 const ROW_NUM_TMP = '___arquero_sql_row_num_tmp___';
 
@@ -74,18 +62,18 @@ export class SqlQueryBuilder extends SqlQuery {
           ...Verbs.select(this._schema.columns)
             .toAST()
             .columns.map(column => {
-              const idx = fields.find(v => v.as === column.name);
+              const idx = fields.findIndex(v => v.as === column.name);
               return idx === -1 ? column : ((keep[idx] = false), fields[idx]);
             }),
           ...fields.filter((_, i) => keep[i]),
         ],
       };
     } else {
-      const allfields = Verbs.select(all()).toAST().columns[0];
+      const allfields = Verbs.select('*').toAST().columns[0];
       clauses = {select: [allfields, ...fields]};
     }
 
-    const columns = this._schema && [...this._schema.columns, fields.filter((_, i) => keep[i]).map(f => f.as)];
+    const columns = this._schema && [...this._schema.columns, ...fields.filter((_, i) => keep[i]).map(f => f.as)];
     return this._wrap(clauses, this._schema && {columns});
   }
 
@@ -125,7 +113,7 @@ export class SqlQueryBuilder extends SqlQuery {
     if (keys.some(key => key.as)) {
       return this._derive({values: keys.filter(key => key.as)})._groupby({keys: groupby});
     } else {
-      return this._wrap({groupby}, {...this._schema, groupby});
+      return this._wrap({groupby}, {...(this._schema || []), groupby});
     }
   }
 
@@ -254,7 +242,7 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   isGrouped() {
-    return 'groupby' in this._schema;
+    return this._schema && 'groupby' in this._schema;
   }
 
   derive(verb) {
