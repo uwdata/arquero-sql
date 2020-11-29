@@ -90,3 +90,51 @@ tape('SqlQueryBuilder: derive', t => {
 
   t.end();
 });
+
+tape('Sql-query-builder: filter', t => {
+  const baseWithGroupBy = new SqlQueryBuilder('table-name', null,
+    {columns: ['a', 'b', 'c', 'd'],
+    groupby:['a']});
+
+  const filter1 =
+  base.filter(
+    Verbs.filter({
+      c1: d => d.a > 0,
+    }),
+  )
+
+  const filter2 =
+    baseWithGroupBy.filter(
+      Verbs.filter({
+        c1: d => op.mean(d.a) > 0,
+      })
+    )
+
+  t.deepEqual(copy(filter1._clauses.where[0]),
+    {
+      type: 'BinaryExpression',
+      left: {type: 'Column', name: 'a'},
+      operator: '>',
+      right: {type: 'Literal', value: 0, raw: '0'},
+      as: 'c1'
+    },
+    'Non-aggregate function add to where');
+
+  t.deepEqual(copy(filter2._clauses.having[0]),
+    {
+      type: 'BinaryExpression',
+      left: {
+        type: 'CallExpression',
+          callee: { type: 'Function', name: 'mean' },
+        arguments: [{
+          type: 'Column',
+          name: 'a'
+        }]
+      },
+      operator: '>',
+        right: { type: 'Literal', value: 0, raw: '0' },
+      as: 'c1'
+    }, 'aggregate function with groupby add to having')
+
+  t.end();
+});

@@ -1,6 +1,8 @@
 const {table, internal: {QueryBuilder, Verbs}, op, not, desc, all} = require('arquero');
 const {toSql} = require('./dist/arquero-sql');
 const {SqlQuery} = require('./dist/arquero-sql');
+const {SqlQueryBuilder} = require('./dist/arquero-sql')
+const util = require('util')
 
 const dt = table({
   'Seattle': [69,108,178,207,253,268,312,281,221,142,72,52],
@@ -77,8 +79,6 @@ const out = qb
   // .concat(['tableq', 'table2'])
   // .dedupe(all())
 
-console.log(JSON.stringify(out.toAST(), null, 3));
-
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
 // // v.values.map(vv => toSql(vv))
 //   return {
@@ -113,4 +113,13 @@ const sqlQuery = new SqlQuery(
     'foo'
 )
 
-console.log(sqlQuery.toSql());
+const base = new SqlQueryBuilder('table-name', null, {columns: ['a', 'b', 'c', 'd'],
+  groupby:['a']});
+const filter1 =
+  base.filter(
+    Verbs.filter({
+        c1 : d => op.mean(d.a) > 0,
+    }),
+  )
+
+console.log(JSON.stringify(filter1._clauses.having[0], false))
