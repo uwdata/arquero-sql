@@ -123,3 +123,4 @@ const filter1 =
   )
 
 console.log(JSON.stringify(filter1._clauses.having[0], false))
+console.log(Verbs.union(dt))

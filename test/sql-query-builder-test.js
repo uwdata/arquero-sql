@@ -1,7 +1,7 @@
 import tape from 'tape';
 import {SqlQueryBuilder} from '../src/sql-query-builder';
 import {createColumn} from '../src/utils';
-import {internal, op} from 'arquero';
+import {internal, op, table} from 'arquero';
 import {genExpr} from '../src/visitors/gen-expr';
 
 const {Verbs} = internal;
@@ -96,21 +96,21 @@ tape('Sql-query-builder: filter', t => {
     {columns: ['a', 'b', 'c', 'd'],
     groupby:['a']});
 
-  const filter1 =
+  const filterForWhere =
   base.filter(
     Verbs.filter({
       c1: d => d.a > 0,
     }),
   )
 
-  const filter2 =
+  const filterForHaving =
     baseWithGroupBy.filter(
       Verbs.filter({
         c1: d => op.mean(d.a) > 0,
       })
     )
 
-  t.deepEqual(copy(filter1._clauses.where[0]),
+  t.deepEqual(copy(filterForWhere._clauses.where[0]),
     {
       type: 'BinaryExpression',
       left: {type: 'Column', name: 'a'},
@@ -120,7 +120,7 @@ tape('Sql-query-builder: filter', t => {
     },
     'Non-aggregate function add to where');
 
-  t.deepEqual(copy(filter2._clauses.having[0]),
+  t.deepEqual(copy(filterForHaving._clauses.having[0]),
     {
       type: 'BinaryExpression',
       left: {
@@ -138,3 +138,23 @@ tape('Sql-query-builder: filter', t => {
 
   t.end();
 });
+
+tape('Sql-query-builder: combining sql ', t => {
+
+  const table1 = table({
+    'a' : [1],
+    'b' : [3]
+  });
+
+  const union1 = base.union(
+    Verbs.union([table1])
+  );
+
+  t.deepEqual(
+    union1._clauses.union[0]._names,
+    ['a', 'b'],
+    'query that combines statement'
+  )
+
+  t.end()
+})
