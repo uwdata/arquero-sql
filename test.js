@@ -3,6 +3,7 @@ const {toSql} = require('./dist/arquero-sql');
 const {SqlQuery} = require('./dist/arquero-sql');
 const {SqlQueryBuilder} = require('./dist/arquero-sql')
 const util = require('util')
+const {SqlOptimizer} = require('./dist/arquero-sql')
 
 const dt = table({
   'Seattle': [69,108,178,207,253,268,312,281,221,142,72,52],
@@ -33,7 +34,7 @@ dt
   // .dedupe(not('Seattle', 'San Francisco'))
   .print()
 
-console.log(Verbs.select('d', 'ddd', all()).toAST())
+//console.log(Verbs.select('d', 'ddd', all()).toAST())
 
 function dd(d) {
   return d.Seattle * d.Chicago
@@ -115,6 +116,10 @@ const sqlQuery = new SqlQuery(
 
 const base = new SqlQueryBuilder('table-name', null, {columns: ['a', 'b', 'c', 'd'],
   groupby:['a']});
+
+const based = new SqlOptimizer('table-name', null, {columns: ['a', 'b', 'c', 'd'],
+  groupby:['a']})
+
 const filter1 =
   base.filter(
     Verbs.filter({
@@ -122,5 +127,4 @@ const filter1 =
     }),
   )
 
-console.log(JSON.stringify(filter1._clauses.having[0], false))
-console.log(Verbs.union(dt))
+console.log(based.optimize(base, 'join'))
