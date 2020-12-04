@@ -62,7 +62,7 @@ export class SqlQuery {
       ret += 'FROM' + '(' + (typeof this._source === 'string' ? this._source : this._source.toSql()) + ')' + '\n';
 
     if (this._clauses.where) {
-      ret += 'WHERE ' + this._clauses.where.map(c => toSql(c.toAST().criteria)).join(' AND ') + '\n';
+      ret += 'WHERE ' + this._clauses.where.map(c => toSql(c)).join(' AND ') + '\n';
     }
 
     if (this._clauses.groupby)
@@ -75,7 +75,7 @@ export class SqlQuery {
           '\n';
 
     if (this._clauses.having)
-      ret += 'HAVING ' + this._clauses.having.map(verb => toSql(verb.toAST().criteria)).join(' AND ') + '\n';
+      ret += 'HAVING ' + this._clauses.having.map(verb => toSql(verb)).join(' AND ') + '\n';
 
     if (this._clauses.orderby)
       ret +=
