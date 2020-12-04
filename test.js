@@ -117,14 +117,23 @@ const sqlQuery = new SqlQuery(
 const base = new SqlQueryBuilder('table-name', null, {columns: ['a', 'b', 'c', 'd'],
   groupby:['a']});
 
-const based = new SqlOptimizer('table-name', null, {columns: ['a', 'b', 'c', 'd'],
-  groupby:['a']})
-
 const filter1 =
   base.filter(
     Verbs.filter({
-        c1 : d => op.mean(d.a) > 0,
-    }),
+        c1 : d => op.mean(d.a) > 0,}
+    ),
   )
 
-console.log(based.optimize(base, 'join'))
+const test = new SqlQuery(
+  'table',
+  {except: (['table1', 'table2']),
+    select: [Verbs.select('a').toAST().columns[0],
+      Verbs.derive({b: d => d.a + 1}).toAST().values[0]],
+    where: [Verbs.filter(d => d.a > 0)],
+    having: [Verbs.filter(d => op.mean(d.a) > 0)]},
+  // Verbs.select(['d => mean(d.foo)'])},
+  'foo'
+)
+
+console.log(filter1.toSql())
+//console.log(test._clauses.having[0].toAST().criteria)
