@@ -7,6 +7,9 @@ import {genExpr} from '../src/visitors/gen-expr';
 const {Verbs} = internal;
 const base = new SqlQueryBuilder('table-name', null, {columns: ['a', 'b', 'c', 'd']});
 const noschema = new SqlQueryBuilder('table-name', null);
+const baseWithGroupBy = new SqlQueryBuilder('table-name', null,
+  {columns: ['a', 'b', 'c', 'd'],
+  groupby:['a', 'b']});
 
 function copy(obj) {
   return JSON.parse(JSON.stringify(obj));
@@ -88,14 +91,12 @@ tape('SqlQueryBuilder: derive', t => {
     base.derive(Verbs.derive({a: op.mean(a)}));
   }, 'Derive does not allow aggregated operations');
 
+  t.throws(() => baseWithGroupBy.derive({}), 'Need a rollup/count after a groupby before derive');
+
   t.end();
 });
 
 tape('Sql-query-builder: filter', t => {
-  const baseWithGroupBy = new SqlQueryBuilder('table-name', null,
-    {columns: ['a', 'b', 'c', 'd'],
-    groupby:['a']});
-
   const filterForWhere =
   base.filter(
     Verbs.filter({
@@ -107,6 +108,7 @@ tape('Sql-query-builder: filter', t => {
     baseWithGroupBy.filter(
       Verbs.filter({
         c1: d => op.mean(d.a) > 0,
+        c2: d => d.b > 0,
       })
     )
 
@@ -135,6 +137,25 @@ tape('Sql-query-builder: filter', t => {
         right: { type: 'Literal', value: 0, raw: '0' },
       as: 'c1'
     }, 'aggregate function with groupby add to having')
+  
+  t.deepEqual(copy(filterForHaving._clauses.where[0]),
+    {
+      type: 'BinaryExpression',
+      left: {
+        type: 'Column',
+        name: 'b'
+      },
+      operator: '>',
+        right: { type: 'Literal', value: 0, raw: '0' },
+      as: 'c2'
+    }, 'non-aggregate function with groupby add to where')
+
+  t.throws(() => 
+    base.filter(
+      Verbs.filter({
+        c1: d => op.mean(d.a) > 0,
+      }),
+    ), 'Cannot fillter using aggregate operations without groupby');
 
   t.end();
 });
