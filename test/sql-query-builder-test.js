@@ -107,6 +107,7 @@ tape('Sql-query-builder: filter', t => {
     baseWithGroupBy.filter(
       Verbs.filter({
         c1: d => op.mean(d.a) > 0,
+        c2: d => d.b > 0,
       })
     )
 
@@ -135,6 +136,27 @@ tape('Sql-query-builder: filter', t => {
         right: { type: 'Literal', value: 0, raw: '0' },
       as: 'c1'
     }, 'aggregate function with groupby add to having')
+  
+    console.log(filterForHaving._clauses);
+
+  t.deepEqual(copy(filterForHaving._clauses.where[0]),
+    {
+      type: 'BinaryExpression',
+      left: {
+        type: 'Column',
+        name: 'b'
+      },
+      operator: '>',
+        right: { type: 'Literal', value: 0, raw: '0' },
+      as: 'c2'
+    }, 'non-aggregate function with groupby add to where')
+
+  t.throws(() => 
+    base.filter(
+      Verbs.filter({
+        c1: d => op.mean(d.a) > 0,
+      }),
+    ), 'Cannot fillter using aggregate operations without groupby');
 
   t.end();
 });

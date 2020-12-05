@@ -71,15 +71,20 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   _filter(verb) {
-    const containsAggregation = verb.criteria.some(criterion => hasAggregation(criterion));
+    const having = [];
+    const where = [];
+    verb.criteria.forEach(criterion => (hasAggregation(criterion) ? having : where).push(criterion));
     if (this.isGrouped()) {
-      const clause = containsAggregation ? 'having' : 'where';
       return this._append(
-        clauses => ({...clauses, [clause]: [...(clauses[clause] || []), ...verb.criteria]}),
+        clauses => ({
+          ...clauses,
+          where: [...(clauses.where || []), ...where],
+          having: [...(clauses.having || []), ...having],
+        }),
         this._schema,
       );
     } else {
-      if (containsAggregation) {
+      if (having.length > 0) {
         throw new Error('Cannot fillter using aggregate operations without groupby');
       }
 
