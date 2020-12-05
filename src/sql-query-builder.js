@@ -179,7 +179,7 @@ export class SqlQueryBuilder extends SqlQuery {
       }
     });
 
-    return this._wrap(
+    return this._append(
       {select: columns},
       {
         columns: columns.map(column => column.as || column.name),

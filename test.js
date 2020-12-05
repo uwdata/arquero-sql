@@ -114,15 +114,13 @@ const sqlQuery = new SqlQuery(
     'foo'
 )
 
-const base = new SqlQueryBuilder('table-name', null, {columns: ['a', 'b', 'c', 'd'],
-  groupby:['a']});
+const base = new SqlQueryBuilder('table-name', null, {columns: ['Seattle', 'Chicago', 'New York']});
 
 const filter1 =
-  base.filter(
-    Verbs.filter({
-        c1 : d => op.mean(d.a) > 0,}
-    ),
-  )
+  base
+    .select(Verbs.select('Seattle'))
+    .filter(Verbs.filter({c1 : d => d.Seattle > 100}))
+
 
 const test = new SqlQuery(
   'table',
@@ -135,5 +133,5 @@ const test = new SqlQuery(
   'foo'
 )
 
-console.log(filter1.toSql())
+console.log(filter1)
 //console.log(test._clauses.having[0].toAST().criteria)
