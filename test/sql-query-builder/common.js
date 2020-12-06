@@ -27,3 +27,20 @@ export function copy(obj) {
 export function toAst(expr, as) {
   return {...copy(Verbs.filter(expr).toAST().criteria), ...(as ? {as} : {})};
 }
+
+/**
+ * deep equal tests of all actuals and expected
+ * @param {object} t tape object
+ * @param {object[]} actuals list of actual values to compare
+ * @param {[object, string][]} expecteds list of expected values to compare
+ */
+export function deepEqualAll(t, actuals, expecteds) {
+  if (actuals.length !== expecteds.length) {
+    t.fail(
+      'actuals and expecteds should have same length but received ' +
+        `${actuals.length} and ${expecteds.length}`,
+    );
+  }
+
+  expecteds.forEach(([expected, message], idx) => t.deepEqual(copy(actuals[idx]), expected, message));
+}

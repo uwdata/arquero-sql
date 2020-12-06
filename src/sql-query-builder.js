@@ -49,18 +49,16 @@ export class SqlQueryBuilder extends SqlQuery {
       throw new Error('Derive does not allow aggregated operations');
     }
 
-    const fields = verb.values;
+    const fields = verb.values.filter(value => value.type !== 'Column' || value.name !== value.as);
     const keep = fields.map(() => true);
 
     const clauses = this._schema
       ? {
           select: [
-            ...Verbs.select(this._schema.columns)
-              .toAST()
-              .columns.map(column => {
-                const idx = fields.findIndex(v => v.as === column.name);
-                return idx === -1 ? column : ((keep[idx] = false), fields[idx]);
-              }),
+            ...this._schema.columns.map(createColumn).map(column => {
+              const idx = fields.findIndex(v => v.as === column.name);
+              return idx === -1 ? column : ((keep[idx] = false), fields[idx]);
+            }),
             ...fields.filter((_, i) => keep[i]),
           ],
         }
