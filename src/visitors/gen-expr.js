@@ -3,7 +3,13 @@ export const genExpr = (node, opt, tables) => {
 };
 
 const binary = (node, opt, tables) => {
-  return '(' + genExpr(node.left, opt, tables) + (BINARY_OPS[node.operator] || node.operator) + genExpr(node.right, opt, tables) + ')';
+  return (
+    '(' +
+    genExpr(node.left, opt, tables) +
+    (BINARY_OPS[node.operator] || node.operator) +
+    genExpr(node.right, opt, tables) +
+    ')'
+  );
 };
 
 const call = (node, opt, tables) => {

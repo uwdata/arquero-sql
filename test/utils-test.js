@@ -74,7 +74,10 @@ tape('resolveColumns', t => {
 });
 
 tape('isFunction', t => {
-  t.ok(isFunction(() => 5), 'is function');
+  t.ok(
+    isFunction(() => 5),
+    'is function',
+  );
   t.notOk(isFunction(5), 'is not function');
   t.end();
 });
