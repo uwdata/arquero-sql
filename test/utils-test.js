@@ -1,6 +1,6 @@
 import tape from 'tape';
-import {resolveColumns, createColumn, isFunction} from '../src/utils';
-import {internal, not, all} from 'arquero';
+import {createColumn, isFunction, resolveColumns} from '../src/utils';
+import {all, internal, not} from 'arquero';
 
 const {Verbs} = internal;
 const schema = {
@@ -77,9 +77,9 @@ tape('isFunction', t => {
   t.ok(isFunction(() => 5), 'is function');
   t.notOk(isFunction(5), 'is not function');
   t.end();
-})
+});
 
 tape('createColumn', t => {
   t.deepEqual(createColumn('col1'), {type: 'Column', name: 'col1'}, 'create column correctly');
   t.end();
-})
+});

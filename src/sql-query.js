@@ -1,4 +1,4 @@
-import {toSql} from "./to-sql";
+import {toSql} from './to-sql';
 
 export class SqlQuery {
 
@@ -89,19 +89,19 @@ export class SqlQuery {
     // TODO: what to deal with tablerefList type
     if (this._clauses.union) ret += 'UNION \nSELECT * FROM\n ' +
         this._clauses.union.
-        join("\nUNION \nSELECT * FROM \n") + "\n"
+        join('\nUNION \nSELECT * FROM \n') + '\n';
 
     if (this._clauses.intersect) ret += 'INTERSECT \nSELECT * FROM\n ' +
         this._clauses.intersect.
-        join("\nINTERSECT \nSELECT * FROM \n") + "\n"
+        join('\nINTERSECT \nSELECT * FROM \n') + '\n';
 
     if (this._clauses.except) ret += 'EXCEPT \nSELECT * FROM\n ' +
         this._clauses.except.
-        join("\nEXCEPT \nSELECT * FROM \n") + "\n"
+        join('\nEXCEPT \nSELECT * FROM \n') + '\n';
 
     if (this._clauses.concat) ret += 'CONCAT \nSELECT * FROM\n ' +
         this._clauses.concat.
-        join("\nCONCAT \nSELECT * FROM \n") + "\n"
-    return ret
+        join('\nCONCAT \nSELECT * FROM \n') + '\n';
+    return ret;
   }
 }

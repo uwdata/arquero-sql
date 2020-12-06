@@ -121,7 +121,7 @@ const visitors = {
   BreakStatement: node => {
     throw new Error('BreakStatement is not supported: ' + JSON.stringify(node));
   },
-  ExpressionStatement: (node, opt) => {
+  ExpressionStatement: (node, opt, tables) => {
     return genExpr(node.expression, opt, tables);
   },
   IfStatement: node => {

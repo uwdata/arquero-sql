@@ -28,8 +28,8 @@ const visitors = {
   OpLookup: node => {
     throw new Error('OpLookup is not supported: ' + JSON.stringify(node));
   },
-  Literal: node => false,
-  Identifier: node => false,
+  Literal: () => false,
+  Identifier: () => false,
   TemplateLiteral: node => node.expressions.some(e => hasAggregation(e)),
   MemberExpression: node => {
     throw new Error('MemberExpression is not supported: ' + JSON.stringify(node));

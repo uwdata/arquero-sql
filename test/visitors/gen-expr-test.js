@@ -1,6 +1,6 @@
 import tape from 'tape';
 import {genExpr} from '../../src/visitors/gen-expr';
-import {op, internal} from 'arquero';
+import {internal, op} from 'arquero';
 
 const {Verbs} = internal;
 
