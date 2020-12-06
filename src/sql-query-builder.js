@@ -99,7 +99,11 @@ export class SqlQueryBuilder extends SqlQuery {
 
     verb.keys.forEach(key => {
       if (key.type === 'Selection') {
-        resolveColumns(this._schema, [key]).forEach(name => addKey(createColumn(name)));
+        const columns = resolveColumns(this._schema, [key]);
+        if (columns === null) {
+          throw new Error('Cannot resolve not/all selection without schema');
+        }
+        columns.forEach(name => addKey(createColumn(name)));
       } else {
         addKey(key);
       }
@@ -107,7 +111,7 @@ export class SqlQueryBuilder extends SqlQuery {
 
     const groupby = keys.map(key => key.as || key.name);
     if (keys.some(key => key.as)) {
-      return this._derive({values: keys.filter(key => key.as)})._groupby({keys: groupby});
+      return this._derive({values: keys.filter(key => key.as)}).groupby(Verbs.groupby(groupby));
     } else {
       return this._wrap({groupby}, {...(this._schema || []), groupby});
     }
