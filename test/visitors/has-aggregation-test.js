@@ -1,6 +1,6 @@
 import tape from 'tape';
 import {internal, op} from 'arquero';
-import { hasAggregation } from '../../src/visitors/has-aggregation';
+import {hasAggregation} from '../../src/visitors/has-aggregation';
 
 const {Verbs} = internal;
 
