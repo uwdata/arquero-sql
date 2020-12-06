@@ -36,10 +36,7 @@ export function toAst(expr, as) {
  */
 export function deepEqualAll(t, actuals, expecteds) {
   if (actuals.length !== expecteds.length) {
-    t.fail(
-      'actuals and expecteds should have same length but received ' +
-        `${actuals.length} and ${expecteds.length}`,
-    );
+    t.fail('actuals and expecteds should have same length but received ' + `${actuals.length} and ${expecteds.length}`);
   }
 
   expecteds.forEach(([expected, message], idx) => t.deepEqual(copy(actuals[idx]), expected, message));

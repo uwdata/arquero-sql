@@ -49,11 +49,7 @@ tape('SqlQueryBuilder: derive', t => {
     [createColumn('d'), 'should include original column'],
     [toAst(d => d.c, 'c1'), 'shold derive a columnd into a new name'],
   ]);
-  t.deepEqual(
-    derive3._schema.columns,
-    ['a', 'b', 'c', 'd', 'c1'],
-    'should produce correct schema',
-  );
+  t.deepEqual(derive3._schema.columns, ['a', 'b', 'c', 'd', 'c1'], 'should produce correct schema');
 
   t.throws(() => {
     base.derive(Verbs.derive({a: d => op.mean(d.a)}));

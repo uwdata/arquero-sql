@@ -1,5 +1,5 @@
 import tape from 'tape';
-import { op} from 'arquero';
+import {op} from 'arquero';
 import {createColumn} from '../../src/utils';
 import {Verbs, base, deepEqualAll, toAst} from './common';
 
