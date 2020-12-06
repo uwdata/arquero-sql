@@ -20,6 +20,7 @@
   "devDependencies": {
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^10.0.0",
+    "eslint": "^7.15.0",
     "esm": "^3.2.25",
     "mkdirp": "^1.0.4",
     "prettier": "^2.2.0",

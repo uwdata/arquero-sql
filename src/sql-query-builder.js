@@ -1,6 +1,6 @@
 import {SqlQuery} from './sql-query';
-import {internal, all, op} from 'arquero';
-import {resolveColumns, isFunction, createColumn} from './utils';
+import {internal, not, op} from 'arquero';
+import {createColumn, isFunction, resolveColumns} from './utils';
 import {hasAggregation} from './visitors/has-aggregation';
 
 const {Verbs} = internal;
@@ -52,7 +52,7 @@ export class SqlQueryBuilder extends SqlQuery {
     const fields = verb.values;
     const keep = fields.map(() => true);
 
-    let clauses = this._schema
+    const clauses = this._schema
       ? {
           select: [
             ...Verbs.select(this._schema.columns)
@@ -192,6 +192,7 @@ export class SqlQueryBuilder extends SqlQuery {
     );
   }
 
+  // eslint-disable-next-line
   _join(verb) {
     throw new Error('TODO: implement join');
     // return this.wrap(
