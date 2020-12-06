@@ -1,7 +1,6 @@
 const {table, internal: {QueryBuilder, Verbs}, op, not, desc, all} = require('arquero');
 const {toSql} = require('./dist/arquero-sql');
 const {SqlQuery} = require('./dist/arquero-sql');
-const { fromQuery } = require('./src/sql-query-builder');
 
 const dt = table({
   'Seattle': [69,108,178,207,253,268,312,281,221,142,72,52],
@@ -13,14 +12,14 @@ const dt = table({
 
 dt
   .filter(d => op.mean(d.Chicago) > 140 || d.Seattle > 100)  // is not allowed in SQL
-  // .groupby({key: d => d.Seattle > 100, S: d => d.Seattle}, 'Seattle')
+  .groupby({key: d => d.Seattle > 100, S: d => d.Seattle}, 'Seattle')
   // .derive({k: d => d.Chicago + 10})
   // .filter(d => op.mean(d.Chicago) > 140)  // should becomes "having"
   // .filter(d => d.Chicago > 200) // tricky case -> should becomes "where"
   // .select('key')
-  // .rollup({Chicago: d => op.mean(d.Chicago) + 1000})
+  .rollup({key: d => op.mean(d.Chicago) + 1000})
   // .select('Seattle')
-  .select(not('Seattle'), 'Seattle')
+  // .select(not('Seattle'), 'Seattle')
   .print();
 
 // dt.print()
@@ -85,7 +84,7 @@ const out = qb
   // .dedupe(all())
 
 // console.log(JSON.stringify(out._verbs, null, 3));
-console.log(JSON.stringify(fromQuery(out, null), null, 3));
+// console.log(JSON.stringify(fromQuery(out, null), null, 3));
 
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
 // // v.values.map(vv => toSql(vv))

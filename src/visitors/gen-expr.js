@@ -23,6 +23,7 @@ const list = (array, opt, tables, delim = ',') => {
 const ARQUERO_OPS_TO_SQL = {
   row_number: 'ROW_NUMBER',
   mean: 'AVG',
+  max: 'MAX',
 };
 
 const BINARY_OPS = {
