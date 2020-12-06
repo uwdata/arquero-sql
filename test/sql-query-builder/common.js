@@ -9,6 +9,21 @@ export const baseWithGroupBy = new SqlQueryBuilder('table-name', null, {
   groupby: ['a', 'b'],
 });
 
+/**
+ * deep copy an object
+ * @param {object} obj object to copy
+ * @returns copied of obj
+ */
 export function copy(obj) {
   return JSON.parse(JSON.stringify(obj));
+}
+
+/**
+ * convert a JS expression to AST
+ * @param {function} expr function expression
+ * @param {string} [as] result column name
+ * @returna AST of expr
+ */
+export function toAst(expr, as) {
+  return {...copy(Verbs.filter(expr).toAST().criteria), ...(as ? {as} : {})};
 }

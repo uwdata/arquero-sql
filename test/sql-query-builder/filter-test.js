@@ -1,6 +1,6 @@
 import tape from 'tape';
 import {op, table} from 'arquero';
-import {Verbs, base, baseWithGroupBy, copy} from './common';
+import {Verbs, base, baseWithGroupBy, copy, toAst} from './common';
 
 tape('Sql-query-builder: filter', t => {
   const filterForWhere = base.filter(
@@ -18,49 +18,19 @@ tape('Sql-query-builder: filter', t => {
 
   t.deepEqual(
     copy(filterForWhere._clauses.where[0]),
-    {
-      type: 'BinaryExpression',
-      left: {type: 'Column', name: 'a'},
-      operator: '>',
-      right: {type: 'Literal', value: 0, raw: '0'},
-      as: 'c1',
-    },
+    toAst(d => d.a > 0, 'c1'),
     'Non-aggregate function add to where',
   );
 
   t.deepEqual(
     copy(filterForHaving._clauses.having[0]),
-    {
-      type: 'BinaryExpression',
-      left: {
-        type: 'CallExpression',
-        callee: {type: 'Function', name: 'mean'},
-        arguments: [
-          {
-            type: 'Column',
-            name: 'a',
-          },
-        ],
-      },
-      operator: '>',
-      right: {type: 'Literal', value: 0, raw: '0'},
-      as: 'c1',
-    },
+    toAst(d => op.mean(d.a) > 0, 'c1'),
     'aggregate function with groupby add to having',
   );
 
   t.deepEqual(
     copy(filterForHaving._clauses.where[0]),
-    {
-      type: 'BinaryExpression',
-      left: {
-        type: 'Column',
-        name: 'b',
-      },
-      operator: '>',
-      right: {type: 'Literal', value: 0, raw: '0'},
-      as: 'c2',
-    },
+    toAst(d => d.b > 0, 'c2'),
     'non-aggregate function with groupby add to where',
   );
 

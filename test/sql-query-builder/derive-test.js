@@ -2,7 +2,7 @@ import tape from 'tape';
 import {createColumn} from '../../src/utils';
 import {op} from 'arquero';
 import {genExpr} from '../../src/visitors/gen-expr';
-import {Verbs, base, baseWithGroupBy, copy, noschema} from './common';
+import {Verbs, base, baseWithGroupBy, copy, noschema, toAst} from './common';
 
 tape('SqlQueryBuilder: derive', t => {
   const derive1 = base.derive(
@@ -18,51 +18,23 @@ tape('SqlQueryBuilder: derive', t => {
   t.deepEqual(derive1._clauses.select[1], createColumn('b'), 'should include original column');
   t.deepEqual(
     derive1._clauses.select[2],
-    {
-      type: 'CallExpression',
-      callee: {type: 'Function', name: 'row_number'},
-      arguments: [],
-      as: 'c',
-    },
+    toAst(() => op.row_number(), 'c'),
     'should replace the original column with the derived column with the same name',
   );
   t.deepEqual(derive1._clauses.select[3], createColumn('d'), 'should include original column');
   t.deepEqual(
     copy(derive1._clauses.select[4]),
-    {
-      type: 'BinaryExpression',
-      left: {type: 'Literal', value: 1, raw: '1'},
-      operator: '+',
-      right: {type: 'Literal', value: 1, raw: '1'},
-      as: 'constant',
-    },
+    toAst(() => 1 + 1, 'constant'),
     'should derive constant',
   );
   t.deepEqual(
     copy(derive1._clauses.select[5]),
-    {
-      type: 'BinaryExpression',
-      left: {type: 'Column', name: 'a'},
-      operator: '*',
-      right: {type: 'Column', name: 'b'},
-      as: 'column1',
-    },
+    toAst(d => d.a * d.b, 'column1'),
     'should derive expression',
   );
   t.deepEqual(
     copy(derive1._clauses.select[6]),
-    {
-      type: 'BinaryExpression',
-      left: {type: 'Column', name: 'a'},
-      operator: '*',
-      right: {
-        type: 'BinaryExpression',
-        left: {type: 'Column', name: 'b'},
-        operator: '+',
-        right: {type: 'Literal', raw: '3', value: 3},
-      },
-      as: 'column2',
-    },
+    toAst(d => d.a * (d.b + 3), 'column2'),
     'should derive nested expression',
   );
   t.deepEqual(
