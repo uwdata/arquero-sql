@@ -128,7 +128,7 @@ export class SqlQueryBuilder extends SqlQuery {
               const index = verb.values.findIndex(value => value.as === name);
               return index === -1 ? createColumn(name) : verb.values[index];
             }),
-            ...verb.values.filter(value => !this._schema.groupby.includes(value)),
+            ...verb.values.filter(value => !this._schema.groupby.includes(value.as)),
           ],
         }),
         {columns: [...this._schema.groupby, ...columns]},

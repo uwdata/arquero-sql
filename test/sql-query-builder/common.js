@@ -22,7 +22,7 @@ export function copy(obj) {
  * convert a JS expression to AST
  * @param {function} expr function expression
  * @param {string} [as] result column name
- * @returna AST of expr
+ * @returns AST of expr
  */
 export function toAst(expr, as) {
   return {...copy(Verbs.filter(expr).toAST().criteria), ...(as ? {as} : {})};
