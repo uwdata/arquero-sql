@@ -2,7 +2,7 @@ import tape from 'tape';
 import {all, not} from 'arquero';
 import {Verbs, base} from './common';
 
-tape('SqlQueryBuilder: select', t => {
+tape('SqlQueryBuilder: dedupe', t => {
   const dedupe = base.dedupe(Verbs.dedupe(all()));
   t.ok(dedupe._clauses.distinct, 'distinct flag should be true');
   t.deepEqual(dedupe._schema.columns, base._schema.columns, 'schema should stay the same');
