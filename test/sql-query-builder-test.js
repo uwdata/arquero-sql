@@ -88,7 +88,7 @@ tape('SqlQueryBuilder: derive', t => {
   t.notOk(derive2._schema, 'should not produce schema');
 
   t.throws(() => {
-    base.derive(Verbs.derive({a: op.mean(a)}));
+    base.derive(Verbs.derive({a: d => op.mean(d.a)}));
   }, 'Derive does not allow aggregated operations');
 
   t.throws(() => baseWithGroupBy.derive({}), 'Need a rollup/count after a groupby before derive');
@@ -102,7 +102,7 @@ tape('Sql-query-builder: filter', t => {
     Verbs.filter({
       c1: d => d.a > 0,
     }),
-  )
+  );
 
   const filterForHaving =
     baseWithGroupBy.filter(
@@ -110,7 +110,7 @@ tape('Sql-query-builder: filter', t => {
         c1: d => op.mean(d.a) > 0,
         c2: d => d.b > 0,
       })
-    )
+    );
 
   t.deepEqual(copy(filterForWhere._clauses.where[0]),
     {
@@ -136,7 +136,7 @@ tape('Sql-query-builder: filter', t => {
       operator: '>',
         right: { type: 'Literal', value: 0, raw: '0' },
       as: 'c1'
-    }, 'aggregate function with groupby add to having')
+    }, 'aggregate function with groupby add to having');
   
   t.deepEqual(copy(filterForHaving._clauses.where[0]),
     {
@@ -148,7 +148,7 @@ tape('Sql-query-builder: filter', t => {
       operator: '>',
         right: { type: 'Literal', value: 0, raw: '0' },
       as: 'c2'
-    }, 'non-aggregate function with groupby add to where')
+    }, 'non-aggregate function with groupby add to where');
 
   t.throws(() => 
     base.filter(
@@ -175,7 +175,7 @@ tape('Sql-query-builder: combining sql ', t => {
     union1._clauses.union[0]._names,
     ['a', 'b'],
     'query that combines statement'
-  )
+  );
 
-  t.end()
-})
+  t.end();
+});
