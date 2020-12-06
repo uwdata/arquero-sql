@@ -1,8 +1,7 @@
 import tape from 'tape';
 import {createColumn} from '../../src/utils';
 import {op} from 'arquero';
-import {genExpr} from '../../src/visitors/gen-expr';
-import {Verbs, base, baseWithGroupBy, copy, noschema, toAst} from './common';
+import {Verbs, base, baseWithGroupBy, deepEqualAll, noschema, toAst} from './common';
 
 tape('SqlQueryBuilder: derive', t => {
   const derive1 = base.derive(
@@ -14,29 +13,15 @@ tape('SqlQueryBuilder: derive', t => {
     }),
   );
 
-  t.deepEqual(derive1._clauses.select[0], createColumn('a'), 'should include original column');
-  t.deepEqual(derive1._clauses.select[1], createColumn('b'), 'should include original column');
-  t.deepEqual(
-    derive1._clauses.select[2],
-    toAst(() => op.row_number(), 'c'),
-    'should replace the original column with the derived column with the same name',
-  );
-  t.deepEqual(derive1._clauses.select[3], createColumn('d'), 'should include original column');
-  t.deepEqual(
-    copy(derive1._clauses.select[4]),
-    toAst(() => 1 + 1, 'constant'),
-    'should derive constant',
-  );
-  t.deepEqual(
-    copy(derive1._clauses.select[5]),
-    toAst(d => d.a * d.b, 'column1'),
-    'should derive expression',
-  );
-  t.deepEqual(
-    copy(derive1._clauses.select[6]),
-    toAst(d => d.a * (d.b + 3), 'column2'),
-    'should derive nested expression',
-  );
+  deepEqualAll(t, derive1._clauses.select, [
+    [createColumn('a'), 'should include original column'],
+    [createColumn('b'), 'should include original column'],
+    [toAst(() => op.row_number(), 'c'), 'should replace the original column with the same name'],
+    [createColumn('d'), 'should include original column'],
+    [toAst(() => 1 + 1, 'constant'), 'should derive constant'],
+    [toAst(d => d.a * d.b, 'column1'), 'should derive expression'],
+    [toAst(d => d.a * (d.b + 3), 'column2'), 'should derive nested expression'],
+  ]);
   t.deepEqual(
     derive1._schema.columns,
     ['a', 'b', 'c', 'd', 'constant', 'column1', 'column2'],
@@ -44,9 +29,26 @@ tape('SqlQueryBuilder: derive', t => {
   );
 
   const derive2 = noschema.derive(Verbs.derive({constant: () => 1 + 1}));
-  t.deepEqual(derive2._clauses.select[0], createColumn('*'), 'should select *');
-  t.deepEqual(genExpr(derive2._clauses.select[1]), '(1+1)', 'should select derived field');
+  deepEqualAll(t, derive2._clauses.select, [
+    [createColumn('*'), 'should select *'],
+    [toAst(() => 1 + 1, 'constant'), 'should select derived field'],
+  ]);
   t.notOk(derive2._schema, 'should not produce schema');
+
+  const derive3 = base.derive(
+    Verbs.derive({
+      a: d => d.a,
+      b: d => d.b + 1,
+      c1: d => d.c,
+    }),
+  );
+  deepEqualAll(t, derive3._clauses.select, [
+    [createColumn('a'), 'should derive a column as its original name into a normal selection'],
+    [toAst(d => d.b + 1, 'b'), 'should derive expression'],
+    [createColumn('c'), 'should include original column'],
+    [createColumn('d'), 'should include original column'],
+    [toAst(d => d.c, 'c1'), 'shold derive a columnd into a new name'],
+  ]);
 
   t.throws(() => {
     base.derive(Verbs.derive({a: d => op.mean(d.a)}));
