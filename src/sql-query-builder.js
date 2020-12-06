@@ -156,13 +156,13 @@ export class SqlQueryBuilder extends SqlQuery {
       ._append(
         clauses => ({
           ...clauses,
-          orderby: Verbs.orderby(op.random()).toAST().keys,
+          orderby: Verbs.orderby([() => op.random()]).toAST().keys,
           limit: verb.size,
         }),
         schema => schema,
       )
-      .orderby(Verbs.orderby(ROW_NUM_TMP))
-      .select(Verbs.select(not(ROW_NUM_TMP)));
+      .orderby(Verbs.orderby([ROW_NUM_TMP]))
+      .select(Verbs.select([not(ROW_NUM_TMP)]));
   }
 
   _select(verb) {
@@ -186,7 +186,7 @@ export class SqlQueryBuilder extends SqlQuery {
       }
     });
 
-    return this._append(
+    return this._wrap(
       {select: columns},
       {
         columns: columns.map(column => column.as || column.name),
