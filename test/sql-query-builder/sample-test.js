@@ -14,20 +14,18 @@ tape('SqlQueryBuilder: orderby', t => {
 
   const orderby = sample._source;
   deepEqualAll(t, orderby._clauses.orderby, [
-    [createColumn('___arquero_sql_row_num_tmp___'), 'should orderby temp column']
+    [createColumn('___arquero_sql_row_num_tmp___'), 'should orderby temp column'],
   ]);
 
   const inner = orderby._source;
   t.equals(inner._clauses.limit, 10, 'should limit by the sample size');
-  deepEqualAll(t, inner._clauses.orderby, [
-    [toAst(() => op.random()), 'should orderby random']
-  ]);
+  deepEqualAll(t, inner._clauses.orderby, [[toAst(() => op.random()), 'should orderby random']]);
   deepEqualAll(t, inner._clauses.select, [
     [createColumn('a'), 'should select original column'],
     [createColumn('b'), 'should select original column'],
     [createColumn('c'), 'should select original column'],
     [createColumn('d'), 'should select original column'],
-    [toAst(() => op.row_number(), '___arquero_sql_row_num_tmp___'), 'should derive temp column from row number']
+    [toAst(() => op.row_number(), '___arquero_sql_row_num_tmp___'), 'should derive temp column from row number'],
   ]);
 
   t.deepEqual(sample._schema, base._schema, 'schema should stay the same');
