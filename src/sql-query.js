@@ -78,8 +78,7 @@ export class SqlQuery {
       ret +=
         'ORDER BY ' +
         this._clauses.orderby
-          .toAST()
-          .keys.map(c => toSql(c))
+          .map(key => toSql(key))
           .join(', ') +
         '\n';
 
