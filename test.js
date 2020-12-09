@@ -117,7 +117,6 @@ const t1 = test
 const t2 = test
   .union(Verbs.union(['table2', 'table3']));
 
-
 const t3 = test
   .groupby(Verbs.groupby(['Seattle']))
   .rollup(Verbs.rollup({column1 : d => op.mean(d.Seattle)}));
@@ -127,5 +126,9 @@ const t4 = test
   .filter(Verbs.filter({condition1 : d => op.mean(d.Seattle) > 100}))
   .rollup(Verbs.rollup({column1 : d => op.mean(d.Seattle)}));
 
+const t5 = test
+  .select(Verbs.select(['Seattle']))
+  .orderby(Verbs.orderby([{key1 : d => d.Seattle}]))
+
 // output not ideal
-console.log(t4.toSql())
+console.log(t5.toSql())
