@@ -20,7 +20,7 @@ const CLAUSE_EXEC_ORDER = [
  * @returns {SqlQuery}
  */
 export function fuse(query) {
-  if (typeof query === 'string' || typeof query._source === 'string') {
+  if (typeof query.name === 'string' || typeof query._source.name === 'string') {
     return query;
   }
 
@@ -31,24 +31,25 @@ export function fuse(query) {
   }
 
   const source_keys = Object.keys(source._clauses);
-  const source_highest_key = Math.max(source_keys.map(key => CLAUSE_EXEC_ORDER.indexOf(key)));
+  // fuse filter
+  const source_highest_key = Math.max(...source_keys.map(key => CLAUSE_EXEC_ORDER.indexOf(key)), 0);
   if (source_highest_key === 0) {
-    return new SqlQuery(
-      source._source,
-      {...query._clauses, where: [...(query._clauses.where || []), ...source._clauses.where]},
-      query._schema,
-    );
+    const where = [...(query._clauses.where || []), ...(source._clauses.where || [])];
+    return new SqlQuery(source._source, {...query._clauses, ...(where.length === 0 ? {} : {where})}, query._schema);
   }
 
-  const query_lowest_key = Math.min(keys.map(key => CLAUSE_EXEC_ORDER.indexOf(key)));
+  // genearl fuse clauses
+  const query_lowest_key = Math.min(...keys.map(key => CLAUSE_EXEC_ORDER.indexOf(key)), 10000);
   if (query_lowest_key > source_highest_key) {
     return new SqlQuery(source._source, {...source._clauses, ...query._clauses}, query._schema);
   }
 
+  // fuse select
   if (query_lowest_key === 3 && source_highest_key === 3) {
-    if (source._clauses.select.all(s => s.type === 'Column' && !('as' in s)))
+    if (source._clauses.select.every(s => s.type === 'Column' && !('as' in s)))
       return new SqlQuery(source._source, {...source._clauses, ...query._clauses}, query._schema);
   }
 
+  // do not fuse
   return new SqlQuery(source, query._clauses, query._schema);
 }

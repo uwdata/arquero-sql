@@ -113,7 +113,7 @@ export class SqlQueryBuilder extends SqlQuery {
     if (keys.some(key => key.as)) {
       return this._derive({values: keys.filter(key => key.as)}).groupby(Verbs.groupby(groupby));
     } else {
-      return this._wrap({groupby}, {...(this._schema || []), groupby});
+      return this._wrap({groupby, select: groupby.map(c => createColumn(c))}, {...(this._schema || []), groupby});
     }
   }
 

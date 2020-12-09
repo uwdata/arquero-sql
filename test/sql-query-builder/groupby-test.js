@@ -6,6 +6,11 @@ import {Verbs, base, deepEqualAll, noschema, toAst} from './common';
 tape('SqlQueryBuilder: groupby', t => {
   const groupby1 = base.groupby(Verbs.groupby(['a', 'b']));
   t.deepEqual(groupby1._schema.groupby, ['a', 'b'], 'should produce correct schema with groupby');
+  t.deepEqual(
+    groupby1._clauses.select,
+    ['a', 'b'].map(c => createColumn(c)),
+    'should select only groupby columns',
+  );
 
   const groupby2 = base.groupby(
     Verbs.groupby({
