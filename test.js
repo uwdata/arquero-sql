@@ -3,7 +3,7 @@ const {toSql} = require('./dist/arquero-sql');
 const {SqlQuery} = require('./dist/arquero-sql');
 const {SqlQueryBuilder} = require('./dist/arquero-sql')
 const util = require('util')
-const {SqlOptimizer} = require('./dist/arquero-sql')
+const {fuse} = require('./dist/arquero-sql')
 
 const dt = table({
   'Seattle': [69,108,178,207,253,268,312,281,221,142,72,52],
@@ -103,35 +103,29 @@ const out = qb
 //   .join((new QueryBuilder("test")), (a, b) => op.equal(a.Seattle, b.Chicago), ['test1'])
 // console.log(JSON.stringify(out.toAST(), null, 2));
 
-const sqlQuery = new SqlQuery(
-    'table',
-    {except: (['table1', 'table2']),
-        select: [Verbs.select('a').toAST().columns[0],
-            Verbs.derive({b: d => d.a + 1}).toAST().values[0]],
-        where: [Verbs.filter(d => d.a > 0)],
-        having: [Verbs.filter(d => op.mean(d.a))]},
-    // Verbs.select(['d => mean(d.foo)'])},
-    'foo'
-)
-
-const base = new SqlQueryBuilder('table-name', null, {columns: ['Seattle', 'Chicago', 'New York']});
-
-const filter1 =
-  base
-    .select(Verbs.select('Seattle'))
-    .filter(Verbs.filter({c1 : d => d.Seattle > 100}))
-
-
-const test = new SqlQuery(
+const test = new SqlQueryBuilder(
   'table',
-  {except: (['table1', 'table2']),
-    select: [Verbs.select('a').toAST().columns[0],
-      Verbs.derive({b: d => d.a + 1}).toAST().values[0]],
-    where: [Verbs.filter(d => d.a > 0)],
-    having: [Verbs.filter(d => op.mean(d.a) > 0)]},
-  // Verbs.select(['d => mean(d.foo)'])},
-  'foo'
-)
+  null,
+  {columns: ['Seattle', 'Chicago', 'New York']}
+);
 
-console.log(filter1)
-//console.log(test._clauses.having[0].toAST().criteria)
+// the drawback of always nested
+const t1 = test
+  .filter(Verbs.filter({condition : d => d.Seattle > 100}))
+  .select(Verbs.select(['Chicago']))
+
+const t2 = test
+  .union(Verbs.union(['table2', 'table3']));
+
+
+const t3 = test
+  .groupby(Verbs.groupby(['Seattle']))
+  .rollup(Verbs.rollup({column1 : d => op.mean(d.Seattle)}));
+
+const t4 = test
+  .groupby(Verbs.groupby(['Seattle']))
+  .filter(Verbs.filter({condition1 : d => op.mean(d.Seattle) > 100}))
+  .rollup(Verbs.rollup({column1 : d => op.mean(d.Seattle)}));
+
+// output not ideal
+console.log(t4.toSql())

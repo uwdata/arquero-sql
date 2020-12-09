@@ -1,44 +1,19 @@
 import tape from 'tape';
-import {SqlQuery} from '../src';
+import { SqlQuery, SqlQueryBuilder } from '../src';
 import {internal, op} from 'arquero';
 const {Verbs} = internal;
 
 tape('to-sql : well printed', t => {
-  const sqlQuery = new SqlQuery(
+  const test = new SqlQueryBuilder(
     'table',
-    {
-      except: ['table1', 'table2'],
-      select: [Verbs.select('a').toAST().columns[0], Verbs.derive({b: d => d.a + 1}).toAST().values[0]],
-      where: [Verbs.filter(d => d.a > 0)],
-      having: [Verbs.filter(d => op.mean(d.a))],
-    },
+    null,
     // Verbs.select(['d => mean(d.foo)'])},
-    'foo',
+    ['Seattle', 'Chicago', 'New York'],
   );
-  const sqlQueryNested = new SqlQuery(
-    new SqlQuery('table', {select: [Verbs.select('a').toAST().columns[0]]}, 'foo'),
-    {select: [Verbs.select('b').toAST().columns[0]], where: [Verbs.filter(d => d.a > 0)]},
-    'bar',
-  );
+  const t1 = test
+    .select(Verbs.select(['Chicago']))
+    .filter(Verbs.filter({condition : d => d.Seattle > 100}))
 
-  t.equal(
-    sqlQuery.toSql(),
-    'SELECT a, (a+1)\n' +
-      'FROM(table)\n' +
-      'WHERE (a>0)\n' +
-      'HAVING AVG(a)\n' +
-      'EXCEPT \n' +
-      'SELECT * FROM\n' +
-      ' table1\n' +
-      'EXCEPT \n' +
-      'SELECT * FROM \n' +
-      'table2\n',
-    'basic test',
-  );
-  t.equal(
-    sqlQueryNested.toSql(),
-    'SELECT b\n' + 'FROM(SELECT a\n' + 'FROM(table)\n' + ')\n' + 'WHERE (a>0)\n',
-    'nested sql',
-  );
+  t.deepEqual(t1.toSql(), )
   t.end();
 });
