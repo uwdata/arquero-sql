@@ -1,3 +1,4 @@
+import {fuse} from './optimizer';
 import {toSql} from './to-sql';
 
 export class SqlQuery {
@@ -34,10 +35,14 @@ export class SqlQuery {
     this._schema = schema;
   }
 
+  optimize() {
+    return fuse(this);
+  }
+
   toSql() {
     let ret = '';
-    if (Object.keys(this._clauses).length === 0) return this._source.toSql()
-    if (!this._clauses.select) ret += 'SELECT * '
+    if (Object.keys(this._clauses).length === 0) return this._source.toSql();
+    if (!this._clauses.select) ret += 'SELECT * ';
     if (this._clauses.select)
       ret +=
         'SELECT ' +
@@ -57,30 +62,17 @@ export class SqlQuery {
         toSql(this._clauses.join.on.toAST()) +
         toSql(this._clauses.join.values);
 
-    if (!this._clauses.join)
-      ret += 'FROM' + '(' + this._source.toSql() + ')' + '\n';
+    if (!this._clauses.join) ret += 'FROM' + '(' + this._source.toSql() + ')' + '\n';
 
     if (this._clauses.where) {
       ret += 'WHERE ' + this._clauses.where.map(c => toSql(c)).join(' AND ') + '\n';
     }
 
-    if (this._clauses.groupby)
-      ret +=
-        'GROUP BY ' +
-        this._clauses.groupby
-          .join(', ') +
-        '\n';
+    if (this._clauses.groupby) ret += 'GROUP BY ' + this._clauses.groupby.join(', ') + '\n';
 
-    if (this._clauses.having) ret += 'HAVING ' +
-      this._clauses.having.map(verb => toSql(verb)).join(' AND ') + '\n';
+    if (this._clauses.having) ret += 'HAVING ' + this._clauses.having.map(verb => toSql(verb)).join(' AND ') + '\n';
 
-    if (this._clauses.orderby)
-      ret +=
-        'ORDER BY ' +
-        this._clauses.orderby
-          .map(key => toSql(key))
-          .join(', ') +
-        '\n';
+    if (this._clauses.orderby) ret += 'ORDER BY ' + this._clauses.orderby.map(key => toSql(key)).join(', ') + '\n';
 
     // TODO: what to deal with tablerefList type
     if (this._clauses.union)
