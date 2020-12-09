@@ -36,6 +36,8 @@ export class SqlQuery {
 
   toSql() {
     let ret = '';
+    if (Object.keys(this._clauses).length === 0) return this._source.toSql()
+    if (!this._clauses.select) ret += 'SELECT * '
     if (this._clauses.select)
       ret +=
         'SELECT ' +
@@ -56,7 +58,7 @@ export class SqlQuery {
         toSql(this._clauses.join.values);
 
     if (!this._clauses.join)
-      ret += 'FROM' + '(' + (this._source.name ? this._source.name : this._source.toSql()) + ')' + '\n';
+      ret += 'FROM' + '(' + this._source.toSql() + ')' + '\n';
 
     if (this._clauses.where) {
       ret += 'WHERE ' + this._clauses.where.map(c => toSql(c)).join(' AND ') + '\n';
@@ -66,12 +68,11 @@ export class SqlQuery {
       ret +=
         'GROUP BY ' +
         this._clauses.groupby
-          .toAST()
-          .keys.map(c => toSql(c))
           .join(', ') +
         '\n';
 
-    if (this._clauses.having) ret += 'HAVING ' + this._clauses.having.map(verb => toSql(verb).join(' AND ') + '\n');
+    if (this._clauses.having) ret += 'HAVING ' +
+      this._clauses.having.map(verb => toSql(verb)).join(' AND ') + '\n';
 
     if (this._clauses.orderby)
       ret +=
@@ -84,16 +85,16 @@ export class SqlQuery {
 
     // TODO: what to deal with tablerefList type
     if (this._clauses.union)
-      ret += 'UNION \nSELECT * FROM\n ' + this._clauses.union.join('\nUNION \nSELECT * FROM \n') + '\n';
+      ret += 'UNION \nSELECT * FROM ' + this._clauses.union.join('\nUNION \nSELECT * FROM ') + '\n';
 
     if (this._clauses.intersect)
-      ret += 'INTERSECT \nSELECT * FROM\n ' + this._clauses.intersect.join('\nINTERSECT \nSELECT * FROM \n') + '\n';
+      ret += 'INTERSECT \nSELECT * FROM ' + this._clauses.intersect.join('\nINTERSECT \nSELECT * FROM ') + '\n';
 
     if (this._clauses.except)
-      ret += 'EXCEPT \nSELECT * FROM\n ' + this._clauses.except.join('\nEXCEPT \nSELECT * FROM \n') + '\n';
+      ret += 'EXCEPT \nSELECT * FROM ' + this._clauses.except.join('\nEXCEPT \nSELECT * FROM ') + '\n';
 
     if (this._clauses.concat)
-      ret += 'CONCAT \nSELECT * FROM\n ' + this._clauses.concat.join('\nCONCAT \nSELECT * FROM \n') + '\n';
+      ret += 'CONCAT \nSELECT * FROM ' + this._clauses.concat.join('\nCONCAT \nSELECT * FROM ') + '\n';
     return ret;
   }
 }
