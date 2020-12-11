@@ -1,10 +1,10 @@
 import tape from 'tape';
 import {op} from 'arquero';
 import {createColumn} from '../../src/utils';
-import {Verbs, base, deepEqualAll, toAst} from './common';
+import {base, deepEqualAll, toAst} from './common';
 
 tape('SqlQueryBuilder: orderby', t => {
-  const sample = base.sample(Verbs.sample(10, {replace: false}));
+  const sample = base.sample(10, {replace: false});
   deepEqualAll(t, sample._clauses.select, [
     [createColumn('a'), 'should select original column'],
     [createColumn('b'), 'should select original column'],
@@ -30,7 +30,7 @@ tape('SqlQueryBuilder: orderby', t => {
 
   t.deepEqual(sample._schema, base._schema, 'schema should stay the same');
 
-  t.throws(() => base.sample(Verbs.sample(10, {replace: true})), 'sample does not support replace');
+  t.throws(() => base.sample(10, {replace: true}), 'sample does not support replace');
 
   t.end();
 });

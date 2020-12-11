@@ -1,12 +1,12 @@
 import tape from 'tape';
 import {desc} from 'arquero';
 import {createColumn} from '../../src/utils';
-import {Verbs, base, deepEqualAll, toAst} from './common';
+import {base, deepEqualAll, toAst} from './common';
 
 tape('SqlQueryBuilder: orderby', t => {
-  const filter = base.filter(Verbs.filter({k: d => d.a > 0}));
+  const filter = base.filter({k: d => d.a > 0});
 
-  const orderby = filter.orderby(Verbs.orderby([{a: d => d.a, b1: d => d.a + d.b, c2: desc(d => d.c)}]));
+  const orderby = filter.orderby([{a: d => d.a, b1: d => d.a + d.b, c2: desc(d => d.c)}]);
   t.ok(orderby._source === filter, 'should nest old table');
   deepEqualAll(t, orderby._clauses.orderby, [
     [createColumn('a'), 'orderby column'],

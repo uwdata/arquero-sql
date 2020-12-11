@@ -111,7 +111,7 @@ export class SqlQueryBuilder extends SqlQuery {
 
     const groupby = keys.map(key => key.as || key.name);
     if (keys.some(key => key.as)) {
-      return this._derive({values: keys.filter(key => key.as)}).groupby(Verbs.groupby(groupby));
+      return this._derive({values: keys.filter(key => key.as)}).groupby(groupby);
     } else {
       return this._wrap({groupby, select: groupby.map(c => createColumn(c))}, {...(this._schema || []), groupby});
     }
@@ -140,7 +140,7 @@ export class SqlQueryBuilder extends SqlQuery {
 
   _count(verb) {
     const as = ('options' in verb && verb.options.as) || 'count';
-    return this.rollup(Verbs.rollup({[as]: op.count()}));
+    return this.rollup({[as]: op.count()});
   }
 
   _orderby(verb) {
@@ -152,7 +152,7 @@ export class SqlQueryBuilder extends SqlQuery {
       throw new Error('sample does not support replace');
     }
 
-    return this.derive(Verbs.derive({[ROW_NUM_TMP]: op.row_number()}))
+    return this.derive({[ROW_NUM_TMP]: op.row_number()})
       ._append(
         clauses => ({
           ...clauses,
@@ -161,8 +161,8 @@ export class SqlQueryBuilder extends SqlQuery {
         }),
         schema => schema,
       )
-      .orderby(Verbs.orderby([ROW_NUM_TMP]))
-      .select(Verbs.select([not(ROW_NUM_TMP)]));
+      .orderby([ROW_NUM_TMP])
+      .select([not(ROW_NUM_TMP)]);
   }
 
   _select(verb) {
@@ -231,61 +231,61 @@ export class SqlQueryBuilder extends SqlQuery {
     return this._wrap({except: verb.tables}, this._schema);
   }
 
-  _appendVerb(verb, name) {
+  _appendVerb(params, name) {
     if (this.isGrouped()) {
       throw new Error('Need a rollup/count after a groupby before ' + name);
     }
-    return this._appendVerbAllowingGroupby(verb, name);
+    return this._appendVerbAllowingGroupby(params, name);
   }
 
-  _appendVerbAllowingGroupby(verb, name) {
-    return this['_' + name](verb.toAST());
+  _appendVerbAllowingGroupby(params, name) {
+    return this['_' + name](Verbs[name](...params).toAST());
   }
 
   isGrouped() {
     return this._schema && 'groupby' in this._schema;
   }
 
-  derive(verb) {
-    return this._appendVerb(verb, 'derive');
+  derive(...params) {
+    return this._appendVerb(params, 'derive');
   }
-  filter(verb) {
-    return this._appendVerbAllowingGroupby(verb, 'filter');
+  filter(...params) {
+    return this._appendVerbAllowingGroupby(params, 'filter');
   }
-  groupby(verb) {
-    return this._appendVerb(verb, 'groupby');
+  groupby(...params) {
+    return this._appendVerb(params, 'groupby');
   }
-  rollup(verb) {
-    return this._appendVerbAllowingGroupby(verb, 'rollup');
+  rollup(...params) {
+    return this._appendVerbAllowingGroupby(params, 'rollup');
   }
-  count(verb) {
-    return this._appendVerbAllowingGroupby(verb, 'count');
+  count(...params) {
+    return this._appendVerbAllowingGroupby(params, 'count');
   }
-  orderby(verb) {
-    return this._appendVerb(verb, 'orderby');
+  orderby(...params) {
+    return this._appendVerb(params, 'orderby');
   }
-  sample(verb) {
-    return this._appendVerb(verb, 'sample');
+  sample(...params) {
+    return this._appendVerb(params, 'sample');
   }
-  select(verb) {
-    return this._appendVerb(verb, 'select');
+  select(...params) {
+    return this._appendVerb(params, 'select');
   }
-  join(verb) {
-    return this._appendVerb(verb, 'join');
+  join(...params) {
+    return this._appendVerb(params, 'join');
   }
-  dedupe(verb) {
-    return this._appendVerb(verb, 'dedupe');
+  dedupe(...params) {
+    return this._appendVerb(params, 'dedupe');
   }
-  concat(verb) {
-    return this._appendVerb(verb, 'concat');
+  concat(...params) {
+    return this._appendVerb(params, 'concat');
   }
-  union(verb) {
-    return this._appendVerb(verb, 'union');
+  union(...params) {
+    return this._appendVerb(params, 'union');
   }
-  intersect(verb) {
-    return this._appendVerb(verb, 'intersect');
+  intersect(...params) {
+    return this._appendVerb(params, 'intersect');
   }
-  except(verb) {
-    return this._appendVerb(verb, 'except');
+  except(...params) {
+    return this._appendVerb(params, 'except');
   }
 }

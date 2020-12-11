@@ -1,12 +1,12 @@
 import tape from 'tape';
 import {op} from 'arquero';
 import {createColumn} from '../../src/utils';
-import {Verbs, base, deepEqualAll, toAst} from './common';
+import {base, deepEqualAll, toAst} from './common';
 
 tape('SqlQueryBuilder: rollup', t => {
-  const groupby = base.groupby(Verbs.groupby(['a', 'b']));
+  const groupby = base.groupby(['a', 'b']);
 
-  const rollup1 = groupby.rollup(Verbs.rollup({a: d => op.mean(d.a), b2: d => d.max(d.b)}));
+  const rollup1 = groupby.rollup({a: d => op.mean(d.a), b2: d => d.max(d.b)});
 
   deepEqualAll(t, rollup1._clauses.select, [
     [toAst(d => op.mean(d.a), 'a'), 'should replace groupby column with rollup columnd'],
