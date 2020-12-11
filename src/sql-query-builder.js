@@ -238,6 +238,11 @@ export class SqlQueryBuilder extends SqlQuery {
     return this._appendVerbAllowingGroupby(params, name);
   }
 
+  /**
+   * @param {any[]} params a list of parameters for the verb
+   * @param {string} name name of the verb
+   * @returns {SqlQueryBuilder}
+   */
   _appendVerbAllowingGroupby(params, name) {
     return this['_' + name](Verbs[name](...params).toAST());
   }
