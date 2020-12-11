@@ -1,20 +1,16 @@
 import tape from 'tape';
 import {op} from 'arquero';
-import {Verbs, base, baseWithGroupBy, copy, toAst} from './common';
+import {base, baseWithGroupBy, copy, toAst} from './common';
 
 tape('Sql-query-builder: filter', t => {
-  const filterForWhere = base.filter(
-    Verbs.filter({
-      c1: d => d.a > 0,
-    }),
-  );
+  const filterForWhere = base.filter({
+    c1: d => d.a > 0,
+  });
 
-  const filterForHaving = baseWithGroupBy.filter(
-    Verbs.filter({
-      c1: d => op.mean(d.a) > 0,
-      c2: d => d.b > 0,
-    }),
-  );
+  const filterForHaving = baseWithGroupBy.filter({
+    c1: d => op.mean(d.a) > 0,
+    c2: d => d.b > 0,
+  });
 
   t.deepEqual(
     copy(filterForWhere._clauses.where[0]),
@@ -36,11 +32,9 @@ tape('Sql-query-builder: filter', t => {
 
   t.throws(
     () =>
-      base.filter(
-        Verbs.filter({
-          c1: d => op.mean(d.a) > 0,
-        }),
-      ),
+      base.filter({
+        c1: d => op.mean(d.a) > 0,
+      }),
     'Cannot fillter using aggregate operations without groupby',
   );
 

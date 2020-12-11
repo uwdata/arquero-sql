@@ -1,17 +1,15 @@
 import tape from 'tape';
 import {createColumn} from '../../src/utils';
 import {op} from 'arquero';
-import {Verbs, base, baseWithGroupBy, deepEqualAll, noschema, toAst} from './common';
+import {base, baseWithGroupBy, deepEqualAll, noschema, toAst} from './common';
 
 tape('SqlQueryBuilder: derive', t => {
-  const derive1 = base.derive(
-    Verbs.derive({
-      constant: () => 1 + 1,
-      column1: d => d.a * d.b,
-      column2: d => d.a * (d.b + 3),
-      c: () => op.row_number(),
-    }),
-  );
+  const derive1 = base.derive({
+    constant: () => 1 + 1,
+    column1: d => d.a * d.b,
+    column2: d => d.a * (d.b + 3),
+    c: () => op.row_number(),
+  });
 
   deepEqualAll(t, derive1._clauses.select, [
     [createColumn('a'), 'should include original column'],
@@ -28,20 +26,18 @@ tape('SqlQueryBuilder: derive', t => {
     'should produce correct schema',
   );
 
-  const derive2 = noschema.derive(Verbs.derive({constant: () => 1 + 1}));
+  const derive2 = noschema.derive({constant: () => 1 + 1});
   deepEqualAll(t, derive2._clauses.select, [
     [createColumn('*'), 'should select *'],
     [toAst(() => 1 + 1, 'constant'), 'should select derived field'],
   ]);
   t.notOk(derive2._schema, 'should not produce schema');
 
-  const derive3 = base.derive(
-    Verbs.derive({
-      a: d => d.a,
-      b: d => d.b + 1,
-      c1: d => d.c,
-    }),
-  );
+  const derive3 = base.derive({
+    a: d => d.a,
+    b: d => d.b + 1,
+    c1: d => d.c,
+  });
   deepEqualAll(t, derive3._clauses.select, [
     [createColumn('a'), 'should derive a column as its original name into a normal selection'],
     [toAst(d => d.b + 1, 'b'), 'should derive expression'],
@@ -52,7 +48,7 @@ tape('SqlQueryBuilder: derive', t => {
   t.deepEqual(derive3._schema.columns, ['a', 'b', 'c', 'd', 'c1'], 'should produce correct schema');
 
   t.throws(() => {
-    base.derive(Verbs.derive({a: d => op.mean(d.a)}));
+    base.derive({a: d => op.mean(d.a)});
   }, 'Derive does not allow aggregated operations');
 
   t.throws(() => baseWithGroupBy.derive({}), 'Need a rollup/count after a groupby before derive');
