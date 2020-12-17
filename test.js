@@ -1,7 +1,8 @@
 // Arquero.js
+// eslint-disable-next-line no-unused-vars
 const {table, view, internal: {QueryBuilder, Verbs}, op, not, desc, all} = require('arquero');
 // main IR/translator
-const {SqlQueryBuilder} = require('./dist/arquero-sql')
+const {SqlQueryBuilder} = require('./dist/arquero-sql');
 
 // actual table values
 const dt = table({
@@ -20,46 +21,43 @@ const test = new SqlQueryBuilder(
 
 // ####################################################################################################################### //
 
+// SqlQuery
 const t1 = test
   .filter([d => d.Seattle > 100, d => d.Chicago > 90])
-  .select(['Chicago'])
-//console.log(t1.optimize().toSql())
+  .select(['Chicago']);
+console.log(t1.optimize().toSql());
 
 dt
-  // filter selected column with condition
   .filter(d => d.Seattle > 100 && d.Chicago > 90)
-  // select the column
   .select('Chicago')
-  //.print({limit : 12})
+    .print();
 
 // ####################################################################################################################### //
 
+// eslint-disable-next-line no-unused-vars
 const t2 = test
   // group by just like in SQL
   .groupby(['Seattle', 'Chicago'])
   .rollup({mean : d => op.mean(d.Seattle),
     sum : d => d.Seattle + d.Chicago});
-console.log(t2.optimize().toSql())
+console.log(t2.optimize().toSql());
 
 dt
-  // group by just like in SQL
   .groupby('Seattle', 'Chicago')
-  // generate new column based on the group by
   .rollup({mean : d => op.mean(d.Seattle)})
   .derive({
-    sum : d => d.Seattle + d.Chicago
+       sum : d => d.Seattle + d.Chicago
   })
-  //.print({limit : 12})
+  .print({limit : 12});
 
 // ####################################################################################################################### //
 
-const t3 = test
-  .select(['Seattle'])
-  .orderby([{key1 : d => d.Seattle}])
-console.log(t3.optimize().toSql())
-
 dt
-  .select('Seattle')
-  // order by like in SQL
-  .orderby(['Seattle'])
-  .print({limit : 12})
+    .filter(d => d.Chicago > 200)
+    .orderby('Seattle')
+    .print()
+
+const t3 = test
+    .filter([d => d.Chicago > 200])
+    .orderby(['Seattle'])
+console.log(t3.optimize().toSql())
