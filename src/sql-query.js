@@ -40,7 +40,7 @@ export class SqlQuery {
     return fuse(this);
   }
 
-  toSql(options={}) {
+  toSql(options = {}) {
     const {optimize} = options;
     const table = optimize === false ? this : this.optimize();
 

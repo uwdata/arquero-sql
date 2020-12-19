@@ -1,14 +1,15 @@
 import tape from 'tape';
 import {not} from 'arquero';
 import {createColumn} from '../../src/utils';
-import {base, deepEqualAll, noschema, toAst} from './common';
+import {base, copy, deepEqualAll, noschema, toAst} from './common';
 
 tape('SqlQueryBuilder: groupby', t => {
-  const groupby1 = base.groupby(['a', 'b']);
-  t.deepEqual(groupby1._schema.groupby, ['a', 'b'], 'should produce correct schema with groupby');
+  const group1 = ['a', 'b'];
+  const groupby1 = base.groupby(group1);
+  t.deepEqual(groupby1._schema.groupby, group1, 'should produce correct schema with groupby');
   t.deepEqual(
     groupby1._clauses.select,
-    ['a', 'b'].map(c => createColumn(c)),
+    group1.map(c => createColumn(c)),
     'should select only groupby columns',
   );
 
@@ -31,6 +32,9 @@ tape('SqlQueryBuilder: groupby', t => {
 
   t.throws(() => groupby1.groupby('c'), 'Need a rollup/count after a groupby before groupby');
   t.throws(() => noschema.groupby(not('a')), 'Cannot resolve not/all selection without schema');
+
+  const groupby4 = base.groupby(...group1);
+  t.deepEqual(copy(groupby4), copy(groupby1), 'should allow flattened parameters');
 
   t.end();
 });

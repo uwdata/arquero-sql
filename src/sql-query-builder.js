@@ -260,7 +260,7 @@ export class SqlQueryBuilder extends SqlQuery {
     return this._appendVerbAllowingGroupby(params, 'filter');
   }
   groupby(...params) {
-    return this._appendVerb(params, 'groupby');
+    return this._appendVerb([params.flat()], 'groupby');
   }
   rollup(...params) {
     return this._appendVerbAllowingGroupby(params, 'rollup');
@@ -269,13 +269,13 @@ export class SqlQueryBuilder extends SqlQuery {
     return this._appendVerbAllowingGroupby(params, 'count');
   }
   orderby(...params) {
-    return this._appendVerb(params, 'orderby');
+    return this._appendVerb([params.flat()], 'orderby');
   }
   sample(...params) {
     return this._appendVerb(params, 'sample');
   }
   select(...params) {
-    return this._appendVerb(params, 'select');
+    return this._appendVerb([params.flat()], 'select');
   }
   join(...params) {
     return this._appendVerb(params, 'join');
