@@ -20,7 +20,7 @@ const CLAUSE_EXEC_ORDER = [
  * @returns {SqlQuery} optimized query
  */
 export function optimize(query) {
-  if (typeof query.name === 'string' || typeof query._source.name === 'string') {
+  if (typeof query === 'string' || typeof query._source === 'string') {
     return query;
   }
 
