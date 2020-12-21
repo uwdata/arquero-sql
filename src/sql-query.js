@@ -2,23 +2,25 @@ import {optimize} from './optimizer';
 import {toSql} from './to-sql';
 import { composeQueries } from './utils';
 
+/** @typedef {string | SqlQuery} Source _source in SqlQuery */
+
 /**
- * @typedef {object} Clauses clauses in SqlQuery
+ * @typedef {object} Clauses _clauses in SqlQuery
  * @prop {object[]} [select]
  * @prop {object[]} [where]
  * @prop {string[]} [groupby]
  * @prop {object[]} [having]
- * @prop {object[]} [join]
+ * @prop {Source} [join]
  * @prop {object[]} [orderby]
  * @prop {boolean} [distinct]
- * @prop {string[]} [concat]
- * @prop {string[]} [union]
- * @prop {string[]} [intersect]
- * @prop {string[]} [except]
+ * @prop {Source[]} [concat]
+ * @prop {Source[]} [union]
+ * @prop {Source[]} [intersect]
+ * @prop {Source[]} [except]
  */
 
  /**
-  * @typedef {object} Schema schema in SqlQuery
+  * @typedef {object} Schema _schema in SqlQuery
   * @prop {string[]} columns
   * @prop {string[]} [groupby]
   */
@@ -26,12 +28,12 @@ import { composeQueries } from './utils';
 export class SqlQuery {
   /**
    *
-   * @param {string | SqlQuery} source source table or another sql query
+   * @param {Source} source source table or another sql query
    * @param {Clauses} [clauses] object of sql clauses
    * @param {Schema} [schema] object of table schema
    */
   constructor(source, clauses, schema) {
-    /** @type {string | SqlQuery} */
+    /** @type {Source} */
     this._source = source;
 
     /** @type {Clauses} */
@@ -41,10 +43,17 @@ export class SqlQuery {
     this._schema = schema;
   }
 
+  /**
+   * @returns {SqlQuery} optimized query
+   */
   optimize() {
     return optimize(this);
   }
 
+  /**
+   * @param {{optimize?: boolean}} options option for translating to SQL
+   * @returns {string} SQL representation of this SqlQuery
+   */
   toSql(options = {}) {
     const {optimize} = options;
     const table = optimize === false ? this : this.optimize();
