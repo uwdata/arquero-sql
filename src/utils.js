@@ -1,8 +1,10 @@
 /** @typedef { import('./sql-query').SqlQuery } SqlQuery */
+/** @typedef { import('./sql-query').Schema } Schema */
+/** @typedef { import('./sql-query').Source } Source */
 
 /**
  *
- * @param {object} schema table schema
+ * @param {Schema} schema table schema
  * @param {object[]} selection list of expression in Verbs.select
  * @returns {string[] | null} list of selected field names
  */
@@ -53,7 +55,7 @@ export function createColumn(name) {
 
 /**
  * to SQL representation of the `table`
- * @param {string | SqlQuery} table table to be converted to SQL
+ * @param {Source} table table to be converted to SQL
  * @returns {string} SQL string of the table
  */
 export function nameOrSqlQueryToSql(table) {
