@@ -16,7 +16,7 @@ tape('optimizer', t => {
 
   const t1 = table.filter({condition: d => d.Seattle > 100}).select(['Chicago']);
   const fused_t1 = t1.optimize();
-  t.equal(fused_t1._source.name, 'table', 'should have correct inner-most table');
+  t.equal(fused_t1._source, 'table', 'should have correct inner-most table');
   t.deepEqual(
     copy(fused_t1._clauses.where),
     copy([toAst(d => d.Seattle > 100, 'condition')]),
@@ -26,12 +26,12 @@ tape('optimizer', t => {
 
   const t2 = table.select([all()]).select(['Seattle', 'Chicago']).select(['Seattle']);
   const fused_t2 = t2.optimize();
-  t.equal(fused_t2._source.name, 'table', 'should have correct inner-most table');
+  t.equal(fused_t2._source, 'table', 'should have correct inner-most table');
   t.deepEqual(fused_t2._clauses.select, [createColumn('Seattle')], 'Should use the outer-most select');
 
   const t3 = table.filter({condition1: d => d.Seattle > 100}).filter({condition2: d => d.Chicago > 100});
   const fused_t3 = t3.optimize();
-  t.equal(fused_t3._source.name, 'table', 'should have correct inner-most table');
+  t.equal(fused_t3._source, 'table', 'should have correct inner-most table');
   t.deepEqual(
     copy(fused_t3._clauses.where),
     copy([toAst(d => d.Chicago > 100, 'condition2'), toAst(d => d.Seattle > 100, 'condition1')]),

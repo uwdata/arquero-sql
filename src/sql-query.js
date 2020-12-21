@@ -1,15 +1,32 @@
 import {optimize} from './optimizer';
 import {toSql} from './to-sql';
+import { composeQueries } from './utils';
+
+/**
+ * @typedef {object} Clauses clauses in SqlQuery
+ * @property {object[]} [select]
+ * @property {object[]} [where]
+ * @property {string[]} [groupby]
+ * @property {object[]} [having]
+ * @property {object[]} [join]
+ * @property {object[]} [orderby]
+ * @property {boolean} [distinct]
+ * @property {string[]} [concat]
+ * @property {string[]} [union]
+ * @property {string[]} [intersect]
+ * @property {string[]} [except]
+ */
 
 export class SqlQuery {
   /**
    *
    * @param {string | SqlQuery} source source table or another sql query
-   * @param {object} clauses object of sql clauses
+   * @param {Clauses} clauses object of sql clauses
    * @param {object} schema object of table schema
    */
   constructor(source, clauses, schema) {
-    this._source = typeof source === 'string' ? {name: source, toSql: () => source} : source;
+    /** @type {string | SqlQuery} */
+    this._source = source;
     /**
      * clauses = {
      *   select: expr[],
@@ -26,6 +43,8 @@ export class SqlQuery {
      *   except: string[]
      * }
      */
+
+    /** @type {Clauses} */
     this._clauses = clauses || {};
     /**
      * schema = {
@@ -46,50 +65,51 @@ export class SqlQuery {
 
     let ret = '';
     if (Object.keys(table._clauses).length === 0) return table._source.toSql();
-    if (!table._clauses.select) ret += 'SELECT * ';
-    if (table._clauses.select)
+    const clauses = table._clauses;
+    if (clauses.select)
       ret +=
         'SELECT ' +
-        (table._clauses.distinct ? 'DISTINCT' : '') +
-        table._clauses.select.map(c => toSql(c)).join(', ') +
+        (clauses.distinct ? 'DISTINCT' : '') +
+        clauses.select.map(c => toSql(c)).join(', ') +
         '\n';
+    else ret += 'SELECT * ';
 
-    if (table._clauses.join)
+    if (clauses.join)
       ret +=
         'FROM' +
         '(' +
         table._source.toSql() +
         ')' +
         'JOIN' +
-        toSql(table._clauses.join.toAST()) +
+        toSql(clauses.join.toAST()) +
         'ON' +
-        toSql(table._clauses.join.on.toAST()) +
-        toSql(table._clauses.join.values);
+        toSql(clauses.join.on.toAST()) +
+        toSql(clauses.join.values);
 
-    if (!table._clauses.join) ret += 'FROM' + '(' + table._source.toSql() + ')' + '\n';
+    if (!clauses.join) ret += 'FROM' + '(' + (typeof table._source === 'string') ? table._source : table._source.toSql() + ')' + '\n';
 
-    if (table._clauses.where) {
-      ret += 'WHERE ' + table._clauses.where.map(c => toSql(c)).join(' AND ') + '\n';
+    if (clauses.where) {
+      ret += 'WHERE ' + clauses.where.map(c => toSql(c)).join(' AND ') + '\n';
     }
 
-    if (table._clauses.groupby) ret += 'GROUP BY ' + table._clauses.groupby.join(', ') + '\n';
+    if (clauses.groupby) ret += 'GROUP BY ' + clauses.groupby.join(', ') + '\n';
 
-    if (table._clauses.having) ret += 'HAVING ' + table._clauses.having.map(verb => toSql(verb)).join(' AND ') + '\n';
+    if (clauses.having) ret += 'HAVING ' + clauses.having.map(verb => toSql(verb)).join(' AND ') + '\n';
 
-    if (table._clauses.orderby) ret += 'ORDER BY ' + table._clauses.orderby.map(key => toSql(key)).join(', ') + '\n';
+    if (clauses.orderby) ret += 'ORDER BY ' + clauses.orderby.map(key => toSql(key)).join(', ') + '\n';
 
     // TODO: what to deal with tablerefList type
-    if (table._clauses.union)
-      ret += 'UNION \nSELECT * FROM ' + table._clauses.union.join('\nUNION \nSELECT * FROM ') + '\n';
+    if (clauses.union && clauses.union.length > 0)
+      ret += 'UNION\n' + composeQueries('UNION\n', clauses.union);
 
-    if (table._clauses.intersect)
-      ret += 'INTERSECT \nSELECT * FROM ' + table._clauses.intersect.join('\nINTERSECT \nSELECT * FROM ') + '\n';
+    if (clauses.intersect && clauses.intersect.length > 0)
+      ret += 'INTERSECT\n' + composeQueries('INTERSECT\n', clauses.intersect);
 
-    if (table._clauses.except)
-      ret += 'EXCEPT \nSELECT * FROM ' + table._clauses.except.join('\nEXCEPT \nSELECT * FROM ') + '\n';
+    if (clauses.except && clauses.except.length > 0)
+      ret += 'EXCEPT\n' + composeQueries('EXCEPT\n', clauses.except);
 
-    if (table._clauses.concat)
-      ret += 'CONCAT \nSELECT * FROM ' + table._clauses.concat.join('\nCONCAT \nSELECT * FROM ') + '\n';
+    if (clauses.concat && clauses.concat.length > 0)
+      ret += 'CONCAT\n' + composeQueries('CONCAT\n', clauses.concat);
     return ret;
   }
 }
