@@ -15,16 +15,16 @@ const CLAUSE_EXEC_ORDER = [
 ];
 
 /**
- *
- * @param {SqlQuery} query
- * @returns {SqlQuery}
+ * optimize query
+ * @param {SqlQuery} query a query to be optimized
+ * @returns {SqlQuery} optimized query
  */
-export function fuse(query) {
+export function optimize(query) {
   if (typeof query.name === 'string' || typeof query._source.name === 'string') {
     return query;
   }
 
-  const source = fuse(query._source);
+  const source = optimize(query._source);
   const keys = Object.keys(query._clauses);
   if (['concat', 'intersect', 'union', 'except'].some(clause => keys.includes(clause))) {
     return new SqlQuery(source, query._clauses, query._schema);
