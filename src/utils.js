@@ -63,3 +63,13 @@ export function nameOrSqlQueryToSql(table) {
     return table.toSql();
   }
 }
+
+/**
+ * compose a list of queries with `verb`
+ * @param {'union' | 'intersect' | 'except' | 'concat'} verb a verb to compose the list of queries 
+ * @param {SqlQuery} queries the list of queries to be composed
+ * @returns {string} composed queries
+ */
+export function composeQueries(verb, queries) {
+  return queries.map(nameOrSqlQueryToSql).join(verb + '\n');
+}
