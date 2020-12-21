@@ -4,54 +4,40 @@ import { composeQueries } from './utils';
 
 /**
  * @typedef {object} Clauses clauses in SqlQuery
- * @property {object[]} [select]
- * @property {object[]} [where]
- * @property {string[]} [groupby]
- * @property {object[]} [having]
- * @property {object[]} [join]
- * @property {object[]} [orderby]
- * @property {boolean} [distinct]
- * @property {string[]} [concat]
- * @property {string[]} [union]
- * @property {string[]} [intersect]
- * @property {string[]} [except]
+ * @prop {object[]} [select]
+ * @prop {object[]} [where]
+ * @prop {string[]} [groupby]
+ * @prop {object[]} [having]
+ * @prop {object[]} [join]
+ * @prop {object[]} [orderby]
+ * @prop {boolean} [distinct]
+ * @prop {string[]} [concat]
+ * @prop {string[]} [union]
+ * @prop {string[]} [intersect]
+ * @prop {string[]} [except]
  */
+
+ /**
+  * @typedef {object} Schema schema in SqlQuery
+  * @prop {string[]} columns
+  * @prop {string[]} [groupby]
+  */
 
 export class SqlQuery {
   /**
    *
    * @param {string | SqlQuery} source source table or another sql query
-   * @param {Clauses} clauses object of sql clauses
-   * @param {object} schema object of table schema
+   * @param {Clauses} [clauses] object of sql clauses
+   * @param {Schema} [schema] object of table schema
    */
   constructor(source, clauses, schema) {
     /** @type {string | SqlQuery} */
     this._source = source;
-    /**
-     * clauses = {
-     *   select: expr[],
-     *   where: expr[],
-     *   groupby: string[],
-     *   having: expr[],
-     *   join: {table: ??, on: expr[], option: 'left' | 'right' | 'outer'},
-     *   orderby: expr[],
-     *   distinct: boolean,
-     *   limit: number,
-     *   concat: string[],
-     *   union: string[],
-     *   intersect: string[],
-     *   except: string[]
-     * }
-     */
 
     /** @type {Clauses} */
     this._clauses = clauses || {};
-    /**
-     * schema = {
-     *   columns: string[],
-     *   groupby?: string[]
-     * }
-     */
+
+    /** @type {Schema} */
     this._schema = schema;
   }
 
