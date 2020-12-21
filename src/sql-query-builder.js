@@ -1,3 +1,6 @@
+/** @typedef { import('./sql-query').Clauses } Clauses */
+/** @typedef { import('./sql-query').Schema } Schema */
+
 import {SqlQuery} from './sql-query';
 import {internal, not, op} from 'arquero';
 import {createColumn, isFunction, resolveColumns} from './utils';
@@ -24,10 +27,20 @@ export function fromQuery(query, schema) {
 }
 
 export class SqlQueryBuilder extends SqlQuery {
+  /**
+   *
+   * @param {string | SqlQuery} source source table or another sql query
+   * @param {Clauses} [clauses] object of sql clauses
+   * @param {Schema} [schema] object of table schema
+   */
   constructor(source, clauses, schema) {
     super(source, clauses, schema);
   }
 
+  /**
+   * @param {Clauses} clauses 
+   * @param {Schema} schema 
+   */
   _append(clauses, schema) {
     return new SqlQueryBuilder(
       this._source,
@@ -36,6 +49,10 @@ export class SqlQueryBuilder extends SqlQuery {
     );
   }
 
+  /**
+   * @param {Clauses} clauses 
+   * @param {Schema} schema 
+   */
   _wrap(clauses, schema) {
     return new SqlQueryBuilder(
       this,
