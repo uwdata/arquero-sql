@@ -1,3 +1,5 @@
+/** @typedef { import('./sql-query').SqlQuery } SqlQuery */
+
 /**
  *
  * @param {object} schema table schema
@@ -31,10 +33,33 @@ export function resolveColumns(schema, selection) {
   return fields.filter((f, index) => fields.indexOf(f) === index);
 }
 
+/**
+ * check if fn is a function
+ * @param {any} fn function to check
+ * @returns {boolean} if fn is a function
+ */
 export function isFunction(fn) {
   return typeof fn === 'function';
 }
 
+/**
+ * create a column ast node with the name `name`
+ * @param {string} name name of the column
+ * @returns {{type: 'Column', name: string}} a column ast node with name `name`
+ */
 export function createColumn(name) {
   return {type: 'Column', name};
+}
+
+/**
+ * to SQL representation of the `table`
+ * @param {string | SqlQuery} table table to be converted to SQL
+ * @returns {string} SQL string of the table
+ */
+export function nameOrSqlQueryToSql(table) {
+  if (typeof table === 'string') {
+    return `SELECT *\nFROM ${table}\n`;
+  } else {
+    return table.toSql();
+  }
 }

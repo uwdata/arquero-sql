@@ -1,4 +1,4 @@
-import {fuse} from './optimizer';
+import {optimize} from './optimizer';
 import {toSql} from './to-sql';
 
 export class SqlQuery {
@@ -37,7 +37,7 @@ export class SqlQuery {
   }
 
   optimize() {
-    return fuse(this);
+    return optimize(this);
   }
 
   toSql(options = {}) {
