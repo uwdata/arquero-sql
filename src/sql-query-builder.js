@@ -38,8 +38,8 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   /**
-   * @param {Clauses} clauses 
-   * @param {Schema} schema 
+   * @param {Clauses | (c: Clauses, s: Schema) => Clauses} clauses
+   * @param {Schema | (c: Clauses, s: Schema) => Schema} schema
    */
   _append(clauses, schema) {
     return new SqlQueryBuilder(
@@ -50,8 +50,8 @@ export class SqlQueryBuilder extends SqlQuery {
   }
 
   /**
-   * @param {Clauses} clauses 
-   * @param {Schema} schema 
+   * @param {Clauses | (c: Clauses, s: Schema) => Clauses} clauses
+   * @param {Schema | (c: Clauses, s: Schema) => Schema} schema
    */
   _wrap(clauses, schema) {
     return new SqlQueryBuilder(
@@ -215,6 +215,8 @@ export class SqlQueryBuilder extends SqlQuery {
 
   // eslint-disable-next-line
   _join(verb) {
+    const {table, on, values, options} = verb;
+    const _table = typeof table === 'string' ? new SqlQuery(table) : table;
     throw new Error('TODO: implement join');
     // return this.wrap(
     //   () => ({join: verb}),
