@@ -1,6 +1,6 @@
 import {optimize} from './optimizer';
 import {toSql} from './to-sql';
-import { composeQueries } from './utils';
+import {composeQueries} from './utils';
 
 /** @typedef {string | SqlQuery} Source _source in SqlQuery */
 
@@ -19,11 +19,11 @@ import { composeQueries } from './utils';
  * @prop {Source[]} [except]
  */
 
- /**
-  * @typedef {object} Schema _schema in SqlQuery
-  * @prop {string[]} columns
-  * @prop {string[]} [groupby]
-  */
+/**
+ * @typedef {object} Schema _schema in SqlQuery
+ * @prop {string[]} columns
+ * @prop {string[]} [groupby]
+ */
 
 export class SqlQuery {
   /**
@@ -62,11 +62,7 @@ export class SqlQuery {
     if (Object.keys(table._clauses).length === 0) return table._source.toSql();
     const clauses = table._clauses;
     if (clauses.select)
-      ret +=
-        'SELECT ' +
-        (clauses.distinct ? 'DISTINCT' : '') +
-        clauses.select.map(c => toSql(c)).join(', ') +
-        '\n';
+      ret += 'SELECT ' + (clauses.distinct ? 'DISTINCT' : '') + clauses.select.map(c => toSql(c)).join(', ') + '\n';
     else ret += 'SELECT * ';
 
     if (clauses.join)
@@ -81,7 +77,8 @@ export class SqlQuery {
         toSql(clauses.join.on.toAST()) +
         toSql(clauses.join.values);
 
-    if (!clauses.join) ret += 'FROM' + '(' + (typeof table._source === 'string') ? table._source : table._source.toSql() + ')' + '\n';
+    if (!clauses.join)
+      ret += 'FROM' + '(' + (typeof table._source === 'string') ? table._source : table._source.toSql() + ')' + '\n';
 
     if (clauses.where) {
       ret += 'WHERE ' + clauses.where.map(c => toSql(c)).join(' AND ') + '\n';
@@ -94,17 +91,14 @@ export class SqlQuery {
     if (clauses.orderby) ret += 'ORDER BY ' + clauses.orderby.map(key => toSql(key)).join(', ') + '\n';
 
     // TODO: what to deal with tablerefList type
-    if (clauses.union && clauses.union.length > 0)
-      ret += 'UNION\n' + composeQueries('UNION\n', clauses.union);
+    if (clauses.union && clauses.union.length > 0) ret += 'UNION\n' + composeQueries('UNION\n', clauses.union);
 
     if (clauses.intersect && clauses.intersect.length > 0)
       ret += 'INTERSECT\n' + composeQueries('INTERSECT\n', clauses.intersect);
 
-    if (clauses.except && clauses.except.length > 0)
-      ret += 'EXCEPT\n' + composeQueries('EXCEPT\n', clauses.except);
+    if (clauses.except && clauses.except.length > 0) ret += 'EXCEPT\n' + composeQueries('EXCEPT\n', clauses.except);
 
-    if (clauses.concat && clauses.concat.length > 0)
-      ret += 'CONCAT\n' + composeQueries('CONCAT\n', clauses.concat);
+    if (clauses.concat && clauses.concat.length > 0) ret += 'CONCAT\n' + composeQueries('CONCAT\n', clauses.concat);
     return ret;
   }
 }

@@ -68,7 +68,7 @@ export function nameOrSqlQueryToSql(table) {
 
 /**
  * compose a list of queries with `verb`
- * @param {'union' | 'intersect' | 'except' | 'concat'} verb a verb to compose the list of queries 
+ * @param {'union' | 'intersect' | 'except' | 'concat'} verb a verb to compose the list of queries
  * @param {SqlQuery} queries the list of queries to be composed
  * @returns {string} composed queries
  */
