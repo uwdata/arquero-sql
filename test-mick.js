@@ -82,8 +82,13 @@ const out = qb
   // .count({as: 'jk'})
   // .concat(['tableq', 'table2'])
   // .dedupe(all())
+  .join('test', 'key')
+  .join('test', ['key1', 'key2'])
+  .join('other', (a, b) => a.c1 === b.c2)
 
-// console.log(JSON.stringify(out._verbs, null, 3));
+
+console.log(JSON.stringify(out._verbs, null, 3));
+console.log(out._verbs[out._verbs.length - 1])
 // console.log(JSON.stringify(fromQuery(out, null), null, 3));
 
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
