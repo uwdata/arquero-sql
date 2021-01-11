@@ -2,11 +2,13 @@
 /** @typedef { import('./sql-query').Schema } Schema */
 /** @typedef { import('./sql-query').Source } Source */
 
+/** @typedef { {type: 'Column', name: string, as?: string, table?: number} } ColumnType */
+
 /**
  *
  * @param {Schema} schema table schema
  * @param {object[]} selection list of expression in Verbs.select
- * @returns {string[] | null} list of selected field names
+ * @returns {object[] | null} list of selected columns
  */
 export function resolveColumns(schema, selection) {
   if (!schema && selection.some(s => s.type === 'Selection')) {
@@ -19,20 +21,21 @@ export function resolveColumns(schema, selection) {
     .map(s => {
       if (s.type === 'Selection') {
         if (s.operator === 'not') {
-          const toexclude = resolveColumns(columns, s.arguments);
-          return columns && columns.filter(field => !toexclude.includes(field));
+          const toexclude = resolveColumns(columns, s.arguments).map(column => column.as || column.name);
+          return columns && columns.filter(field => !toexclude.includes(field)).map(c => createColumn(c));
         } else if (s.operator === 'all') {
-          return columns;
+          return columns.map(c => createColumn(c));
         }
       } else if (s.type === 'Column') {
-        // TODO: selection with as?
-        return [s.name];
+        return [s];
       } else {
         throw new Error('Selection should only contains Selection or Column but received: ', selection);
       }
     })
     .flat();
-  return fields.filter((f, index) => fields.indexOf(f) === index);
+  return fields.filter(
+    (f, index) => fields.findIndex(field => (field.as || field.name) === (f.as || f.name)) === index,
+  );
 }
 
 /**
@@ -46,11 +49,12 @@ export function isFunction(fn) {
 
 /**
  * create a column ast node with the name `name`
- * @param {string} name name of the column
- * @returns {{type: 'Column', name: string}} a column ast node with name `name`
+ * @param {string} name input name of the column
+ * @param {string} as output name of the column
+ * @returns {ColumnType} a column ast node with input name `name` and output namd `as`
  */
-export function createColumn(name) {
-  return {type: 'Column', name};
+export function createColumn(name, as) {
+  return {type: 'Column', name, ...(as ? {as} : {})};
 }
 
 /**

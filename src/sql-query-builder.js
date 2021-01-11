@@ -22,6 +22,9 @@ SQL execution order:
 
 const ROW_NUM_TMP = '___arquero_sql_row_num_tmp___';
 
+/** @type {['inner', 'left', 'right', 'outer']} */
+const JOIN_OPTIONS = ['inner', 'left', 'right', 'outer'];
+
 export function fromQuery(query, schema) {
   return query._verbs.reduce((acc, verb) => acc[verb.verb](verb), new SqlQueryBuilder(query._table, {}, schema));
 }
@@ -72,10 +75,12 @@ export class SqlQueryBuilder extends SqlQuery {
     const clauses = this._schema
       ? {
           select: [
-            ...this._schema.columns.map(createColumn).map(column => {
-              const idx = fields.findIndex(v => v.as === column.name);
-              return idx === -1 ? column : ((keep[idx] = false), fields[idx]);
-            }),
+            ...this._schema.columns
+              .map(c => createColumn(c))
+              .map(column => {
+                const idx = fields.findIndex(v => v.as === column.name);
+                return idx === -1 ? column : ((keep[idx] = false), fields[idx]);
+              }),
             ...fields.filter((_, i) => keep[i]),
           ],
         }
@@ -122,7 +127,7 @@ export class SqlQueryBuilder extends SqlQuery {
         if (columns === null) {
           throw new Error('Cannot resolve not/all selection without schema');
         }
-        columns.forEach(name => addKey(createColumn(name)));
+        columns.forEach(c => addKey(c));
       } else {
         addKey(key);
       }
@@ -197,7 +202,7 @@ export class SqlQueryBuilder extends SqlQuery {
 
     verb.columns.forEach(column => {
       if (column.type === 'Selection') {
-        resolveColumns(this._schema, [column]).forEach(name => addColumn(createColumn(name)));
+        resolveColumns(this._schema, [column]).forEach(addColumn);
       } else if (column.type === 'Column') {
         addColumn(column);
       } else {
@@ -216,16 +221,57 @@ export class SqlQueryBuilder extends SqlQuery {
   // eslint-disable-next-line
   _join(verb) {
     const {table, on, values, options} = verb;
-    const _table = typeof table === 'string' ? new SqlQuery(table) : table;
-    throw new Error('TODO: implement join');
-    // return this.wrap(
-    //   () => ({join: verb}),
-    //   schema => schema && [
-    //     ...schema,
-    //     newSchema(verb.table._schema, verb.toAST().values)
-    //       .filter(f => schema.includes(f))
-    //   ]
-    // );
+
+    if (!(typeof on === 'object') && !(Array.isArray(on) && on.length < 2)) {
+      throw new Error('"on" should either be an expression or [Column, Column]');
+    }
+
+    if (values && (!Array.isArray(values) || values.length < 2 || values.some(value => !Array.isArray(value)))) {
+      throw new Error('value must be of type [list, list]');
+    }
+
+    if (
+      !(table instanceof SqlQuery && table._schema && (table._schema.groupby || table._schema.columns)) &&
+      !(values && values[1].every(column => column.type === 'Column'))
+    ) {
+      throw new Error('If output columns are not specified, joining table must be a SqlQuery');
+    }
+
+    /** @type {SqlQuery} */
+    const other = typeof table === 'string' ? new SqlQuery(table) : table;
+    if (values && values.flat().some(v => v.type !== 'Column' || v.type !== 'Selection')) {
+      // TODO: support output value as expression
+      throw new Error('Arquero-SQL does not support joining value as expression');
+    }
+
+    const this_schema = this._schema.columns;
+    const this_values = (values && resolveColumns(this_schema, values[0])) || this_schema.map(c => createColumn(c));
+
+    const other_schema = (other._schema && other._schema.groupby) || other._schema.columns;
+    const other_values = (values && resolveColumns(other_schema, values[1])) || other_schema.map(c => createColumn(c));
+
+    const _options = typeof options === 'object' ? options : {};
+    const join_option = JOIN_OPTIONS[(~~_options.left << 1) + ~~_options.right];
+    const {suffix} = _options;
+    const suffixes = Array.isArray(suffix) && suffix.length >= 2 ? suffix : ['_1', '_2'];
+    const asTables = [1, 2].map(table => column => ({...column, table}));
+    const addSuffixes = suffixes.map(s => column => ({...column, as: (column.as || column.name) + s}));
+
+    const select = [this_values, other_values]
+      .map((v, i) => asTables[i](v))
+      .map((v, i) => addSuffixes[i](v))
+      .flat();
+    return this.wrap(
+      {
+        select,
+        join: {
+          other,
+          on,
+          join_option,
+        },
+      },
+      {columns: select.map(c => c.as || c.name)},
+    );
   }
 
   _dedupe(verb) {

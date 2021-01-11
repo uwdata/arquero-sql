@@ -37,6 +37,11 @@ dt
   .count()
   // .print()
 
+dt
+  .select('Seattle', 'Chicago')
+  .join(dt.select('Chicago', 'San Francisco'), ['Chicago', 'Chicago'], null, {suffix: ['_1', '2']})
+  .print()
+
 // console.log(Verbs.select('d', 'ddd', all()).toAST())
 
 function dd(d) {
@@ -82,14 +87,18 @@ const out = qb
   // .count({as: 'jk'})
   // .concat(['tableq', 'table2'])
   // .dedupe(all())
-  .join('test', 'key')
-  .join('test', ['key1', 'key2'])
-  .join('other', (a, b) => a.c1 === b.c2)
+  .join('test', ['ke1'], [[], []])
+  .join('test', (a, b) => a.d + b.d === 4, [[not('a')], 'b'], {left: true, suffix: ['-1']})
+  .join('test', ['a', 'b'], [[not('a')], 'b'])
+  .join('test', ['a', 'b'], [[not('a')], ['b', {d: d => d.Seattle + 4, d1: d => d.Seattle}]])
+  // .select('hi', all())
+  .join('other', (a, b) => a.c1 === b.c2, [[], []])
 
 
 console.log(JSON.stringify(out._verbs, null, 3));
 console.log(out._verbs[out._verbs.length - 1])
 // console.log(JSON.stringify(fromQuery(out, null), null, 3));
+console.log(JSON.stringify(out.toAST(), null, 3));
 
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
 // // v.values.map(vv => toSql(vv))
