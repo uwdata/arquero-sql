@@ -218,7 +218,6 @@ export class SqlQueryBuilder extends SqlQuery {
     );
   }
 
-  // eslint-disable-next-line
   _join(verb) {
     const {table, on, values, options} = verb;
 
@@ -241,6 +240,7 @@ export class SqlQueryBuilder extends SqlQuery {
     const other = typeof table === 'string' ? new SqlQuery(table) : table;
     if (values && values.flat().some(v => v.type !== 'Column' || v.type !== 'Selection')) {
       // TODO: support output value as expression
+      // Plan: derive the expressions as new columns before joining
       throw new Error('Arquero-SQL does not support joining value as expression');
     }
 
