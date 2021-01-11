@@ -7,34 +7,38 @@ const schema = {
   columns: ['c1', 'c2', 'c3', 'c4', 'c5'],
 };
 
+function createColumns(columns) {
+  return columns.map(column => (Array.isArray(column) ? createColumn(...column) : createColumn(column)));
+}
+
 tape('resolveColumns', t => {
   t.deepEqual(
-    resolveColumns(schema, [createColumn('c2'), createColumn('c3')]),
-    ['c2', 'c3'],
+    resolveColumns(schema, [createColumn('c2', 'c4'), createColumn('c3')]),
+    createColumns([['c2', 'c4'], 'c3']),
     'should resolve column selection with schema',
   );
 
   t.deepEqual(
     resolveColumns(schema, [createColumn('c1'), createColumn('c4')]),
-    ['c1', 'c4'],
+    createColumns(['c1', 'c4']),
     'should resolve column selection with schema',
   );
 
   t.deepEqual(
     resolveColumns(null, [createColumn('c1'), createColumn('c4')]),
-    ['c1', 'c4'],
+    createColumns(['c1', 'c4']),
     'should resolve column selection without schema',
   );
 
   t.deepEqual(
     resolveColumns(schema, Verbs.select([not('c1'), 'c2']).toAST().columns),
-    ['c2', 'c3', 'c4', 'c5'],
+    createColumns(['c2', 'c3', 'c4', 'c5']),
     'should resolve "not" selection with schema',
   );
 
   t.deepEqual(
     resolveColumns(schema, Verbs.select([not('c1'), 'c1']).toAST().columns),
-    ['c2', 'c3', 'c4', 'c5', 'c1'],
+    createColumns(['c2', 'c3', 'c4', 'c5', 'c1']),
     'should resolve "not" selection with schema (select the not selected column)',
   );
 
@@ -46,13 +50,13 @@ tape('resolveColumns', t => {
 
   t.deepEqual(
     resolveColumns(schema, Verbs.select(all()).toAST().columns),
-    ['c1', 'c2', 'c3', 'c4', 'c5'],
+    createColumns(['c1', 'c2', 'c3', 'c4', 'c5']),
     'should resolve "all" selection with schema',
   );
 
   t.deepEqual(
     resolveColumns(schema, Verbs.select([all(), 'c1']).toAST().columns),
-    ['c1', 'c2', 'c3', 'c4', 'c5'],
+    createColumns(['c1', 'c2', 'c3', 'c4', 'c5']),
     'should resolve "all" selection with schema (select additional column)',
   );
 
@@ -84,5 +88,10 @@ tape('isFunction', t => {
 
 tape('createColumn', t => {
   t.deepEqual(createColumn('col1'), {type: 'Column', name: 'col1'}, 'create column correctly');
+  t.deepEqual(
+    createColumn('col1', 'col2'),
+    {type: 'Column', name: 'col1', as: 'col2'},
+    'create column with new output name correctly',
+  );
   t.end();
 });
