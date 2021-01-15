@@ -19,13 +19,22 @@ export function copy(obj) {
 }
 
 /**
- * convert a JS expression to AST
+ * convert a 1-table JS expression to AST
  * @param {function} expr function expression
  * @param {string} [as] result column name
  * @returns AST of expr
  */
 export function toAst(expr, as) {
   return {...copy(Verbs.filter(expr).toAST().criteria), ...(as ? {as} : {})};
+}
+
+/**
+ * convert a 2-table JS expression to AST
+ * @param {function} expr function expression
+ * @returns AST of expr
+ */
+export function twoTableExprToAst(expr) {
+  return copy(Verbs.join('t', expr, [[], []], {}).toAST().on);
 }
 
 /**

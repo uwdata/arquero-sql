@@ -222,7 +222,7 @@ export class SqlQueryBuilder extends SqlQuery {
     const {table, on, values, options} = verb;
 
     if (!(typeof on === 'object') && !(Array.isArray(on) && on.length < 2)) {
-      throw new Error('"on" should either be an expression or [Column, Column]');
+      throw new Error('"on" should either be an expression or [Column[], Column[]]');
     }
 
     if (values && (!Array.isArray(values) || values.length < 2 || values.some(value => !Array.isArray(value)))) {
@@ -261,7 +261,7 @@ export class SqlQueryBuilder extends SqlQuery {
       .map((v, i) => asTables[i](v))
       .map((v, i) => addSuffixes[i](v))
       .flat();
-    return this.wrap(
+    return this._wrap(
       {
         select,
         join: {
