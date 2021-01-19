@@ -1,4 +1,4 @@
-const {table, internal: {QueryBuilder, Verbs}, op, not, desc, all} = require('arquero');
+const {table, internal: {Query, Verbs}, op, not, desc, all, range, matches, startswith, endswith} = require('arquero');
 const {toSql} = require('./dist/arquero-sql');
 const {SqlQuery} = require('./dist/arquero-sql');
 
@@ -48,7 +48,7 @@ function dd(d) {
   return d.Seattle * d.Chicago
 }
 
-const qb = new QueryBuilder("test");
+const qb = new Query();
 
 const out = qb
   .derive({
@@ -62,7 +62,7 @@ const out = qb
     //   const b = 20;
     //   return d.Seattle > a || d.Chicago > b;
     // },
-    g: op.row_number(),
+    // g: op.row_number(),
     h: d => d['Seattle'] > 10,
     i: d => `${d.Seattle} + ${d.Chicago}`,
   })
@@ -93,6 +93,8 @@ const out = qb
   .join('test', ['a', 'b'], [[not('a')], ['b', {d: d => d.Seattle + 4, d1: d => d.Seattle}]])
   // .select('hi', all())
   .join('other', (a, b) => a.c1 === b.c2, [[], []])
+  .select([1, 'test', all(), not('e', 1), range('s', 'b'), matches(/123/), startswith('sdf'), endswith('werw')])
+  .select('d')
 
 
 console.log(JSON.stringify(out._verbs, null, 3));

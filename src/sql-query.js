@@ -1,33 +1,9 @@
 import {optimize} from './optimizer';
 import {toSql} from './to-sql';
-import {composeQueries} from './utils';
-
-/** @typedef {string | SqlQuery} Source _source in SqlQuery */
-
-/**
- * @typedef {object} Clauses _clauses in SqlQuery
- * @prop {object[]} [select]
- * @prop {object[]} [where]
- * @prop {string[]} [groupby]
- * @prop {object[]} [having]
- * @prop {Source} [join]
- * @prop {object[]} [orderby]
- * @prop {boolean} [distinct]
- * @prop {Source[]} [concat]
- * @prop {Source[]} [union]
- * @prop {Source[]} [intersect]
- * @prop {Source[]} [except]
- */
-
-/**
- * @typedef {object} Schema _schema in SqlQuery
- * @prop {string[]} columns
- * @prop {string[]} [groupby]
- */
+import {composeQueries, isFunction} from './utils';
 
 export class SqlQuery {
   /**
-   *
    * @param {Source} source source table or another sql query
    * @param {Clauses} [clauses] object of sql clauses
    * @param {Schema} [schema] object of table schema
@@ -41,6 +17,30 @@ export class SqlQuery {
 
     /** @type {Schema} */
     this._schema = schema;
+  }
+
+  /**
+   * @param {Clauses | (c: Clauses, s: Schema) => Clauses} clauses
+   * @param {Schema | (c: Clauses, s: Schema) => Schema} schema
+   */
+  _append(clauses, schema) {
+    return new SqlQuery(
+      this._source,
+      isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
+      isFunction(schema) ? schema(this._schema, this._clauses) : schema,
+    );
+  }
+
+  /**
+   * @param {Clauses | (c: Clauses, s: Schema) => Clauses} clauses
+   * @param {Schema | (c: Clauses, s: Schema) => Schema} schema
+   */
+  _wrap(clauses, schema) {
+    return new SqlQuery(
+      this,
+      isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
+      isFunction(schema) ? schema(this._schema, this._clauses) : schema,
+    );
   }
 
   /**
@@ -102,3 +102,26 @@ export class SqlQuery {
     return ret;
   }
 }
+
+/** @typedef {string | SqlQuery} Source _source in SqlQuery */
+
+/**
+ * @typedef {object} Clauses _clauses in SqlQuery
+ * @prop {object[]} [select]
+ * @prop {object[]} [where]
+ * @prop {string[]} [groupby]
+ * @prop {object[]} [having]
+ * @prop {Source} [join]
+ * @prop {object[]} [orderby]
+ * @prop {boolean} [distinct]
+ * @prop {Source[]} [concat]
+ * @prop {Source[]} [union]
+ * @prop {Source[]} [intersect]
+ * @prop {Source[]} [except]
+ */
+
+/**
+ * @typedef {object} Schema _schema in SqlQuery
+ * @prop {string[]} columns
+ * @prop {string[]} [groupby]
+ */
