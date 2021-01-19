@@ -16,7 +16,7 @@
     "format": "yarn lint --fix && prettier '{src,test}/**/*.js' --write"
   },
   "dependencies": {
-    "arquero": "^1.0.0"
+    "arquero": "^2.1.3"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^4.1.0",

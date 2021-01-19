@@ -16,7 +16,7 @@ export default function resolve(query, sel, map = new Map()) {
     const name = getColumnName(query, sel);
     map.set(sel.as || name, name);
   } else if (sel.type === 'Selection') {
-    resolve(query, selections[sel](query, sel.arguments), map);
+    resolve(query, selections[sel.operator](query, sel.arguments), map);
   }
 
   return map;
