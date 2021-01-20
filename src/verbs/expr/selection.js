@@ -7,7 +7,8 @@ import {createColumn} from '../../utils';
  * 
  * @param {SqlQuery} query 
  * @param {object|object[]} sel 
- * @param {Map} map 
+ * @param {Map<String, String>} map 
+ * @returns {Map<String, String>}
  */
 export default function resolve(query, sel, map = new Map()) {
   if (Array.isArray(sel)) {
