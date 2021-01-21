@@ -95,6 +95,7 @@ const out = qb
   .join('other', (a, b) => a.c1 === b.c2, [[], []])
   .select([1, 'test', all(), not('e', 1), range('s', 'b'), matches(/123/), startswith('sdf'), endswith('werw')])
   .select('d')
+  .union({'hi': 'hihi'}, 'hihi')
 
 
 console.log(JSON.stringify(out._verbs, null, 3));
