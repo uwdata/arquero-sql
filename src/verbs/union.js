@@ -1,6 +1,6 @@
 /** @typedef { import('../utils').ColumnType } ColumnType */
 
-import { SqlQuery } from '../sql-query';
+import {SqlQuery} from '../sql-query';
 import {createColumn} from '../utils';
 
 /**
@@ -10,20 +10,16 @@ import {createColumn} from '../utils';
  */
 export default function (query, verb) {
   const {tables} = verb;
+  const select = query._schema.columns.map(col => createColumn(col));
+  const union = tables.map(table => {
+    if (table instanceof SqlQuery) {
+      return table;
+    } else if (typeof table === 'string') {
+      return new SqlQuery(table);
+    } else {
+      throw new Error('Table must be a string or SqlQuery');
+    }
+  });
 
-  return query._wrap(
-    {
-      select: query._schema.columns.map(col => createColumn(col)),
-      concat: tables.map(table => {
-        if (table instanceof SqlQuery) {
-          return table;
-        } else if (typeof table === 'string') {
-          return new SqlQuery(table);
-        } else {
-          throw new Error('Table must be a string or SqlQuery');
-        }
-      })
-    },
-    query._schema,
-  );
+  return query._wrap({select, union}, query._schema);
 }
