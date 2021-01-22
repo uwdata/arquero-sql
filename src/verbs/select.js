@@ -1,5 +1,6 @@
 /** @typedef { import('../sql-query').SqlQuery } SqlQuery */
 /** @typedef { import('../utils').ColumnType } ColumnType */
+/** @typedef { import('./common').Verb } Verb */
 
 import {createColumn} from '../utils';
 import resolve from './expr/selection';
@@ -7,9 +8,11 @@ import resolve from './expr/selection';
 /**
  *
  * @param {SqlQuery} query
- * @param {object} verb
+ * @param {Verb} verb
  */
 export default function (query, verb) {
+  verb = verb.toAST();
+
   if (!query._schema && verb.columns.some(column => column.type === 'Selection')) {
     throw new Error('Cannot select with selection function(s) without schema');
   }
