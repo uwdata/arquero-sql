@@ -1,13 +1,17 @@
-import {SqlQuery} from './sql-query';
+/** @typedef {import('arquero').internal.Table} Table */
+
+import {SqlQuery} from '../sql-query';
 import {createColumn} from '../utils';
 
 /**
  * 
  * @param {SqlQuery} query 
- * @param {object} verb 
+ * @param {Verb} verb 
  * @returns {SqlQuery}
  */
 export function combine(query, verb) {
+  verb = verb.toAST();
+
   const select = query._schema.columns.map(col => createColumn(col));
   const tables = verb.tables.map(table => {
     if (table instanceof SqlQuery) {
@@ -21,3 +25,12 @@ export function combine(query, verb) {
 
   return query._wrap({select, [verb.verb]: tables}, query._schema);
 }
+
+/**
+ * @typedef {object} Verb Arquero's verb object
+ * @prop {string} verb
+ * @prop {object} schema
+ * @prop {(table: Table, catalog: Function) => Table} evaluate
+ * @prop {() => object} toObject
+ * @prop {() => object} toAST
+ */

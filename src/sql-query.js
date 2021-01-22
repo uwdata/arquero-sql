@@ -1,14 +1,19 @@
+// TODO: export Transformable from arquero
+import Transformable from '../node_modules/arquero/src/table/transformable';
+import {internal} from 'arquero';
 import {optimize} from './optimizer';
 import {toSql} from './to-sql';
 import {composeQueries, isFunction} from './utils';
+import * as verbs from './verbs/index';
 
-export class SqlQuery {
+export class SqlQuery extends Transformable {
   /**
    * @param {Source} source source table or another sql query
    * @param {Clauses} [clauses] object of sql clauses
    * @param {Schema} [schema] object of table schema
    */
   constructor(source, clauses, schema) {
+    super({});
     /** @type {Source} */
     this._source = source;
 
@@ -101,6 +106,11 @@ export class SqlQuery {
     if (clauses.concat && clauses.concat.length > 0) ret += 'CONCAT\n' + composeQueries('CONCAT\n', clauses.concat);
     return ret;
   }
+}
+
+for (const name in verbs) {
+  const verb = verbs[name];
+  SqlQuery.prototype['__' + name] = (qb, ...args) => verb(qb, internal.Verbs[name](...args));
 }
 
 /** @typedef {string | SqlQuery} Source _source in SqlQuery */
