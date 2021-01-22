@@ -21,25 +21,25 @@ export class SqlQuery {
 
   /**
    * @param {Clauses | (c: Clauses, s: Schema) => Clauses} clauses
-   * @param {Schema | (c: Clauses, s: Schema) => Schema} schema
+   * @param {Schema | (c: Clauses, s: Schema) => Schema} [schema]
    */
   _append(clauses, schema) {
     return new SqlQuery(
       this._source,
       isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
-      isFunction(schema) ? schema(this._schema, this._clauses) : schema,
+      schema ? isFunction(schema) ? schema(this._schema, this._clauses) : schema : this._schema,
     );
   }
 
   /**
    * @param {Clauses | (c: Clauses, s: Schema) => Clauses} clauses
-   * @param {Schema | (c: Clauses, s: Schema) => Schema} schema
+   * @param {Schema | (c: Clauses, s: Schema) => Schema} [schema]
    */
   _wrap(clauses, schema) {
     return new SqlQuery(
       this,
       isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
-      isFunction(schema) ? schema(this._schema, this._clauses) : schema,
+      schema ? isFunction(schema) ? schema(this._schema, this._clauses) : schema : this._schema,
     );
   }
 
