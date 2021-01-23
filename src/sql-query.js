@@ -3,7 +3,8 @@ import Transformable from '../node_modules/arquero/src/table/transformable';
 import {internal} from 'arquero';
 import {optimize} from './optimizer';
 import {toSql} from './to-sql';
-import {composeQueries, isFunction} from './utils';
+import composeQueries from './utils/compose-queries';
+import isFunction from './utils/is-function';
 import * as verbs from './verbs/index';
 
 export class SqlQuery extends Transformable {
@@ -32,7 +33,7 @@ export class SqlQuery extends Transformable {
     return new SqlQuery(
       this._source,
       isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
-      schema ? isFunction(schema) ? schema(this._schema, this._clauses) : schema : this._schema,
+      schema ? (isFunction(schema) ? schema(this._schema, this._clauses) : schema) : this._schema,
     );
   }
 
@@ -44,7 +45,7 @@ export class SqlQuery extends Transformable {
     return new SqlQuery(
       this,
       isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
-      schema ? isFunction(schema) ? schema(this._schema, this._clauses) : schema : this._schema,
+      schema ? (isFunction(schema) ? schema(this._schema, this._clauses) : schema) : this._schema,
     );
   }
 

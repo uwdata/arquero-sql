@@ -1,7 +1,7 @@
 import tape from 'tape';
 import {op} from 'arquero';
 import {base, deepEqualAll, toAst} from './common';
-import {createColumn} from '../../src/utils';
+import createColumn from '../../src/utils/create-column';
 
 tape('SqlQueryBuilder: count', t => {
   const groupby = base.groupby(['a', 'b']);

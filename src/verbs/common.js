@@ -1,12 +1,12 @@
 /** @typedef {import('arquero').internal.Table} Table */
 
 import {SqlQuery} from '../sql-query';
-import {createColumn} from '../utils';
+import createColumn from '../utils/create-column';
 
 /**
- * 
- * @param {SqlQuery} query 
- * @param {Verb} verb 
+ *
+ * @param {SqlQuery} query
+ * @param {Verb} verb
  * @returns {SqlQuery}
  */
 export function combine(query, verb) {

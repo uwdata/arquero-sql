@@ -1,6 +1,6 @@
 import tape from 'tape';
 import {desc} from 'arquero';
-import {createColumn} from '../../src/utils';
+import createColumn from '../../src/utils/create-column';
 import {base, copy, deepEqualAll, toAst} from './common';
 
 tape('SqlQueryBuilder: orderby', t => {

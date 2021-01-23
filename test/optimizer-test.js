@@ -2,7 +2,7 @@ import tape from 'tape';
 import {SqlQueryBuilder} from '../src';
 import {all} from 'arquero';
 import {copy, toAst} from './sql-query-builder/common';
-import {createColumn} from '../src/utils';
+import createColumn from '../src/utils/create-column';
 
 tape('optimizer', t => {
   const table = new SqlQueryBuilder('table', null, {columns: ['Seattle', 'Chicago', 'New York']});

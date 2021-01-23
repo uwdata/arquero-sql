@@ -1,7 +1,7 @@
 /** @typedef { import('../../sql-query').SqlQuery } SqlQuery */
-/** @typedef { import('../../utils').ColumnType } ColumnType */
+/** @typedef { import('../../utils/utils').ColumnType } ColumnType */
 
-import {createColumn} from '../../utils';
+import createColumn from '../../utils/create-column';
 
 /**
  *

@@ -1,5 +1,5 @@
 import tape from 'tape';
-import {createColumn} from '../../src/utils';
+import createColumn from '../../src/utils/create-column';
 import {op} from 'arquero';
 import {base, baseWithGroupBy, deepEqualAll, noschema, toAst} from './common';
 

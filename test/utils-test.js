@@ -1,5 +1,7 @@
 import tape from 'tape';
-import {createColumn, isFunction, resolveColumns} from '../src/utils';
+import resolveColumns from '../src/utils/resolve-columns';
+import createColumn from '../src/utils/create-column';
+import isFunction from '../src/utils/is-function';
 import {all, internal, not} from 'arquero';
 
 const {Verbs} = internal;
