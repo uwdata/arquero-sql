@@ -18,11 +18,9 @@ const AGGREGATED_OPS = ['mean'];
 
 const visitors = {
   Column: node => [node],
-  Constant: node => {
-    throw new Error('TODO: implement Constant visitor: ' + JSON.stringify(node));
-  },
+  Constant: () => [],
   // TODO: how to handle function
-  Function: node => !AGGREGATED_OPS.includes(node.name),
+  Function: node => (AGGREGATED_OPS.includes(node.name) ? [] : node.arguments.map(a => nonAggregatedColumns(a)).flat()),
   Parameter: node => {
     throw new Error('Parameter is not supported: ' + JSON.stringify(node));
   },
@@ -48,8 +46,11 @@ const visitors = {
   BinaryExpression: binary,
   LogicalExpression: binary,
   UnaryExpression: node => nonAggregatedColumns(node.argument),
-  ConditionalExpression: node =>
-    [...nonAggregatedColumns(node.test), ...nonAggregatedColumns(node.consequent), ...nonAggregatedColumns(node.alternate)],
+  ConditionalExpression: node => [
+    ...nonAggregatedColumns(node.test),
+    ...nonAggregatedColumns(node.consequent),
+    ...nonAggregatedColumns(node.alternate),
+  ],
   ObjectExpression: node => {
     throw new Error('ObjectExpression is not supported: ' + JSON.stringify(node));
   },

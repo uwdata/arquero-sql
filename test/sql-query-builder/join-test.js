@@ -1,5 +1,5 @@
 import tape from 'tape';
-import {createColumn} from '../../src/utils';
+import createColumn from '../../src/utils/create-column';
 import {base, copy, twoTableExprToAst} from './common';
 
 tape('SqlQueryBuilder: join', t => {

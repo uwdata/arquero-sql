@@ -1,6 +1,6 @@
 import tape from 'tape';
 import {op} from 'arquero';
-import {createColumn} from '../../src/utils';
+import createColumn from '../../src/utils/create-column';
 import {base, deepEqualAll, toAst} from './common';
 
 tape('SqlQueryBuilder: rollup', t => {

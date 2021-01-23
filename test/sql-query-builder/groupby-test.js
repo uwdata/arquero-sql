@@ -1,6 +1,6 @@
 import tape from 'tape';
 import {not} from 'arquero';
-import {createColumn} from '../../src/utils';
+import createColumn from '../../src/utils/create-column';
 import {base, copy, deepEqualAll, noschema, toAst} from './common';
 
 tape('SqlQueryBuilder: groupby', t => {

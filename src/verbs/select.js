@@ -1,14 +1,15 @@
 /** @typedef { import('../sql-query').SqlQuery } SqlQuery */
-/** @typedef { import('../utils').ColumnType } ColumnType */
+/** @typedef { import('../utils/utils').ColumnType } ColumnType */
 /** @typedef { import('./common').Verb } Verb */
 
-import {createColumn} from '../utils';
+import createColumn from '../utils/create-column';
 import resolve from './expr/selection';
 
 /**
  *
  * @param {SqlQuery} query
  * @param {Verb} verb
+ * @returns {SqlQuery}
  */
 export default function (query, verb) {
   verb = verb.toAST();
@@ -23,7 +24,7 @@ export default function (query, verb) {
   columns.forEach((value, curr) => {
     const next = typeof value === 'string' ? value : curr;
     if (next) {
-      if (query._schema?.columns?.indexOf(curr) === -1) {
+      if (query._schema && query._schema.columns && query._schema.columns.indexOf(curr) === -1) {
         throw new Error(`Unrecognized column: ${curr}`);
       }
       cols.push(createColumn(curr, ...(curr === next ? [] : [next])));
