@@ -62,40 +62,10 @@ const out = qb
     //   const b = 20;
     //   return d.Seattle > a || d.Chicago > b;
     // },
-    // g: op.row_number(),
+    g: d => op.row_number(d.Seattle, d.Chicago),
     h: d => d['Seattle'] > 10,
     i: d => `${d.Seattle} + ${d.Chicago}`,
   })
-  .filter(d => d.Seattle > 100)
-  // .groupby('Seattle', 'Chicago')
-  // .groupby({key: d => d.Seattle + d.Chicago})
-  // .groupby({key: d => d.Seattle + d.Chicago, k: d => d.Seattle}, 'Seattle')
-  // .rollup({a: d => op.max(d.key + d.key2)})
-  // .rollup({b: op.mean('Seattle')})
-  .rollup({c: op.count()})
-  .count({as: 'c'})
-  .count()
-  // .orderby(desc(d => d.Seattle + d.Chicago))
-  // .orderby('Seattle', desc(d => d['Chicago']))
-  // .orderby(desc('Chicago'))
-  // .lookup("hi", (a, b) => op.equal(a.Seattle, b.Chicago), [not('test1')])
-  // .select(all())
-  // .sample(5, {replace: true})
-  // .dedupe('a')
-  // .dedupe({abd: d => d.b})
-  // .concat('test2')
-  // .count({as: 'jk'})
-  // .concat(['tableq', 'table2'])
-  // .dedupe(all())
-  .join('test', ['ke1'], [[], []])
-  .join('test', (a, b) => a.d + b.d === 4, [[not('a')], 'b'], {left: true, suffix: ['-1']})
-  .join('test', ['a', 'b'], [[not('a')], 'b'])
-  .join('test', ['a', 'b'], [[not('a')], ['b', {d: d => d.Seattle + 4, d1: d => d.Seattle}]])
-  // .select('hi', all())
-  .join('other', (a, b) => a.c1 === b.c2, [[], []])
-  .select([1, 'test', all(), not('e', 1), range('s', 'b'), matches(/123/), startswith('sdf'), endswith('werw')])
-  .select('d')
-  .union({'hi': 'hihi'}, 'hihi')
 
 
 console.log(JSON.stringify(out._verbs, null, 3));

@@ -3,7 +3,9 @@
 
 import {SqlQuery} from './sql-query';
 import {internal, not, op} from 'arquero';
-import {createColumn, isFunction, resolveColumns} from './utils';
+import resolveColumns from './utils/resolve-columns';
+import isFunction from './utils/is-function';
+import createColumn from './utils/create-column';
 import {hasAggregation} from './visitors/has-aggregation';
 
 const {Verbs} = internal;
