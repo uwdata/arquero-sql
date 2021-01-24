@@ -50,6 +50,14 @@ export class SqlQuery extends Transformable {
   }
 
   /**
+   * Indicates if the table has a groupby specification.
+   * @return {boolean} True if grouped, false otherwise.
+   */
+  isGrouped() {
+    return !!this._schema.groupby;
+  }
+
+  /**
    * @returns {SqlQuery} optimized query
    */
   optimize() {

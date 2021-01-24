@@ -62,14 +62,14 @@ const out = qb
     //   const b = 20;
     //   return d.Seattle > a || d.Chicago > b;
     // },
-    g: d => op.row_number(d.Seattle, d.Chicago),
+    g: () => op.row_number(),
     h: d => d['Seattle'] > 10,
     i: d => `${d.Seattle} + ${d.Chicago}`,
   })
 
 
 console.log(JSON.stringify(out._verbs, null, 3));
-console.log(out._verbs[out._verbs.length - 1])
+console.log(out._verbs[out._verbs.length - 1]);
 // console.log(JSON.stringify(fromQuery(out, null), null, 3));
 console.log(JSON.stringify(out.toAST(), null, 3));
 
@@ -95,16 +95,3 @@ console.log(JSON.stringify(out.toAST(), null, 3));
 //   .orderby(desc(d => d.Seattle))
 //   .join((new QueryBuilder("test")), (a, b) => op.equal(a.Seattle, b.Chicago), ['test1'])
 // console.log(JSON.stringify(out.toAST(), null, 2));
-
-const sqlQuery = new SqlQuery(
-    'table',
-    {except: (['table1', 'table2']),
-        select: [Verbs.select('a').toAST().columns[0],
-            Verbs.derive({b: d => d.a + 1}).toAST().values[0]],
-        where: [Verbs.filter(d => d.a > 0)],
-        having: [Verbs.filter(d => op.mean(d.a))]},
-    // Verbs.select(['d => mean(d.foo)'])},
-    'foo'
-)
-
-// console.log(sqlQuery.toSql());
