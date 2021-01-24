@@ -1,26 +1,27 @@
-export const nonAggregatedColumns = node => {
+import { columns } from './columns';
+
+export const aggregatedColumns = node => {
   return visitors[node.type](node);
 };
 
 const binary = node => {
-  return [...nonAggregatedColumns(node.left), ...nonAggregatedColumns(node.right)];
+  return [...aggregatedColumns(node.left), ...aggregatedColumns(node.right)];
 };
 
 const call = node => {
-  return [...nonAggregatedColumns(node.callee), ...list(node.arguments)];
+  return [...aggregatedColumns(node.callee), ...list(node.arguments)];
 };
 
 const list = array => {
-  return array.map(node => nonAggregatedColumns(node)).flat();
+  return array.map(node => aggregatedColumns(node)).flat();
 };
 
 const AGGREGATED_OPS = ['mean'];
 
 const visitors = {
-  Column: node => [node],
+  Column: () => [],
   Constant: () => [],
-  // TODO: how to handle function
-  Function: node => (AGGREGATED_OPS.includes(node.name) ? [] : node.arguments.map(a => nonAggregatedColumns(a)).flat()),
+  Function: node => AGGREGATED_OPS.includes(node.name) ? node.arguments.map(a => columns(a)).flat() : [],
   Parameter: node => {
     throw new Error('Parameter is not supported: ' + JSON.stringify(node));
   },
@@ -29,7 +30,7 @@ const visitors = {
   },
   Literal: () => false,
   Identifier: () => false,
-  TemplateLiteral: node => node.expressions.map(e => nonAggregatedColumns(e)).flat(),
+  TemplateLiteral: node => node.expressions.map(e => aggregatedColumns(e)).flat(),
   MemberExpression: node => {
     throw new Error('MemberExpression is not supported: ' + JSON.stringify(node));
   },
@@ -45,11 +46,11 @@ const visitors = {
   },
   BinaryExpression: binary,
   LogicalExpression: binary,
-  UnaryExpression: node => nonAggregatedColumns(node.argument),
+  UnaryExpression: node => aggregatedColumns(node.argument),
   ConditionalExpression: node => [
-    ...nonAggregatedColumns(node.test),
-    ...nonAggregatedColumns(node.consequent),
-    ...nonAggregatedColumns(node.alternate),
+    ...aggregatedColumns(node.test),
+    ...aggregatedColumns(node.consequent),
+    ...aggregatedColumns(node.alternate),
   ],
   ObjectExpression: node => {
     throw new Error('ObjectExpression is not supported: ' + JSON.stringify(node));
@@ -90,7 +91,7 @@ const visitors = {
   BreakStatement: node => {
     throw new Error('BreakStatement is not supported: ' + JSON.stringify(node));
   },
-  ExpressionStatement: node => nonAggregatedColumns(node.expression),
+  ExpressionStatement: node => aggregatedColumns(node.expression),
   IfStatement: node => {
     throw new Error('IfStatement is not supported: ' + JSON.stringify(node));
   },
