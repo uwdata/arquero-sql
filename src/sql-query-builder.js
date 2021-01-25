@@ -235,7 +235,7 @@ export class SqlQueryBuilder extends SqlQuery {
       !(table instanceof SqlQuery && table._schema && (table._schema.groupby || table._schema.columns)) &&
       !(values && values[1].every(column => column.type === 'Column'))
     ) {
-      throw new Error('If output columns are not specified, joining table must be a SqlQuery');
+      throw new Error('If output columns are not specified, joining table must be a SqlQuery with schema');
     }
 
     /** @type {SqlQuery} */
