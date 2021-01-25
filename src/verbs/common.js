@@ -23,7 +23,7 @@ export function combine(query, verb) {
     }
   });
 
-  return query._wrap({select, [verb.verb]: tables}, query._schema);
+  return query._wrap({select, [verb.verb]: tables});
 }
 
 /**
