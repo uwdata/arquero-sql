@@ -43,11 +43,7 @@ const visitors = {
   BinaryExpression: binary,
   LogicalExpression: binary,
   UnaryExpression: node => columns(node.argument),
-  ConditionalExpression: node => [
-    ...columns(node.test),
-    ...columns(node.consequent),
-    ...columns(node.alternate),
-  ],
+  ConditionalExpression: node => [...columns(node.test), ...columns(node.consequent), ...columns(node.alternate)],
   ObjectExpression: node => {
     throw new Error('ObjectExpression is not supported: ' + JSON.stringify(node));
   },

@@ -42,6 +42,13 @@ dt
   .join(dt.select('Chicago', 'San Francisco'), ['Chicago', 'Chicago'], null, {suffix: ['_1', '2']})
   .print()
 
+
+dt.groupby(['Seattle', {a: d => d.Seattle + d.Chicago}])
+  .rollup()
+  .print()
+console.log(JSON.stringify(Object.values(Verbs.groupby({a: d => d.Seattle + d.Chicago}).keys).map(d => d.toString()), null, 2))
+dt.derive([{s:d => d.Seattle}, {d: d => d.Seattle}])
+
 // console.log(Verbs.select('d', 'ddd', all()).toAST())
 
 function dd(d) {
@@ -66,12 +73,13 @@ const out = qb
     h: d => d['Seattle'] > 10,
     i: d => `${d.Seattle} + ${d.Chicago}`,
   })
+  .groupby(['a', {k: d => d.s + d.e}])
 
 
-console.log(JSON.stringify(out._verbs, null, 3));
-console.log(out._verbs[out._verbs.length - 1]);
-// console.log(JSON.stringify(fromQuery(out, null), null, 3));
-console.log(JSON.stringify(out.toAST(), null, 3));
+// console.log(JSON.stringify(out._verbs, null, 3));
+// console.log(out._verbs[out._verbs.length - 1]);
+// // console.log(JSON.stringify(fromQuery(out, null), null, 3));
+// console.log(JSON.stringify(out.toAST(), null, 3));
 
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
 // // v.values.map(vv => toSql(vv))
