@@ -49,11 +49,13 @@ export default function (query, verb) {
   const join_option = JOIN_OPTIONS[(~~_options.left << 1) + ~~_options.right];
   const {suffix} = _options;
   const suffixes = Array.isArray(suffix) && suffix.length >= 2 ? suffix : ['_1', '_2'];
-  const addTablesAndSuffixes = suffixes.map((s, i) => column => ({...column, table: i + 1, as: (column.as || column.name) + s}));
+  const addTablesAndSuffixes = suffixes.map((s, i) => column => ({
+    ...column,
+    table: i + 1,
+    as: (column.as || column.name) + s,
+  }));
 
-  const select = [this_values, other_values]
-    .map((v, i) => addTablesAndSuffixes[i](v))
-    .flat();
+  const select = [this_values, other_values].map((v, i) => addTablesAndSuffixes[i](v)).flat();
   return query._wrap(
     {
       select,

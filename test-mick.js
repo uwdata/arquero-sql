@@ -43,11 +43,13 @@ dt
   .print()
 
 
-dt.groupby(['Seattle', {a: d => d.Seattle + d.Chicago}])
-  .rollup()
+dt.groupby(['Seattle'])
+  .rollup({a: d => op.min(d.Chicago)})
   .print()
-console.log(JSON.stringify(Object.values(Verbs.groupby({a: d => d.Seattle + d.Chicago}).keys).map(d => d.toString()), null, 2))
-dt.derive([{s:d => d.Seattle}, {d: d => d.Seattle}])
+// console.log(JSON.stringify( Verbs.filter(d => d.test).criteria, null, 2));
+// // console.log(JSON.stringify(Verbs.derive({a: 'd => d.test'}).toAST(), null, 2))
+// console.log(JSON.stringify(Verbs.groupby([{a: 'd => d.test', h: d => d.j}, 'fd', 'd', d => d.test2 + 3, {a: d => d.tt}]).toAST(), null, 2))
+
 
 // console.log(Verbs.select('d', 'ddd', all()).toAST())
 
