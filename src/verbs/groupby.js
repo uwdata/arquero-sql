@@ -7,7 +7,11 @@
  * @param {Verb} verb
  * @returns {SqlQuery}
  */
-// eslint-disable-next-line no-unused-vars
 export default function (query, verb) {
-  throw new Error('TODO: implement groupby');
+  const _verb = verb.toAST();
+  const keys = verb.keys.filter(key => typeof key !== 'string').reduce((acc, key) => ({...acc, ...key}), {});
+  return query.derive(keys)._append(
+    c => c,
+    s => ({...s, groupby: _verb.keys.map(key => key.as || key.name)}),
+  );
 }
