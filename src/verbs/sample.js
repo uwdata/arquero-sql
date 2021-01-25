@@ -13,12 +13,14 @@ const TMP_COL = '___arquero_sql_temp_column_row_number___';
  */
 export default function (query, verb) {
   verb = verb.toAST();
-  if (verb.options && verb.options.replace) {
-    throw new Error('sample does not support replace');
+  if (typeof verb.size !== 'number') {
+    // TODO: calculate the size -> then use the calculated size as limit
+    throw new Error('sample only support constant sample size');
   }
 
-  if (typeof verb.size !== 'number') {
-    throw new Error('sample only support constant sample size');
+  if (verb.options && verb.options.replace) {
+    // TODO: create new table, randomly insert new comlumns into that table
+    throw new Error('sample does not support replace');
   }
 
   return query
