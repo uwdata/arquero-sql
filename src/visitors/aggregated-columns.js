@@ -1,4 +1,4 @@
-import { columns } from './columns';
+import {columns} from './columns';
 
 export const aggregatedColumns = node => {
   return visitors[node.type](node);
@@ -21,7 +21,7 @@ const AGGREGATED_OPS = ['mean'];
 const visitors = {
   Column: () => [],
   Constant: () => [],
-  Function: node => AGGREGATED_OPS.includes(node.name) ? node.arguments.map(a => columns(a)).flat() : [],
+  Function: node => (AGGREGATED_OPS.includes(node.name) ? node.arguments.map(a => columns(a)).flat() : []),
   Parameter: node => {
     throw new Error('Parameter is not supported: ' + JSON.stringify(node));
   },
