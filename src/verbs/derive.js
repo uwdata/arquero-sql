@@ -1,6 +1,8 @@
 /** @typedef {import('./common').Verb} Verb */
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
+import hasAggregation from '../visitors/has-aggregation';
+
 /**
  *
  * @param {SqlQuery} query
@@ -9,5 +11,9 @@
  */
 // eslint-disable-next-line no-unused-vars
 export default function (query, verb) {
-  throw new Error('TODO: implement derive');
+  verb = verb.toAST();
+
+  if (verb.values.some(d => hasAggregation(d))) {
+    throw new Error('Derive does not allow aggregated operations');
+  }
 }
