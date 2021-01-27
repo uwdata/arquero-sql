@@ -10,7 +10,6 @@ import {op} from 'arquero';
  * @returns {SqlQuery}
  */
 export default function (query, verb) {
-  verb = verb.toAST();
   const as = (verb.options && verb.options.as) || 'count';
   return query.rollup({[as]: () => op.count()});
 }

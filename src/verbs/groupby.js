@@ -1,7 +1,10 @@
 /** @typedef {import('./common').Verb} Verb */
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
-const TMP_KEY = i => `___arquero_sql_temp_key_${i}___`;
+export const GB_KEY_PREFIX = '___arquero_sql_groupby_key_';
+export const GB_KEY_SUFFIX = '___';
+const GB_KEY = key => GB_KEY_PREFIX + key + GB_KEY_SUFFIX;
+const TMP_KEY = i => GB_KEY('gb_tmp_' + i);
 
 function warn(key) {
   // eslint-disable-next-line no-console
@@ -15,7 +18,10 @@ function warn(key) {
  * @returns {SqlQuery}
  */
 export default function (query, verb) {
-  const _verb = verb.toAST();
+  if (query.isGrouped()) {
+    query = query.ungroup();
+  }
+
   const keys = {};
   let idx = 0;
   verb.keys.forEach(key => {
@@ -23,16 +29,15 @@ export default function (query, verb) {
       warn(TMP_KEY(idx));
       keys[TMP_KEY(idx++)] = key;
     } else if (typeof key === 'object') {
-      const keys = Object.keys(key);
-      keys.forEach(warn);
-      idx += keys.length;
-      Object.assign(keys, key);
+      Object.entries(key).forEach((k, v) => (keys[GB_KEY(k)] = v));
     } else {
-      idx++;
+      keys[GB_KEY(key)] = `d => d.${key}`;
     }
   });
+
+  const groupby = Object.values(keys);
   return query.derive(keys)._append(
     c => c,
-    s => ({...s, groupby: _verb.keys.map((key, idx) => key.as || key.name || TMP_KEY(idx))}),
+    s => ({columns: s.columns.slice(0, -groupby.length), groupby}),
   );
 }
