@@ -12,8 +12,10 @@ const TMP_COL = '___arquero_sql_temp_column_row_number___';
  * @returns {SqlQuery}
  */
 export default function (query, verb) {
-  // TODO: use "WITH" when we have the support for "with" to reduce the amount of code generated
-  query = query.derive({[TMP_COL]: () => op.row_number()});
-  const dedupe = query.groupby(verb.keys).rollup({[TMP_COL]: `d => op.min(d.${TMP_COL})`});
-  return query.join(dedupe, [TMP_COL, TMP_COL], [[not(TMP_COL)], []], {suffix: ['', '_2']});
+  return query
+    .groupby(verb.keys)
+    .derive({[TMP_COL]: () => op.row_number()})
+    .ungroup()
+    .filter(`d => d.${TMP_COL} === 1`)
+    .select(not(TMP_COL));
 }

@@ -50,6 +50,12 @@ dt.groupby(['Seattle'])
 // // console.log(JSON.stringify(Verbs.derive({a: 'd => d.test'}).toAST(), null, 2))
 // console.log(JSON.stringify(Verbs.groupby([{a: 'd => d.test', h: d => d.j}, 'fd', 'd', d => d.test2 + 3, {a: d => d.tt}]).toAST(), null, 2))
 
+dt.orderby('Seattle').groupby([{g: d => ~~(d.Seattle / 100)}, {g: d => ~~(d.Seattle / 70)}])
+  .select('Chicago')
+  .derive({a: d => op.min(d.Chicago), b: d => op.rank(), c: () => op.row_number(), g: 10})
+  .rollup()
+  .print({limit: 20})
+
 
 // console.log(Verbs.select('d', 'ddd', all()).toAST())
 
@@ -76,6 +82,7 @@ const out = qb
     i: d => `${d.Seattle} + ${d.Chicago}`,
   })
   .groupby(['a', {k: d => d.s + d.e}])
+  .sample(d => op.mean(d.Seattle));
 
 
 // console.log(JSON.stringify(out._verbs, null, 3));

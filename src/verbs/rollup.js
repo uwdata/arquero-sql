@@ -2,6 +2,7 @@
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
 import createColumn from '../utils/create-column';
+import {GB_KEY_PREFIX, GB_KEY_SUFFIX} from './groupby';
 
 /**
  *
@@ -11,8 +12,17 @@ import createColumn from '../utils/create-column';
  */
 export default function (query, verb) {
   verb = verb.toAST();
+  /** @type {Map<string, object>} */
   const columns = new Map();
-  (query._schema.groupby || []).forEach(name => columns.set(name, createColumn(name)));
+  if (query.isGrouped()) {
+    query._schema.groupby.forEach(key => {
+      const next = key.slice(GB_KEY_PREFIX.length, -GB_KEY_SUFFIX.length);
+      columns.set(next, createColumn(key, next));
+    });
+  }
   verb.values.forEach(value => columns.set(value.as || value.name, value));
-  return query._wrap({select: [...columns.values()]}, {columns: [...columns.keys()]});
+  return query._wrap(
+    {select: [...columns.values()], ...(query.isGrouped() ? {groupby: query._schema.groupby} : {})},
+    {columns: [...columns.keys()]},
+  );
 }

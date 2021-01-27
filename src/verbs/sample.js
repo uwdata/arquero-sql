@@ -23,8 +23,15 @@ export default function (query, verb) {
     throw new Error('sample does not support replace');
   }
 
+  const {groupby} = query._schema;
+
   return query
+    .ungroup()
     .derive({[TMP_COL]: op.row_number()})
+    ._wrap(
+      c => c,
+      schema => ({...schema, groupby}),
+    )
     .orderby([() => op.random()])
     ._append(clauses => ({...clauses, limit: verb.size}))
     .orderby([TMP_COL])
