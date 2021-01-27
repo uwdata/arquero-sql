@@ -27,9 +27,14 @@ export default function (query, verb) {
       if (query._schema && query._schema.columns && query._schema.columns.indexOf(curr) === -1) {
         throw new Error(`Unrecognized column: ${curr}`);
       }
-      cols.push(createColumn(curr, ...(curr === next ? [] : [next])));
+      cols.push(createColumn(curr, next));
     }
   });
 
-  return query._wrap({select: cols}, {columns: cols.map(col => col.as || col.name)});
+  let groupby_cols = [];
+  if (query.isGrouped()) {
+    groupby_cols = query._schema.groupby.map(key => createColumn(key));
+  }
+
+  return query._wrap({select: [...cols, ...groupby_cols]}, {columns: cols.map(col => col.as || col.name)});
 }

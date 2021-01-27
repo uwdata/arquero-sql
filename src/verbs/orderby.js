@@ -5,6 +5,7 @@
  *
  * @param {SqlQuery} query
  * @param {Verb} verb
+ * @returns {SqlQuery}
  */
 export default function (query, verb) {
   // TODO: if the order keys contains aggregated columns,
