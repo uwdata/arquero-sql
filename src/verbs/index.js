@@ -1,4 +1,5 @@
 export {default as concat} from './concat';
+export {default as count} from './count';
 export {default as dedupe} from './dedupe';
 export {default as derive} from './derive';
 export {default as except} from './except';
