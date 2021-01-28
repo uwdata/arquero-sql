@@ -1,2 +1,2 @@
-import {combine} from './common';
-export default combine;
+import {set_verb} from './common';
+export default set_verb('union');

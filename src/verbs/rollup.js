@@ -1,17 +1,19 @@
+/** @typedef {import('arquero/dist/types/table/transformable').ExprObject} ExprObject */
 /** @typedef {import('./common').Verb} Verb */
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
+import {internal} from 'arquero';
 import createColumn from '../utils/create-column';
 import {GB_KEY_PREFIX, GB_KEY_SUFFIX} from './groupby';
 
 /**
  *
  * @param {SqlQuery} query
- * @param {Verb} verb
+ * @param {ExprObject} [keys]
  * @returns {SqlQuery}
  */
-export default function (query, verb) {
-  verb = verb.toAST();
+export default function (query, keys = []) {
+  const verb = internal.Verbs.rollup(keys).toAST();
   /** @type {Map<string, object>} */
   const columns = new Map();
   if (query.isGrouped()) {
