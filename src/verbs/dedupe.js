@@ -1,3 +1,4 @@
+/** @typedef {import('../../node_modules/arquero/src/table/transformable').ListEntry} ListEntry */
 /** @typedef {import('./common').Verb} Verb */
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
@@ -8,12 +9,12 @@ const TMP_COL = '___arquero_sql_temp_column_row_number___';
 /**
  *
  * @param {SqlQuery} query
- * @param {Verb} verb
+ * @param {ListEntry[]} keys
  * @returns {SqlQuery}
  */
-export default function (query, verb) {
+export default function (query, keys = []) {
   return query
-    .groupby(verb.keys)
+    .groupby(...(keys.length ? keys : query._schema.columns))
     .derive({[TMP_COL]: () => op.row_number()})
     .ungroup()
     .filter(`d => d.${TMP_COL} === 1`)

@@ -1,11 +1,25 @@
 // TODO: export Transformable from arquero
 import Transformable from '../node_modules/arquero/src/table/transformable';
-import {internal} from 'arquero';
 import {optimize} from './optimizer';
 import {toSql} from './to-sql';
 import composeQueries from './utils/compose-queries';
 import isFunction from './utils/is-function';
 import * as verbs from './verbs/index';
+
+/**
+ *
+ * @param {any} table
+ * @returns {SqlQuery}
+ */
+export function sqlQuery(table) {
+  if (table instanceof SqlQuery) {
+    return table;
+  } else if (typeof table === 'string') {
+    return new SqlQuery(table);
+  } else {
+    throw new Error('Table must be a string or SqlQuery');
+  }
+}
 
 export class SqlQuery extends Transformable {
   /**
@@ -119,7 +133,7 @@ export class SqlQuery extends Transformable {
 
 for (const name in verbs) {
   const verb = verbs[name];
-  SqlQuery.prototype['__' + name] = (qb, ...args) => verb(qb, internal.Verbs[name](...args));
+  SqlQuery.prototype['__' + name] = (qb, ...args) => verb(qb, ...args);
 }
 
 /** @typedef {string | SqlQuery} Source _source in SqlQuery */

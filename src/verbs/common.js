@@ -1,29 +1,22 @@
+// TODO: export TableRef from Arquero
+/** @typedef {import('../../node_modules/arquero/src/table/transformable').TableRef} TableRef */
 /** @typedef {import('arquero').internal.Table} Table */
+/** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
-import {SqlQuery} from '../sql-query';
+import {sqlQuery} from '../sql-query';
 import createColumn from '../utils/create-column';
 
 /**
  *
- * @param {SqlQuery} query
- * @param {Verb} verb
- * @returns {SqlQuery}
+ * @param {'concat' | 'except' | 'intersect' | 'union'} verb
+ * @returns {(query: SqlQuery, others: TableRef[]) => SqlQuery}
  */
-export function combine(query, verb) {
-  verb = verb.toAST();
-
-  const select = query._schema.columns.map(col => createColumn(col));
-  const tables = verb.tables.map(table => {
-    if (table instanceof SqlQuery) {
-      return table;
-    } else if (typeof table === 'string') {
-      return new SqlQuery(table);
-    } else {
-      throw new Error('Table must be a string or SqlQuery');
-    }
-  });
-
-  return query._wrap({select, [verb.verb]: tables});
+export function set_verb(verb) {
+  return (query, others) => {
+    const select = query._schema.columns.map(col => createColumn(col));
+    const tables = others.map(sqlQuery);
+    return query._wrap({select, [verb]: tables});
+  };
 }
 
 /**

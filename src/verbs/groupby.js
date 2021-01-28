@@ -1,5 +1,8 @@
+/** @typedef {import('../../node_modules/arquero/src/table/transformable').ListEntry} ListEntry */
 /** @typedef {import('./common').Verb} Verb */
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
+
+import {internal} from 'arquero';
 
 export const GB_KEY_PREFIX = '___arquero_sql_groupby_key_';
 export const GB_KEY_SUFFIX = '___';
@@ -14,30 +17,29 @@ function warn(key) {
 /**
  *
  * @param {SqlQuery} query
- * @param {Verb} verb
+ * @param {ListEntry[]} keys
  * @returns {SqlQuery}
  */
-export default function (query, verb) {
+export default function (query, keys) {
   if (query.isGrouped()) {
     query = query.ungroup();
   }
 
-  const keys = {};
+  const _keys = {};
   let idx = 0;
-  verb.keys.forEach(key => {
-    if (typeof key === 'function') {
-      warn(TMP_KEY(idx));
-      keys[TMP_KEY(idx++)] = key;
-    } else if (typeof key === 'object') {
-      Object.entries(key).forEach((k, v) => (keys[GB_KEY(k)] = v));
-    } else {
-      keys[GB_KEY(key)] = `d => d.${key}`;
-    }
-  });
+  internal.Verbs.groupby(keys)
+    .toAST()
+    .keys.forEach(key => {
+      if (typeof key === 'function') {
+        warn(TMP_KEY(idx));
+        _keys[TMP_KEY(idx++)] = key;
+      } else if (typeof key === 'object') {
+        Object.entries(key).forEach((k, v) => (_keys[GB_KEY(k)] = v));
+      } else {
+        _keys[GB_KEY(key)] = `d => d.${key}`;
+      }
+    });
 
-  const groupby = Object.values(keys);
-  return query.derive(keys)._append(
-    c => c,
-    s => ({columns: s.columns.slice(0, -groupby.length), groupby}),
-  );
+  const groupby = Object.values(_keys);
+  return query.derive(_keys)._append(c => c, {...query._schema, groupby});
 }
