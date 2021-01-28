@@ -1,18 +1,20 @@
+/** @typedef { import('arquero/dist/types/table/transformable').SelectEntry } SelectEntry */
 /** @typedef { import('../sql-query').SqlQuery } SqlQuery */
 /** @typedef { import('../utils/utils').ColumnType } ColumnType */
 /** @typedef { import('./common').Verb } Verb */
 
+import {internal} from 'arquero';
 import createColumn from '../utils/create-column';
 import resolve from './expr/selection';
 
 /**
  *
  * @param {SqlQuery} query
- * @param {Verb} verb
+ * @param {SelectEntry[]} columns
  * @returns {SqlQuery}
  */
-export default function (query, verb) {
-  verb = verb.toAST();
+export default function (query, columns) {
+  const verb = internal.Verbs.select(columns).toAST();
 
   if (!query._schema && verb.columns.some(column => column.type === 'Selection')) {
     throw new Error('Cannot select with selection function(s) without schema');
@@ -20,8 +22,7 @@ export default function (query, verb) {
 
   /** @type {ColumnType[]} */
   const cols = [];
-  const columns = resolve(query, verb.columns);
-  columns.forEach((value, curr) => {
+  resolve(query, verb.columns).forEach((value, curr) => {
     const next = typeof value === 'string' ? value : curr;
     if (next) {
       if (query._schema && query._schema.columns && query._schema.columns.indexOf(curr) === -1) {
