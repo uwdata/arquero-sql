@@ -15,7 +15,22 @@ export const baseWithGroupBy = new SqlQueryBuilder('table-name', null, {
  * @returns copied of obj
  */
 export function copy(obj) {
-  return JSON.parse(JSON.stringify(obj));
+  return JSON.parse(JSON.stringify(objToString(obj)));
+}
+
+function objToString(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map(o => objToString(o));
+  } else if (typeof obj === 'function') {
+    return obj.toString();
+  } else if (typeof obj === 'object') {
+    const ret = {};
+    Object.entries(obj).forEach(([k, v]) => (ret[k] = objToString(v)));
+
+    return ret;
+  } else {
+    return obj;
+  }
 }
 
 /**

@@ -3,7 +3,7 @@ import {op} from 'arquero';
 import createColumn from '../../src/utils/create-column';
 import {base, deepEqualAll, toAst} from './common';
 
-tape('SqlQueryBuilder: orderby', t => {
+tape('SqlQueryBuilder: sample', t => {
   const sample = base.sample(10, {replace: false});
   deepEqualAll(t, sample._clauses.select, [
     [createColumn('a'), 'should select original column'],

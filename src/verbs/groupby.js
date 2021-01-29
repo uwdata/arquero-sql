@@ -3,6 +3,7 @@
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
 import {internal} from 'arquero';
+import resolve from './expr/selection';
 
 export const GB_KEY_PREFIX = '___arquero_sql_groupby_key_';
 export const GB_KEY_SUFFIX = '___';
@@ -27,18 +28,26 @@ export default function (query, keys) {
 
   const _keys = {};
   let idx = 0;
-  internal.Verbs.groupby(keys)
-    .toAST()
-    .keys.forEach(key => {
-      if (typeof key === 'function') {
+  keys.forEach(key => {
+    if (typeof key === 'function') {
+      if (key.toObject) {
+        // selection
+        const {columns} = internal.Verbs.select(key).toAST();
+        const sel = resolve(query, columns);
+        sel.forEach((v, k) => (_keys[GB_KEY(k)] = `d => d.${v}`));
+      } else {
+        // anonymous function
         warn(TMP_KEY(idx));
         _keys[TMP_KEY(idx++)] = key;
-      } else if (typeof key === 'object') {
-        Object.entries(key).forEach((k, v) => (_keys[GB_KEY(k)] = v));
-      } else {
-        _keys[GB_KEY(key)] = `d => d.${key}`;
       }
-    });
+    } else if (typeof key === 'object') {
+      // derive
+      Object.entries(key).forEach(([k, v]) => (_keys[GB_KEY(k)] = v));
+    } else {
+      // column
+      _keys[GB_KEY(key)] = `d => d.${key}`;
+    }
+  });
 
   const groupby = Object.values(_keys);
   return query.derive(_keys)._append(c => c, {...query._schema, groupby});

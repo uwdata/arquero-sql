@@ -178,7 +178,7 @@ export class SqlQueryBuilder extends SqlQuery {
       throw new Error('sample does not support replace');
     }
 
-    return this.derive({[ROW_NUM_TMP]: op.row_number()})
+    return this.derive({[ROW_NUM_TMP]: () => op.row_number()})
       ._append(
         clauses => ({
           ...clauses,

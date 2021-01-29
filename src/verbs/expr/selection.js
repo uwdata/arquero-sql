@@ -1,5 +1,5 @@
 /** @typedef { import('../../sql-query').SqlQuery } SqlQuery */
-/** @typedef { import('../../utils/utils').ColumnType } ColumnType */
+/** @typedef { import('../../utils/create-column').ColumnType } ColumnType */
 
 import createColumn from '../../utils/create-column';
 
@@ -7,7 +7,7 @@ import createColumn from '../../utils/create-column';
  *
  * @param {SqlQuery} query
  * @param {object|object[]} sel
- * @param {Map<String, String>} map
+ * @param {Map<String, String>} [map]
  * @returns {Map<String, String>}
  */
 export default function resolve(query, sel, map = new Map()) {
