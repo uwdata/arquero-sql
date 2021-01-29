@@ -4,63 +4,78 @@ import {copy} from './sql-query-builder/common';
 import * as verbs from '../src/verbs/index';
 import {op} from 'arquero';
 
-/**
- *
- * @param {tape.Test} t
- * @param {string} verb
- * @param {SqlQuery} base
- * @param {any[]} expected
- * @param {any[]} actual
- */
-function testInterface(t, verb, base, actual, expected) {
-  actual = copy(base[verb](...actual));
-  expected = copy(verbs[verb](base, ...expected));
-  t.deepEqual(actual, expected, 'correct interface: ' + verb);
-}
-
 tape('sql-query', t => {
   const table1 = new SqlQuery('table1', null, {columns: ['Seattle', 'Chicago', 'New York']});
   const table2 = new SqlQuery('table2', null, {columns: ['Seattle', 'Chicago', 'New York']});
   const table3 = new SqlQuery('table3', null, {columns: ['Seattle', 'Chicago', 'New York']});
 
-  testInterface(t, 'concat', table1, [table2, table3], [[table2, table3]]);
-  testInterface(t, 'except', table1, [table2, table3], [[table2, table3]]);
-  testInterface(t, 'intersect', table1, [table2, table3], [[table2, table3]]);
-  testInterface(t, 'union', table1, [table2, table3], [[table2, table3]]);
+  let actual, expected;
 
-  testInterface(t, 'count', table1, [], []);
+  actual = table1.concat(table2, table3);
+  expected = verbs.concat(table1, [table2, table3]);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: concat');
 
-  testInterface(t, 'dedupe', table1, ['k1', {k2: d => d.k + 1}], [['k1', {k2: d => d.k + 1}]]);
-  testInterface(t, 'dedupe', table1, [['k1'], {k2: d => d.k + 1}], [['k1', {k2: d => d.k + 1}]]);
+  actual = table1.except(table2, table3);
+  expected = verbs.except(table1, [table2, table3]);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: except');
 
-  testInterface(t, 'derive', table1, [{k3: d => d.k1 + d.k2}], [{k3: d => d.k1 + d.k2}]);
+  actual = table1.intersect(table2, table3);
+  expected = verbs.intersect(table1, [table2, table3]);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: intersect');
 
-  testInterface(t, 'filter', table1, [d => d.k1 + d.k2], [d => d.k1 + d.k2]);
+  actual = table1.union(table2, table3);
+  expected = verbs.union(table1, [table2, table3]);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: union');
 
-  testInterface(t, 'groupby', table1, ['k1', {k2: d => d.k + 1}], [['k1', {k2: d => d.k + 1}]]);
-  testInterface(t, 'groupby', table1, [['k1'], {k2: d => d.k + 1}], [['k1', {k2: d => d.k + 1}]]);
+  actual = table1.count({as: 'c'});
+  expected = verbs.count(table1, {as: 'c'});
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: count');
 
-  testInterface(
-    t,
-    'join',
-    table1,
-    [table2, ['Seattle', 'Chicago'], [['Chicago'], ['Seattle']], {left: true, suffix: ['_0', '_1']}],
-    [table2, ['Seattle', 'Chicago'], [['Chicago'], ['Seattle']], {left: true, suffix: ['_0', '_1']}],
-  );
+  actual = table1.dedupe('k1', {k2: d => d.k + 1});
+  expected = verbs.dedupe(table1, ['k1', {k2: d => d.k + 1}]);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: dedupe');
+  actual = table1.dedupe(['k1'], {k2: d => d.k + 1});
+  expected = verbs.dedupe(table1, ['k1', {k2: d => d.k + 1}]);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: dedupe');
 
-  testInterface(
-    t,
-    'orderby',
-    table1,
-    [['k1'], d => d.k + 1, {k2: d => d.k + 1}],
-    [['k1', d => d.k + 1, {k2: d => d.k + 1}]],
-  );
+  actual = table1.derive({k3: d => d.k1 + d.k2});
+  expected = verbs.derive(table1, {k3: d => d.k1 + d.k2});
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: derive');
 
-  testInterface(t, 'rollup', table1, [{k3: d => op.mean(d.k1 + d.k2)}], [{k3: d => op.mean(d.k1 + d.k2)}]);
+  actual = table1.filter(d => d.k1 + d.k2);
+  expected = verbs.filter(table1, d => d.k1 + d.k2);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: filter');
 
-  testInterface(t, 'sample', table1, [5], [5]);
+  actual = table1.groupby('k1', {k2: d => d.k + 1});
+  expected = verbs.groupby(table1, ['k1', {k2: d => d.k + 1}]);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: groupby');
+  actual = table1.groupby(['k1'], {k2: d => d.k + 1});
+  expected = verbs.groupby(table1, ['k1', {k2: d => d.k + 1}]);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: groupby');
 
-  testInterface(t, 'select', table1, ['Seattle', {c: 'Chicago'}], [['Seattle', {c: 'Chicago'}]]);
+  actual = table1.join(table2, ['Seattle', 'Chicago'], [['Chicago'], ['Seattle']], {left: true, suffix: ['_0', '_1']});
+  expected = verbs.join(table1, table2, ['Seattle', 'Chicago'], [['Chicago'], ['Seattle']], {left: true, suffix: ['_0', '_1']});
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: join');
+
+  actual = table1.orderby(['k1'], d => d.k + 1, {k2: d => d.k + 1});
+  expected = verbs.orderby(table1, ['k1', d => d.k + 1, {k2: d => d.k + 1}]);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: orderby');
+
+  actual = table1.rollup({k3: d => op.mean(d.k1 + d.k2)});
+  expected = verbs.rollup(table1, {k3: d => op.mean(d.k1 + d.k2)});
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: rollup');
+
+  actual = table1.sample(5);
+  expected = verbs.sample(table1, 5);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: sample');
+
+  actual = table1.select('Seattle', {c: 'Chicago'});
+  expected = verbs.select(table1, ['Seattle', {c: 'Chicago'}]);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: select');
+
+  actual = table1.ungroup();
+  expected = verbs.ungroup(table1);
+  t.deepEqual(copy(actual), copy(expected), 'correct interface: ungroup');
 
   t.end();
 });
