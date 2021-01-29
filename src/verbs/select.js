@@ -1,6 +1,6 @@
 /** @typedef { import('arquero/dist/types/table/transformable').SelectEntry } SelectEntry */
 /** @typedef { import('../sql-query').SqlQuery } SqlQuery */
-/** @typedef { import('../utils/utils').ColumnType } ColumnType */
+/** @typedef { import('../utils/create-column').ColumnType } ColumnType */
 /** @typedef { import('./common').Verb } Verb */
 
 import {internal} from 'arquero';

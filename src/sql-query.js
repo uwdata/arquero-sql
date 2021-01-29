@@ -133,7 +133,11 @@ export class SqlQuery extends Transformable {
 
 for (const name in verbs) {
   const verb = verbs[name];
-  SqlQuery.prototype['__' + name] = (qb, ...args) => verb(qb, ...args);
+  SqlQuery.prototype['__' + name] = verb
+    ? (qb, ...args) => verb(qb, ...args)
+    : function () {
+        throw new Error('TODO: implement ' + name);
+      };
 }
 
 /** @typedef {string | SqlQuery} Source _source in SqlQuery */
