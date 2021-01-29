@@ -56,6 +56,11 @@ dt.orderby('Seattle').groupby([{g: d => ~~(d.Seattle / 100)}, {g: d => ~~(d.Seat
   .rollup()
   .print({limit: 20})
 
+dt.groupby({a: d => d.Chicago > 100})
+  .select({Seattle: 'Chicago'})
+  .rollup({g: () => op.count()})
+  .print({limit: 20})
+
 
 // console.log(Verbs.select('d', 'ddd', all()).toAST())
 
@@ -82,13 +87,14 @@ const out = qb
     i: d => `${d.Seattle} + ${d.Chicago}`,
   })
   .groupby(['a', {k: d => d.s + d.e}])
-  .sample(d => op.mean(d.Seattle));
+  .sample(d => op.mean(d.Seattle))
+  .select(all());
 
 
-// console.log(JSON.stringify(out._verbs, null, 3));
-// console.log(out._verbs[out._verbs.length - 1]);
-// // console.log(JSON.stringify(fromQuery(out, null), null, 3));
-// console.log(JSON.stringify(out.toAST(), null, 3));
+console.log(JSON.stringify(out._verbs, null, 3));
+console.log(out._verbs[out._verbs.length - 1]);
+// console.log(JSON.stringify(fromQuery(out, null), null, 3));
+console.log(JSON.stringify(out.toAST(), null, 3));
 
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
 // // v.values.map(vv => toSql(vv))

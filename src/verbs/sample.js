@@ -15,7 +15,7 @@ const TMP_COL = '___arquero_sql_temp_column_row_number___';
  * @returns {SqlQuery}
  */
 export default function (query, size, options = {}) {
-  if (size !== 'number') {
+  if (typeof size !== 'number') {
     // TODO: calculate the size -> then use the calculated size as limit
     throw new Error('sample only support constant sample size');
   }
@@ -35,7 +35,7 @@ export default function (query, size, options = {}) {
     query
       .ungroup()
       // TODO: need a better way to get the row number without ungroup then group
-      .derive({[TMP_COL]: op.row_number()})
+      .derive({[TMP_COL]: () => op.row_number()})
       ._wrap(
         c => c,
         schema => ({...schema, groupby}),
