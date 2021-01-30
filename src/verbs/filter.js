@@ -14,10 +14,10 @@ const TMP_COL = '___arquero_sql_temp_column_filter___';
  * @returns {SqlQuery}
  */
 export default function (query, criteria) {
-  const verb = internal.Verbs.filter(criteria).toAST();
+  const _criteria = internal.parse({p: criteria}, {ast: true}).exprs[0];
 
-  if (!hasAggregation(verb.criteria)) {
-    return query._wrap({where: [verb.criteria]});
+  if (!hasAggregation(_criteria)) {
+    return query._wrap({where: [_criteria]});
   }
 
   return query

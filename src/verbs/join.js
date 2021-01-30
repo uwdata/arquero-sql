@@ -1,64 +1,200 @@
 /** @typedef {import('./common').Verb} Verb */
+/** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
-import {SqlQuery} from '../sql-query';
-import createColumn from '../utils/create-column';
+import parseValue from 'arquero/src/verbs/util/parse';
+import {inferKeys} from 'arquero/src/verbs/join';
+import {all, not} from 'arquero';
+import toArray from '../utils/to-array';
 import {internal} from 'arquero';
-import resolve from './expr/selection';
 
 /** @type {['inner', 'left', 'right', 'outer']} */
 const JOIN_OPTIONS = ['inner', 'left', 'right', 'outer'];
 
+const OPT_L = {aggregate: false, window: false};
+const OPT_R = {...OPT_L, index: 1};
+
+const optParse = { join: true, ast: true };
+
 /**
  *
  * @param {SqlQuery} query
- * @param {Verb} verb
+ * @param {SqlQuery} other
+ * @param {import('arquero/src/table/transformable').JoinPredicate} on
+ * @param {import('arquero/src/table/transformable').JoinValues} values
+ * @param {import('arquero/src/table/transformable').JoinOptions} options
  * @returns {SqlQuery}
  */
 export default function (query, other, on, values, options = {}) {
-  other = typeof other === 'string' ? new SqlQuery(other) : other;
-  const {on: _on, values: _values} = internal.Verbs.join(other, on, values, options).toAST();
+  on = inferKeys(query, other, on);
 
-  if (!(typeof _on === 'object') && !(Array.isArray(_on) && _on.length < 2)) {
-    throw new Error('"on" should either be an expression or [Column[], Column[]]');
+  if (Array.isArray(on)) {
+    const [onL, onR] = on.map(toArray);
+    if (onL.length !== onR.length) {
+      throw new Error('Mismatched number of join keys');
+    }
+
+    const body = onL
+      .map((l, i) => {
+        l = typeof l === 'number' ? query._schema.columns[l] : l;
+        const r = typeof onR[i] === 'number' ? other._schema.columns[onR[i]] : l;
+        return `a.${l} === b.${r}`;
+      })
+      .join(' && ');
+    on = `(a, b) => ${body}`;
+
+    if (!values) {
+      values = inferValues(query, onL, onR, options);
+    }
+  } else if (!values) {
+    values = [all(), all()];
   }
+  on = internal.parse({on}, {ast: true, join: true}).exprs[0];
 
-  if (_values && (!Array.isArray(_values) || _values.length < 2 || _values.some(value => !Array.isArray(value)))) {
-    throw new Error('value must be of type [list, list]');
-  }
+  const {exprs, names} = parseValues(query, other, values, optParse, options.suffix);
+  exprs.forEach((expr, i) => (expr.as = names[i]));
 
-  if (
-    !(other instanceof SqlQuery && other._schema && (other._schema.groupby || other._schema.columns)) &&
-    !(_values && _values[1].every(column => column.type === 'Column'))
-  ) {
-    throw new Error('If output columns are not specified, joining table must be a SqlQuery with schema');
-  }
-
-  if (_values && _values.flat().some(v => v.type !== 'Column' && v.type !== 'Selection')) {
-    // TODO: support output value as expression
-    // Plan: derive the expressions as new columns before joining
-    throw new Error('Arquero-SQL does not support joining value as expression');
-  }
-
-  const suffix = options.suffix || ['_1', '_2'];
-  const this_values = resolve(query, (_values && _values[0]) || {type: 'Selection', operator: 'all'});
-  const other_values = resolve(other, (_values && _values[1]) || {type: 'Selection', operator: 'all'});
-  const _select = new Map();
-  [this_values, other_values].forEach((_values, idx) => {
-    _values.forEach((curr, next) => {
-      _select.set(next + suffix[idx], createColumn(curr, next + suffix[idx], idx + 1));
-    });
-  });
-
-  const select = [..._select.values()];
+  const join_option = JOIN_OPTIONS[(~~options.left << 1) + ~~options.right];
   return query._wrap(
     {
-      select,
-      join: {
-        other,
-        on: _on,
-        join_option: JOIN_OPTIONS[(~~options.left << 1) + ~~options.right],
-      },
+      select: exprs,
+      join: {other, on, join_option},
     },
-    {columns: select.map(c => c.as || c.name)},
+    {columns: exprs.map(c => c.as || c.name)},
   );
+}
+
+/**
+ *
+ * @param {SqlQuery} queryL
+ * @param {import('arquero/src/table/transformable').JoinKey[]} onL
+ * @param {import('arquero/src/table/transformable').JoinKey[]} onR
+ * @param {import('arquero/src/table/transformable').JoinOptions} options
+ * @returns {import('arquero/src/table/transformable').JoinKey}
+ */
+function inferValues(queryL, onL, onR, options) {
+  const isect = [];
+  onL.forEach((s, i) => (typeof s === 'string' && s === onR[i] ? isect.push(s) : 0));
+  const vR = not(isect);
+
+  if (options.left && options.right) {
+    // for full join, merge shared key columns together
+    const shared = new Set(isect);
+    return [
+      queryL._schema.columns.map(s => {
+        const c = `[${toString(s)}]`;
+        return shared.has(s) ? {[s]: `(a, b) => a${c} == null ? b${c} : a${c}`} : s;
+      }),
+      vR,
+    ];
+  }
+
+  return options.right ? [vR, all()] : [all(), vR];
+}
+
+/**
+ *
+ * @param {SqlQuery} tableL
+ * @param {SqlQuery} tableR
+ * @param {import('arquero/src/table/transformable').JoinValues} values
+ * @param {object} optParse
+ * @param {string[]} suffix
+ */
+// function parseValues(tableL, tableR, values, suffix = []) {
+//   if (Array.isArray(values)) {
+//     let vL,
+//       vR,
+//       vJ,
+//       n = values.length;
+//     vL = vR = vJ = {names: [], exprs: []};
+
+//     if (n--) {
+//       vL = parseValue('join', tableL, values[0], optParse);
+//       // add table index
+//       // vL = assignTable(vL, 1);
+//     }
+//     if (n--) {
+//       vR = parseValue('join', tableR, values[1], OPT_R);
+//       // add table index
+//       vR = assignTable(vR, 2);
+//     }
+//     if (n--) {
+//       vJ = internal.parse(values[2], optParse);
+//     }
+
+//     // handle name collisions
+//     const rename = new Set();
+//     const namesL = new Set(vL.names);
+//     vR.names.forEach(name => {
+//       if (namesL.has(name)) {
+//         rename.add(name);
+//       }
+//     });
+//     if (rename.size) {
+//       rekey(vL.names, rename, suffix[0] || '_1');
+//       rekey(vR.names, rename, suffix[1] || '_2');
+//     }
+
+//     return {
+//       names: vL.names.concat(vR.names, vJ.names),
+//       exprs: vL.exprs.concat(vR.exprs, vJ.exprs),
+//     };
+//   } else {
+//     return internal.parse(values, optParse);
+//   }
+// }
+function parseValues(tableL, tableR, values, optParse, suffix = []) {
+  if (Array.isArray(values)) {
+    let vL, vR, vJ, n = values.length;
+    vL = vR = vJ = { names: [], exprs: [] };
+
+    if (n--) {
+      vL = parseValue('join', tableL, values[0], optParse);
+      // add table index
+      // vL = assignTable(vL, 1);
+    }
+    if (n--) {
+      vR = parseValue('join', tableR, values[1], OPT_R);
+      // add table index
+      vR = assignTable(vR, 2);
+    }
+    if (n--) {
+      vJ = internal.parse(values[2], optParse);
+    }
+
+    // handle name collisions
+    const rename = new Set();
+    const namesL = new Set(vL.names);
+    vR.names.forEach(name => {
+      if (namesL.has(name)) {
+        rename.add(name);
+      }
+    });
+    if (rename.size) {
+      rekey(vL.names, rename, suffix[0] || '_1');
+      rekey(vR.names, rename, suffix[1] || '_2');
+    }
+
+    return {
+      names: vL.names.concat(vR.names, vJ.names),
+      exprs: vL.exprs.concat(vR.exprs, vJ.exprs)
+    };
+  } else {
+    const v = internal.parse(values, optParse);
+    assignTable(v, 1);
+    return v;
+  }
+}
+
+function rekey(names, rename, suffix) {
+  names.forEach((name, i) => (rename.has(name) ? (names[i] = name + suffix) : 0));
+}
+
+function assignTable(expr, index) {
+  if (typeof expr !== 'object') return;
+
+  if (expr.type === 'Column') {
+    expr.table = index;
+  } else {
+    Object.values(expr).forEach(e => assignTable(e, index));
+  }
 }

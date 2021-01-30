@@ -1,4 +1,3 @@
-/** @typedef {import('arquero/dist/types/table/transformable').ExprObject} ExprObject */
 /** @typedef {import('./common').Verb} Verb */
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
@@ -9,11 +8,10 @@ import {GB_KEY_PREFIX, GB_KEY_SUFFIX} from './groupby';
 /**
  *
  * @param {SqlQuery} query
- * @param {ExprObject} [keys]
+ * @param {import('arquero/src/table/transformable').ExprObject} [keys]
  * @returns {SqlQuery}
  */
 export default function (query, keys = []) {
-  const verb = internal.Verbs.rollup(keys).toAST();
   /** @type {Map<string, object>} */
   const columns = new Map();
   if (query.isGrouped()) {
@@ -22,7 +20,13 @@ export default function (query, keys = []) {
       columns.set(next, createColumn(key, next));
     });
   }
-  verb.values.forEach(value => columns.set(value.as || value.name, value));
+
+  const {exprs, names} = internal.parse(keys, {ast: true, argonly: true});
+  exprs.forEach((expr, idx) => {
+    const as = names[idx];
+    columns.set(as, {...expr, as});
+  });
+
   return query._wrap(
     {select: [...columns.values()], ...(query.isGrouped() ? {groupby: query._schema.groupby} : {})},
     {columns: [...columns.keys()]},

@@ -1,5 +1,3 @@
-// TODO: export TableRef from Arquero
-/** @typedef {import('../../node_modules/arquero/src/table/transformable').TableRef} TableRef */
 /** @typedef {import('arquero').internal.Table} Table */
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
@@ -9,7 +7,7 @@ import createColumn from '../utils/create-column';
 /**
  *
  * @param {'concat' | 'except' | 'intersect' | 'union'} verb
- * @returns {(query: SqlQuery, others: TableRef[]) => SqlQuery}
+ * @returns {(query: SqlQuery, others: (SqlQuery|string)[]) => SqlQuery}
  */
 export function set_verb(verb) {
   return (query, others) => {
