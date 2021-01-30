@@ -1,8 +1,9 @@
 /** @typedef {import('./common').Verb} Verb */
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
-import {internal} from 'arquero';
-import resolve from './expr/selection';
+import resolve from 'arquero/src/helpers/selection';
+import isFunction from 'arquero/src/util/is-function';
+import isNumber from 'arquero/src/util/is-number';
 
 export const GB_KEY_PREFIX = '___arquero_sql_groupby_key_';
 export const GB_KEY_SUFFIX = '___';
@@ -21,16 +22,16 @@ export default function (query, keys) {
 
   const _keys = {};
   keys.forEach(key => {
-    if (typeof key === 'function') {
+    if (isFunction(key)) {
       // selection
-      const {columns} = internal.Verbs.select([key]).toAST();
-      const sel = resolve(query, columns);
+      const sel = resolve(query, key);
       sel.forEach((v, k) => (_keys[GB_KEY(k)] = `d => d.${v}`));
     } else if (typeof key === 'object') {
       // derive
       Object.entries(key).forEach(([k, v]) => (_keys[GB_KEY(k)] = v));
     } else {
       // column
+      key = isNumber(key) ? query.columnName(key) : key;
       _keys[GB_KEY(key)] = `d => d.${key}`;
     }
   });

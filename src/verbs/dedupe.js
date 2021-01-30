@@ -13,7 +13,7 @@ const TMP_COL = '___arquero_sql_temp_column_row_number___';
  */
 export default function (query, keys = []) {
   return query
-    .groupby(...(keys.length ? keys : query._schema.columns))
+    .groupby(...(keys.length ? keys : query.columnNames()))
     .derive({[TMP_COL]: () => op.row_number()})
     .ungroup()
     .filter(`d => d.${TMP_COL} === 1`)

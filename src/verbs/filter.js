@@ -1,4 +1,3 @@
-/** @typedef {import('arquero/dist/types/table/transformable').TableExpr} TableExpr */
 /** @typedef {import('./common').Verb} Verb */
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
@@ -10,7 +9,7 @@ const TMP_COL = '___arquero_sql_temp_column_filter___';
 /**
  *
  * @param {SqlQuery} query
- * @param {TableExpr|string} criteria
+ * @param {import('arquero/dist/types/table/transformable').TableExpr|string} criteria
  * @returns {SqlQuery}
  */
 export default function (query, criteria) {
