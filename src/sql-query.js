@@ -107,6 +107,14 @@ export class SqlQuery extends internal.Transformable {
   }
 
   /**
+   * dummy function for parsing
+   * @returns {[]}
+   */
+  column() {
+    return [];
+  }
+
+  /**
    * @param {{optimize?: boolean}} options option for translating to SQL
    * @returns {string} SQL representation of this SqlQuery
    */
