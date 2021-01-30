@@ -1,5 +1,4 @@
-// TODO: export Transformable from arquero
-import Transformable from '../node_modules/arquero/src/table/transformable';
+import {internal} from 'arquero';
 import {optimize} from './optimizer';
 import {toSql} from './to-sql';
 import composeQueries from './utils/compose-queries';
@@ -21,7 +20,7 @@ export function sqlQuery(table) {
   }
 }
 
-export class SqlQuery extends Transformable {
+export class SqlQuery extends internal.Transformable {
   /**
    * @param {Source} source source table or another sql query
    * @param {Clauses} [clauses] object of sql clauses
@@ -76,6 +75,35 @@ export class SqlQuery extends Transformable {
    */
   optimize() {
     return optimize(this);
+  }
+
+  /**
+   * Filter function invoked for each column name.
+   * @callback NameFilter
+   * @param {string} name The column name.
+   * @param {number} index The column index.
+   * @param {string[]} array The array of names.
+   * @return {boolean} Returns true to retain the column name.
+   */
+
+  /**
+   * The table column names, optionally filtered.
+   * @param {NameFilter} [filter] An optional filter function.
+   *  If unspecified, all column names are returned.
+   * @return {string[]} An array of matching column names.
+   */
+  columnNames(filter) {
+    return filter ? this._schema.columns.filter(filter) : this._schema.columns.slice();
+  }
+
+  /**
+   * The column name at the given index.
+   * @param {number} index The column index.
+   * @return {string} The column name,
+   *  or undefined if the index is out of range.
+   */
+  columnName(index) {
+    return this._schema.columns[index];
   }
 
   /**

@@ -27,6 +27,7 @@ export default function resolve(query, sel, map = new Map()) {
  *
  * @param {SqlQuery} query
  * @param {object} column
+ * @returns {string}
  */
 function getColumnName(query, column) {
   return 'index' in column ? query._schema.columns[column.index] : column.name;
@@ -36,6 +37,7 @@ function getColumnName(query, column) {
  *
  * @param {SqlQuery} query
  * @param {object} column
+ * @returns {number}
  */
 function getColumnIndex(query, column) {
   return 'name' in column ? query._schema.columns.indexOf(column.name) : column.index;
