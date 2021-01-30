@@ -61,6 +61,9 @@ dt.groupby({a: d => d.Chicago > 100})
   .rollup({g: () => op.count()})
   .print({limit: 20})
 
+dt.join(dt, [d => d.Seattle, 'Seattle'])
+.print()
+
 
 // console.log(Verbs.select('d', 'ddd', all()).toAST())
 
@@ -91,10 +94,10 @@ const out = qb
   .select(all());
 
 
-console.log(JSON.stringify(out._verbs, null, 3));
-console.log(out._verbs[out._verbs.length - 1]);
-// console.log(JSON.stringify(fromQuery(out, null), null, 3));
-console.log(JSON.stringify(out.toAST(), null, 3));
+// console.log(JSON.stringify(out._verbs, null, 3));
+// console.log(out._verbs[out._verbs.length - 1]);
+// // console.log(JSON.stringify(fromQuery(out, null), null, 3));
+// console.log(JSON.stringify(out.toAST(), null, 3));
 
 // console.log(JSON.stringify(out.toAST().verbs.map(v => {
 // // v.values.map(vv => toSql(vv))

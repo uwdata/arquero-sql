@@ -54,7 +54,10 @@ tape('sql-query', t => {
   t.deepEqual(copy(actual), copy(expected), 'correct interface: groupby');
 
   actual = table1.join(table2, ['Seattle', 'Chicago'], [['Chicago'], ['Seattle']], {left: true, suffix: ['_0', '_1']});
-  expected = verbs.join(table1, table2, ['Seattle', 'Chicago'], [['Chicago'], ['Seattle']], {left: true, suffix: ['_0', '_1']});
+  expected = verbs.join(table1, table2, ['Seattle', 'Chicago'], [['Chicago'], ['Seattle']], {
+    left: true,
+    suffix: ['_0', '_1'],
+  });
   t.deepEqual(copy(actual), copy(expected), 'correct interface: join');
 
   actual = table1.orderby(['k1'], d => d.k + 1, {k2: d => d.k + 1});

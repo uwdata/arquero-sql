@@ -1,4 +1,3 @@
-/** @typedef { import('arquero/dist/types/table/transformable').SelectEntry } SelectEntry */
 /** @typedef { import('../sql-query').SqlQuery } SqlQuery */
 /** @typedef { import('../utils/create-column').ColumnType } ColumnType */
 /** @typedef { import('./common').Verb } Verb */
@@ -10,7 +9,7 @@ import resolve from './expr/selection';
 /**
  *
  * @param {SqlQuery} query
- * @param {SelectEntry[]} columns
+ * @param {import('arquero/src/table/transformable').SelectEntry[]} columns
  * @returns {SqlQuery}
  */
 export default function (query, columns) {

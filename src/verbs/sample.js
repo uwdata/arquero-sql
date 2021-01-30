@@ -1,5 +1,3 @@
-/** @typedef {import('arquero/dist/types/table/transformable').TableExpr} TableExpr */
-/** @typedef {import('arquero/dist/types/table/transformable').SampleOptions} SampleOptions */
 /** @typedef {import('./common').Verb} Verb */
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
@@ -10,8 +8,8 @@ const TMP_COL = '___arquero_sql_temp_column_row_number___';
 /**
  *
  * @param {SqlQuery} query
- * @param {number|TableExpr} size
- * @param {SampleOptions} options
+ * @param {number|import('arquero/src/table/transformable').TableExpr} size
+ * @param {import('arquero/src/table/transformable').SampleOptions} options
  * @returns {SqlQuery}
  */
 export default function (query, size, options = {}) {

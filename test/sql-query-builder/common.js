@@ -40,7 +40,8 @@ function objToString(obj) {
  * @returns AST of expr
  */
 export function toAst(expr, as) {
-  return {...copy(Verbs.filter(expr).toAST().criteria), ...(as ? {as} : {})};
+  const _as = as ? {as} : {};
+  return {...copy(Verbs.filter(expr).toAST().criteria), ..._as};
 }
 
 /**

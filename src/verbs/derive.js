@@ -1,5 +1,3 @@
-/** @typedef {import('../../node_modules/arquero/src/table/transformable').ExprObject} ExprObject */
-/** @typedef {import('../../node_modules/arquero/src/table/transformable').DeriveOptions} DeriveOptions */
 /** @typedef {import('./common').Verb} Verb */
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
@@ -9,16 +7,22 @@ import createColumn from '../utils/create-column';
 /**
  *
  * @param {SqlQuery} query
- * @param {ExprObject} values
- * @param {DeriveOptions} [options]
+ * @param {import('arquero/src/table/transformable').ExprObject} values
+ * @param {import('arquero/src/table/transformable').DeriveOptions} [options]
  * @returns {SqlQuery}
  */
 export default function (query, values, options = {}) {
-  // TODO: use Arquero's parse
-  const verb = internal.Verbs.derive(values, options).toAST();
+  if (Object.keys(options).length > 0) {
+    console.warn("TODO: support derive's option");
+  }
+
   /** @type {Map<string, object>} */
   const columns = new Map();
-  verb.values.forEach(value => columns.set(value.as || value.name, value));
+  const {exprs, names} = internal.parse(values, {ast: true});
+  exprs.forEach((expr, idx) => {
+    const as = names[idx];
+    columns.set(as, {...expr, as});
+  });
 
   let groupby_cols = [];
   if (query.isGrouped()) {

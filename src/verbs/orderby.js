@@ -1,4 +1,3 @@
-/** @typedef { import('arquero/dist/types/table/transformable').OrderKey } OrderKey */
 /** @typedef { import('../sql-query').SqlQuery } SqlQuery */
 /** @typedef { import('./common').Verb} Verb */
 
@@ -7,7 +6,7 @@ import {internal} from 'arquero';
 /**
  *
  * @param {SqlQuery} query
- * @param {OrderKey[]} keys
+ * @param {import('arquero/src/table/transformable').OrderKey[]} keys
  * @returns {SqlQuery}
  */
 export default function (query, keys) {
