@@ -50,7 +50,9 @@ export default function (query, other, on, values, options = {}) {
   }
   on = internal.parse({on}, {ast: true, join: true}).exprs[0];
 
+  console.log(values);
   const {exprs, names} = parseValues(query, other, values, optParse, options.suffix);
+  console.log(exprs, names);
   exprs.forEach((expr, i) => (expr.as = names[i]));
 
   const join_option = JOIN_OPTIONS[(~~options.left << 1) + ~~options.right];
@@ -99,49 +101,6 @@ function inferValues(queryL, onL, onR, options) {
  * @param {object} optParse
  * @param {string[]} suffix
  */
-// function parseValues(tableL, tableR, values, suffix = []) {
-//   if (Array.isArray(values)) {
-//     let vL,
-//       vR,
-//       vJ,
-//       n = values.length;
-//     vL = vR = vJ = {names: [], exprs: []};
-
-//     if (n--) {
-//       vL = parseValue('join', tableL, values[0], optParse);
-//       // add table index
-//       // vL = assignTable(vL, 1);
-//     }
-//     if (n--) {
-//       vR = parseValue('join', tableR, values[1], OPT_R);
-//       // add table index
-//       vR = assignTable(vR, 2);
-//     }
-//     if (n--) {
-//       vJ = internal.parse(values[2], optParse);
-//     }
-
-//     // handle name collisions
-//     const rename = new Set();
-//     const namesL = new Set(vL.names);
-//     vR.names.forEach(name => {
-//       if (namesL.has(name)) {
-//         rename.add(name);
-//       }
-//     });
-//     if (rename.size) {
-//       rekey(vL.names, rename, suffix[0] || '_1');
-//       rekey(vR.names, rename, suffix[1] || '_2');
-//     }
-
-//     return {
-//       names: vL.names.concat(vR.names, vJ.names),
-//       exprs: vL.exprs.concat(vR.exprs, vJ.exprs),
-//     };
-//   } else {
-//     return internal.parse(values, optParse);
-//   }
-// }
 function parseValues(tableL, tableR, values, optParse, suffix = []) {
   if (Array.isArray(values)) {
     let vL, vR, vJ, n = values.length;
@@ -150,12 +109,12 @@ function parseValues(tableL, tableR, values, optParse, suffix = []) {
     if (n--) {
       vL = parseValue('join', tableL, values[0], optParse);
       // add table index
-      // vL = assignTable(vL, 1);
+      // assignTable(vL.exprs, 1);
     }
     if (n--) {
       vR = parseValue('join', tableR, values[1], OPT_R);
       // add table index
-      vR = assignTable(vR, 2);
+      assignTable(vR.exprs, 2);
     }
     if (n--) {
       vJ = internal.parse(values[2], optParse);
