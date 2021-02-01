@@ -54,7 +54,6 @@ export default function (query, other, on, values, options = {}) {
   on = internal.parse({on}, {ast: true, join: true}).exprs[0];
 
   const {exprs, names} = parseValues(query, other, values, optParse, options.suffix);
-  console.log(exprs, names);
   exprs.forEach((expr, i) => (expr.as = names[i]));
 
   const join_option = JOIN_OPTIONS[(~~options.left << 1) + ~~options.right];
