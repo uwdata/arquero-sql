@@ -4,6 +4,8 @@ import codeGen from '../src/code-gen';
 import {all, desc, not, op} from 'arquero';
 
 tape('code-gen', t => {
+  // TODO: do real testing
+
   const cg1 = base.filter(d => d.a !== 2);
   console.log(codeGen(cg1));
 
