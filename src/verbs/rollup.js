@@ -3,7 +3,7 @@
 
 import {internal} from 'arquero';
 import createColumn from '../utils/create-column';
-import {GB_KEY_PREFIX, GB_KEY_SUFFIX} from './groupby';
+import {GB_KEY} from './groupby';
 
 /**
  *
@@ -15,10 +15,7 @@ export default function (query, keys = []) {
   /** @type {Map<string, object>} */
   const columns = new Map();
   if (query.isGrouped()) {
-    query._schema.groupby.forEach(key => {
-      const next = key.slice(GB_KEY_PREFIX.length, -GB_KEY_SUFFIX.length);
-      columns.set(next, createColumn(key, next));
-    });
+    query._schema.groupby.forEach(key => columns.set(key, createColumn(GB_KEY(key), key)));
   }
 
   const {exprs, names} = internal.parse(keys, {ast: true, argonly: true});

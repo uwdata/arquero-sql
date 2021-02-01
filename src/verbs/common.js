@@ -7,7 +7,7 @@ import createColumn from '../utils/create-column';
 /**
  *
  * @param {'concat' | 'except' | 'intersect' | 'union'} verb
- * @returns {(query: SqlQuery, others: (SqlQuery|string)[]) => SqlQuery}
+ * @returns {(query: SqlQuery|string, others: (SqlQuery|string)[]) => SqlQuery}
  */
 export function set_verb(verb) {
   return (query, others) => {
