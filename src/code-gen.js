@@ -1,50 +1,68 @@
 /** @typedef {import('./sql-query').SqlQuery} SqlQuery */
 
 import isString from 'arquero/src/util/is-string';
-import { Counter } from './counter';
+import {Counter} from './counter';
 import createColumn from './utils/create-column';
-import { GB_KEY } from './verbs/groupby';
-import { genExpr } from './visitors/gen-expr';
+import {GB_KEY} from './verbs/groupby';
+import {genExpr} from './visitors/gen-expr';
+import {hasAggregation} from './visitors/has-aggregation';
 
 /**
- * 
- * @param {SqlQuery|string} query 
+ *
+ * @param {SqlQuery|string} query
  * @param {string} [indentStr]
  * @param {number} [indentLvl]
- * @param {Counter} [counter] 
+ * @param {Counter} [counter]
  */
 export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter = new Counter()) {
+  const code = [];
+  const indent = _indent(indentLvl, indentStr).join('');
+  const nl = indentStr ? '\n' : ' ';
+
   if (isString(query)) {
-    return query;
+    code.push(indent);
+    code.push(query, nl);
+    return code.join('');
   }
 
   /** @type {SqlQuery} */
-  const {_clauses: clauses, _schema: {columns, groupby}} = query;
-  const nl = indentStr ? '\n' : '  ';
-  const code = [];
-
-  const indent = () => code.push(...ind(indentLvl, indentStr));
+  const {
+    _clauses: clauses,
+    _schema: {columns, groupby},
+  } = query;
 
   const tables = [null, 'table' + counter.next(), clauses.join ? 'table' + counter.next() : null];
 
   // SELECT
-  // TODO: gen over-partitionby
-  indent();
+  code.push(indent);
   code.push('SELECT ');
-  const select = clauses.select || [...columns.map(c => createColumn(c)), ...(groupby||[]).map(c => createColumn(GB_KEY(c)))];
-  const select_str = select.map(({as, ...s}) => {
-    return genExpr(s, {}, tables) + (as ? `as ${as}` : '');
-  }).join(', ');
+  const select = clauses.select || [
+    ...columns.map(c => createColumn(c)),
+    ...(groupby || []).map(c => createColumn(GB_KEY(c))),
+  ];
+  const select_str = select
+    .map(({as, ...s}) => {
+      const _expr = genExpr(s, {}, tables);
+      const _as = as ? ` AS ${as}` : '';
+      if (hasAggregation(s) && query.isGrouped()) {
+        const _over = ' OVER (PARTITION BY ' + groupby.map(gb => GB_KEY(gb)).join(', ') + ')';
+        return _expr + _over + _as;
+      }
+      return _expr + _as;
+    })
+    .join(',');
   code.push(...select_str, nl);
 
   // FROM
-  indent();
-  code.push('FROM (');
+  code.push(indent);
+  code.push('FROM (', nl);
   code.push(codeGen(query._source, indentStr, indentLvl + 1, counter));
+  code.push(indent);
   code.push(') AS ', tables[1]);
   if (clauses.join) {
-    code.push(' (');
+    code.push(' ', clauses.join.join_type, ' JOIN (', nl);
     code.push(codeGen(clauses.join.other, indentStr, indentLvl + 1, counter));
+    code.push(indent);
     code.push(') AS ', tables[2]);
     code.push(' ON ');
     code.push(genExpr(clauses.join.on, {}, tables));
@@ -53,56 +71,64 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
 
   // WHERE
   if (clauses.where) {
-    indent();
+    code.push(indent);
     code.push('WHERE ');
-    code.push(clauses.where.map(w => genExpr(w, {}, tables).join(' AND ')));
+    code.push(clauses.where.map(w => genExpr(w, {}, tables)).join(' AND '));
     code.push(nl);
   }
 
   // GROUP BY
   if (clauses.groupby) {
-    indent();
+    code.push(indent);
     code.push('GROUP BY ');
-    code.push(clauses.groupby.map(g => genExpr(g, {}, tables).join(', ')));
+    code.push(clauses.groupby.map(g => genExpr(g, {}, tables).join(',')));
     code.push(nl);
   }
 
   // HAVING
-  // no having
+  if (clauses.having) {
+    code.push(indent);
+    code.push('HAVING ');
+    code.push(clauses.having.map(w => genExpr(w, {}, tables).join(' AND ')));
+    code.push(nl);
+  }
 
   // ORDER BY
   if (clauses.orderby) {
-    indent();
+    const {exprs, descs} = clauses.orderby;
+    code.push(indent);
     code.push('ORDER BY ');
-    code.push(clauses.orderby.map(g => genExpr(g, {}, tables).join(', ')));
+    code.push(exprs.map((g, i) => genExpr(g, {}, tables) + (descs[i] ? ' DESC' : '')).join(','));
     code.push(nl);
   }
 
   // LIMIT
-  if (clauses.limit !== undefined || clauses.limit !== null) {
-    indent();
+  if (clauses.limit || clauses.limit === 0) {
+    code.push(indent);
     code.push('LIMIT ', clauses.limit, nl);
   }
 
   // SET VERBS
-  ['concat', 'except', 'intersect', 'union'].forEach(verb => {
-    if (clauses[verb]) {
+  ['concat', 'except', 'intersect', 'union']
+    .filter(verb => clauses[verb])
+    .forEach(verb => {
       clauses[verb].forEach(q => {
-        indent();
-        code.push(verb.toUpperCase(), ' (');
+        code.push(indent);
+        code.push(verb.toUpperCase(), ' (', nl);
         code.push(codeGen(q, indentStr, indentLvl + 1, counter));
         code.push(')', nl);
       });
-    }
-  });
+    });
+
+  return code.join('');
 }
 
 /**
- * 
- * @param {number} indentLvl 
- * @param {string} indentStr 
+ *
+ * @param {number} indentLvl
+ * @param {string} indentStr
  */
-function ind(indentLvl, indentStr) {
+function _indent(indentLvl, indentStr) {
   const ret = [];
   for (let i = 0; i < indentLvl; i++) {
     ret.push(indentStr);

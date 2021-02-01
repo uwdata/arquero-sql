@@ -24,8 +24,5 @@ export default function (query, keys = []) {
     columns.set(as, {...expr, as});
   });
 
-  return query._wrap(
-    {select: [...columns.values()], ...(query.isGrouped() ? {groupby: query._schema.groupby} : {})},
-    {columns: [...columns.keys()]},
-  );
+  return query._wrap({select: [...columns.values()]}, {columns: [...columns.keys()]});
 }

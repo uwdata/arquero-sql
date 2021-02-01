@@ -5,7 +5,7 @@ import resolve from 'arquero/src/helpers/selection';
 import isFunction from 'arquero/src/util/is-function';
 import isNumber from 'arquero/src/util/is-number';
 
-export const GB_KEY_PREFIX = '___arquero_sql_groupby_key_';
+export const GB_KEY_PREFIX = '___arquero_sql_group_';
 export const GB_KEY_SUFFIX = '___';
 export const GB_KEY = key => GB_KEY_PREFIX + key + GB_KEY_SUFFIX;
 

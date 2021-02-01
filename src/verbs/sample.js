@@ -29,18 +29,22 @@ export default function (query, size, options = {}) {
 
   const {groupby} = query._schema;
 
-  return (
-    query
+  if (groupby) {
+    query = query
       .ungroup()
       // TODO: need a better way to get the row number without ungroup then group
       .derive({[TMP_COL]: () => op.row_number()})
       ._wrap(
         c => c,
         schema => ({...schema, groupby}),
-      )
-      .orderby([() => op.random()])
-      ._append(clauses => ({...clauses, limit: size}))
-      .orderby([TMP_COL])
-      .select([not(TMP_COL)])
-  );
+      );
+  } else {
+    query = query.derive({[TMP_COL]: () => op.row_number()});
+  }
+
+  return query
+    .orderby([() => op.random()])
+    ._append(clauses => ({...clauses, limit: size}))
+    .orderby([TMP_COL])
+    .select([not(TMP_COL)]);
 }
