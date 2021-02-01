@@ -1,7 +1,6 @@
 import tape from 'tape';
 import resolveColumns from '../src/utils/resolve-columns';
 import createColumn from '../src/utils/create-column';
-import isFunction from '../src/utils/is-function';
 import {all, internal, not} from 'arquero';
 
 const {Verbs} = internal;
@@ -76,15 +75,6 @@ tape('resolveColumns', t => {
     'should throw an error when receive a selection that is not Column or Selection',
   );
 
-  t.end();
-});
-
-tape('isFunction', t => {
-  t.ok(
-    isFunction(() => 5),
-    'is function',
-  );
-  t.notOk(isFunction(5), 'is not function');
   t.end();
 });
 

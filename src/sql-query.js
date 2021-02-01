@@ -1,8 +1,8 @@
 import {internal} from 'arquero';
+import isFunction from 'arquero/src/util/is-function';
 import {optimize} from './optimizer';
 import {toSql} from './to-sql';
 import composeQueries from './utils/compose-queries';
-import isFunction from './utils/is-function';
 import * as verbs from './verbs/index';
 
 /**
