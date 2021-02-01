@@ -24,6 +24,7 @@ const ARQUERO_OPS_TO_SQL = {
   row_number: 'ROW_NUMBER',
   mean: 'AVG',
   max: 'MAX',
+  random: 'RANDOM',
 };
 
 const BINARY_OPS = {

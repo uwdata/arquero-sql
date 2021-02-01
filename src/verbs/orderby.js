@@ -15,19 +15,22 @@ import isString from 'arquero/src/util/is-string';
  * @returns {SqlQuery}
  */
 export default function (query, keys) {
-  return query._wrap({orderby: parseValues(query, keys).exprs});
+  return query._wrap({orderby: parseValues(query, keys)});
 }
 
 function parseValues(table, params) {
   let index = -1;
   const exprs = new Map();
-  const add = val => exprs.set(++index + '', val);
+  const descs = [];
+  const add = (val, desc) => (exprs.set(++index + '', val), descs.push(desc));
 
   params.forEach(param => {
     const expr = param.expr != null ? param.expr : param;
 
     if (isObject(expr) && !isFunction(expr)) {
-      for (const key in expr) add(expr[key]);
+      for (const key in expr) {
+        add(expr[key], param.desc);
+      }
     } else {
       add(
         isNumber(expr)
@@ -37,9 +40,10 @@ function parseValues(table, params) {
           : isFunction(expr)
           ? param
           : error(`Invalid orderby field: ${param + ''}`),
+        param.desc,
       );
     }
   });
 
-  return internal.parse(exprs, {ast: true});
+  return {...internal.parse(exprs, {ast: true}), descs};
 }
