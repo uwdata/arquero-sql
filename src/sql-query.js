@@ -186,7 +186,7 @@ for (const name in verbs) {
  * @prop {object[]} [having]
  * @prop {Source} [join]
  * @prop {object[]} [orderby]
- * @prop {boolean} [distinct]
+ * @prop {number} [limit]
  * @prop {Source[]} [concat]
  * @prop {Source[]} [union]
  * @prop {Source[]} [intersect]
