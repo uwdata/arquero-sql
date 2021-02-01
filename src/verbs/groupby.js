@@ -7,7 +7,7 @@ import isNumber from 'arquero/src/util/is-number';
 
 export const GB_KEY_PREFIX = '___arquero_sql_groupby_key_';
 export const GB_KEY_SUFFIX = '___';
-const GB_KEY = key => GB_KEY_PREFIX + key + GB_KEY_SUFFIX;
+export const GB_KEY = key => GB_KEY_PREFIX + key + GB_KEY_SUFFIX;
 
 /**
  *
@@ -36,6 +36,6 @@ export default function (query, keys) {
     }
   });
 
-  const groupby = Object.values(_keys);
+  const groupby = Object.keys(_keys).map(key => key.substring(GB_KEY_PREFIX.length, key.length - GB_KEY_SUFFIX.length));
   return query.derive(_keys)._append(c => c, {...query._schema, groupby});
 }

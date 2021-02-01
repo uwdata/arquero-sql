@@ -3,7 +3,8 @@
 /** @typedef { import('./common').Verb } Verb */
 
 import createColumn from '../utils/create-column';
-import resolve from './expr/selection';
+import resolve from 'arquero/src/helpers/selection';
+import isString from 'arquero/src/util/is-string';
 
 /**
  *
@@ -14,8 +15,8 @@ import resolve from './expr/selection';
 export default function (query, columns) {
   /** @type {ColumnType[]} */
   const cols = [];
-  resolve(query, columns).forEach((value, curr) => {
-    const next = typeof value === 'string' ? value : curr;
+  resolve(query, columns).forEach((curr, next) => {
+    next = isString(next) ? next : curr;
     if (next) {
       if (!query._schema.columns.includes(curr)) {
         throw new Error(`Unrecognized column: ${curr}`);

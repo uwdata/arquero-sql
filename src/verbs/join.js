@@ -4,11 +4,11 @@
 import parseValue from 'arquero/src/verbs/util/parse';
 import {inferKeys} from 'arquero/src/verbs/join';
 import {all, not} from 'arquero';
-import toArray from '../utils/to-array';
 import {internal} from 'arquero';
 import isArray from 'arquero/src/util/is-array';
 import isNumber from 'arquero/src/util/is-number';
 import isString from 'arquero/src/util/is-string';
+import toArray from 'arquero/src/util/to-array';
 
 /** @type {['inner', 'left', 'right', 'outer']} */
 const JOIN_OPTIONS = ['inner', 'left', 'right', 'outer'];
@@ -54,6 +54,7 @@ export default function (query, other, on, values, options = {}) {
   on = internal.parse({on}, {ast: true, join: true}).exprs[0];
 
   const {exprs, names} = parseValues(query, other, values, optParse, options.suffix);
+  console.log(exprs, names);
   exprs.forEach((expr, i) => (expr.as = names[i]));
 
   const join_option = JOIN_OPTIONS[(~~options.left << 1) + ~~options.right];
@@ -116,7 +117,7 @@ function parseValues(tableL, tableR, values, optParse, suffix = []) {
       // assignTable(vL.exprs, 1);
     }
     if (n--) {
-      vR = parseValue('join', tableR, values[1], OPT_R);
+      vR = parseValue('join', tableR, values[1], {...OPT_R, ...optParse});
       // add table index
       assignTable(vR.exprs, 2);
     }
