@@ -1,4 +1,4 @@
-import { op } from 'arquero';
+import {op} from 'arquero';
 import tape from 'tape';
 import {group, pprint} from './common';
 

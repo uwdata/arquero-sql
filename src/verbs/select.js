@@ -5,6 +5,7 @@
 import createColumn from '../utils/create-column';
 import resolve from 'arquero/src/helpers/selection';
 import isString from 'arquero/src/util/is-string';
+import {GB_KEY} from './groupby';
 
 /**
  *
@@ -27,7 +28,7 @@ export default function (query, columns) {
 
   let groupby_cols = [];
   if (query.isGrouped()) {
-    groupby_cols = query._schema.groupby.map(key => createColumn(key));
+    groupby_cols = query._schema.groupby.map(key => createColumn(GB_KEY(key)));
   }
 
   return query._wrap({select: [...cols, ...groupby_cols]}, {columns: cols.map(col => col.as || col.name)});
