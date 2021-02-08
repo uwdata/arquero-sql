@@ -39,7 +39,7 @@ export class SqlQueryBuilder extends SqlQuery {
    * @param {Schema} [schema] object of table schema
    */
   constructor(source, clauses, schema) {
-    super(source, clauses, schema);
+    super(source, schema, clauses);
   }
 
   /**

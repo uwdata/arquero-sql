@@ -2,10 +2,10 @@ import {SqlQuery} from '../../src/sql-query';
 import {internal} from 'arquero';
 
 export const {Verbs} = internal;
-export const base = new SqlQuery('base', null, {columns: ['a', 'b', 'c', 'd']});
-export const base2 = new SqlQuery('base2', null, {columns: ['a', 'b', 'c', 'd', 'e']});
-export const base3 = new SqlQuery('base3', null, {columns: ['a', 'b', 'c', 'e']});
-// export const noschema = new SqlQuery('no-schema', null);
+export const base = new SqlQuery('base', {columns: ['a', 'b', 'c', 'd']});
+export const base2 = new SqlQuery('base2', {columns: ['a', 'b', 'c', 'd', 'e']});
+export const base3 = new SqlQuery('base3', {columns: ['a', 'b', 'c', 'e']});
+// export const noschema = new SqlQuery('no-schema');
 export const group = base.groupby('a', 'b');
 
 /**
