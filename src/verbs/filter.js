@@ -16,7 +16,7 @@ export default function (query, criteria) {
   const _criteria = internal.parse({p: criteria}, {ast: true}).exprs[0];
 
   if (!hasAggregation(_criteria)) {
-    return query._wrap({where: [_criteria]});
+    return query._wrap({clauses: {where: [_criteria]}});
   }
 
   return query

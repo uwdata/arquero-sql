@@ -19,7 +19,7 @@ export default function (query, columns) {
   resolve(query, columns).forEach((curr, next) => {
     next = isString(next) ? next : curr;
     if (next) {
-      if (!query._schema.columns.includes(curr)) {
+      if (!query._columns.includes(curr)) {
         throw new Error(`Unrecognized column: ${curr}`);
       }
       cols.push(createColumn(curr, next));
@@ -28,8 +28,11 @@ export default function (query, columns) {
 
   let groupby_cols = [];
   if (query.isGrouped()) {
-    groupby_cols = query._schema.groupby.map(key => createColumn(GB_KEY(key)));
+    groupby_cols = query._group.map(key => createColumn(GB_KEY(key)));
   }
 
-  return query._wrap({select: [...cols, ...groupby_cols]}, {columns: cols.map(col => col.as || col.name)});
+  return query._wrap({
+    clauses: {select: [...cols, ...groupby_cols]},
+    columns: cols.map(col => col.as || col.name)
+  });
 }

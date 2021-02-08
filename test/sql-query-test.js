@@ -5,9 +5,9 @@ import * as verbs from '../src/verbs/index';
 import {op} from 'arquero';
 
 tape('sql-query', t => {
-  const table1 = new SqlQuery('table1', {columns: ['Seattle', 'Chicago', 'New York']});
-  const table2 = new SqlQuery('table2', {columns: ['Seattle', 'Chicago', 'New York']});
-  const table3 = new SqlQuery('table3', {columns: ['Seattle', 'Chicago', 'New York']});
+  const table1 = new SqlQuery('table1', ['Seattle', 'Chicago', 'New York']);
+  const table2 = new SqlQuery('table2', ['Seattle', 'Chicago', 'New York']);
+  const table3 = new SqlQuery('table3', ['Seattle', 'Chicago', 'New York']);
 
   let actual, expected;
 
