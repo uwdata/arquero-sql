@@ -22,19 +22,19 @@ export function sqlQuery(table) {
 export class SqlQuery extends internal.Transformable {
   /**
    * @param {Source} source source table or another sql query
+   * @param {Schema} schema object of table schema
    * @param {Clauses} [clauses] object of sql clauses
-   * @param {Schema} [schema] object of table schema
    */
-  constructor(source, clauses, schema) {
+  constructor(source, schema, clauses) {
     super({});
     /** @type {Source} */
     this._source = source;
 
-    /** @type {Clauses} */
-    this._clauses = clauses || {};
-
     /** @type {Schema} */
     this._schema = schema;
+
+    /** @type {Clauses} */
+    this._clauses = clauses || {};
   }
 
   /**
@@ -44,8 +44,8 @@ export class SqlQuery extends internal.Transformable {
   _append(clauses, schema) {
     return new SqlQuery(
       this._source,
-      isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
       schema ? (isFunction(schema) ? schema(this._schema, this._clauses) : schema) : this._schema,
+      isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
     );
   }
 
@@ -56,8 +56,8 @@ export class SqlQuery extends internal.Transformable {
   _wrap(clauses, schema) {
     return new SqlQuery(
       this,
-      isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
       schema ? (isFunction(schema) ? schema(this._schema, this._clauses) : schema) : this._schema,
+      isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
     );
   }
 
