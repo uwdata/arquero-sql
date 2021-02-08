@@ -9,7 +9,7 @@ import {base, base2, group} from './common';
     t.equal(sv1._source, base, 'store inner table');
     t.equal(sv1._clauses[verb].length, 1, `${verb} correctly`);
     t.equal(sv1._clauses[verb][0], group, `${verb} correctly`);
-    t.deepEqual(sv1._schema.columns, base._schema.columns, 'correct schema');
+    t.deepEqual(sv1._columns, base._columns, 'correct schema');
     t.deepEqual(
       sv1._clauses.select,
       base.columnNames().map(c => createColumn(c)),

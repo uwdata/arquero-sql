@@ -22,42 +22,56 @@ export function sqlQuery(table) {
 export class SqlQuery extends internal.Transformable {
   /**
    * @param {Source} source source table or another sql query
-   * @param {Schema} schema object of table schema
+   * @param {string[]} schema object of table schema
    * @param {Clauses} [clauses] object of sql clauses
+   * @param {string[]} [group]
    */
-  constructor(source, schema, clauses) {
+  constructor(source, schema, clauses, group) {
     super({});
     /** @type {Source} */
     this._source = source;
 
-    /** @type {Schema} */
-    this._schema = schema;
+    /** @type {string[]} */
+    this._columns = schema;
 
     /** @type {Clauses} */
     this._clauses = clauses || {};
+
+    /** @type {string[]} */
+    this._group = group;
   }
 
   /**
-   * @param {Clauses | (c: Clauses, s: Schema) => Clauses} clauses
-   * @param {Schema | (c: Clauses, s: Schema) => Schema} [schema]
+   *
+   * @typedef {object} WrapParams
+   * @prop {string[] | (s: string[]) => string[]} columns
+   * @prop {Clauses | (c: Clauses) => Caluses} clauses
+   * @prop {string[] | (s: string[]) => string[]} group
    */
-  _append(clauses, schema) {
+
+  /**
+   *
+   * @param {WrapParams} param0
+   */
+  _append({columns, clauses, group}) {
     return new SqlQuery(
       this._source,
-      schema ? (isFunction(schema) ? schema(this._schema, this._clauses) : schema) : this._schema,
-      isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
+      columns ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
+      clauses ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : this._clauses,
+      group ? (isFunction(group) ? group(this._group) : group) : this._group,
     );
   }
 
   /**
-   * @param {Clauses | (c: Clauses, s: Schema) => Clauses} clauses
-   * @param {Schema | (c: Clauses, s: Schema) => Schema} [schema]
+   *
+   * @param {WrapParams} param0
    */
-  _wrap(clauses, schema) {
+  _wrap({columns, clauses, group}) {
     return new SqlQuery(
       this,
-      schema ? (isFunction(schema) ? schema(this._schema, this._clauses) : schema) : this._schema,
-      isFunction(clauses) ? clauses(this._clauses, this._schema) : clauses,
+      columns ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
+      clauses ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : {},
+      group ? (isFunction(group) ? group(this._group) : group) : this._group,
     );
   }
 
@@ -66,7 +80,7 @@ export class SqlQuery extends internal.Transformable {
    * @return {boolean} True if grouped, false otherwise.
    */
   isGrouped() {
-    return !!this._schema.groupby;
+    return !!this._group;
   }
 
   /**
@@ -92,7 +106,7 @@ export class SqlQuery extends internal.Transformable {
    * @return {string[]} An array of matching column names.
    */
   columnNames(filter) {
-    return filter ? this._schema.columns.filter(filter) : this._schema.columns.slice();
+    return filter ? this._columns.filter(filter) : this._columns.slice();
   }
 
   /**
@@ -102,7 +116,7 @@ export class SqlQuery extends internal.Transformable {
    *  or undefined if the index is out of range.
    */
   columnName(index) {
-    return this._schema.columns[index];
+    return this._columns[index];
   }
 
   /**
@@ -155,11 +169,11 @@ for (const name in verbs) {
  * @prop {JoinType} join_type
  */
 
- /**
-  * @typedef {object} OrderbyInfo
-  * @prop {AstNode[]} exprs
-  * @prop {boolean[]} descs
-  */
+/**
+ * @typedef {object} OrderbyInfo
+ * @prop {AstNode[]} exprs
+ * @prop {boolean[]} descs
+ */
 
 /**
  * @typedef {object} Clauses _clauses in SqlQuery

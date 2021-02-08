@@ -57,13 +57,13 @@ export default function (query, other, on, values, options = {}) {
   exprs.forEach((expr, i) => (expr.as = names[i]));
 
   const join_type = JOIN_TYPES[(~~options.left << 1) + ~~options.RIGHT];
-  return query._wrap(
-    {
+  return query._wrap({
+    clauses: {
       select: exprs,
       join: {other, on, join_type},
     },
-    {columns: exprs.map(c => c.as || c.name)},
-  );
+    columns: exprs.map(c => c.as || c.name),
+  });
 }
 
 /**

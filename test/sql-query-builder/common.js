@@ -23,7 +23,7 @@ function objToString(obj) {
     return obj.map(o => objToString(o));
   } else if (typeof obj === 'function') {
     return obj.toString();
-  } else if (typeof obj === 'object') {
+  } else if (typeof obj === 'object' && obj !== null) {
     const ret = {};
     Object.entries(obj).forEach(([k, v]) => (ret[k] = objToString(v)));
 

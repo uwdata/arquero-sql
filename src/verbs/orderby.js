@@ -15,7 +15,7 @@ import isString from 'arquero/src/util/is-string';
  * @returns {SqlQuery}
  */
 export default function (query, keys) {
-  return query._wrap({orderby: parseValues(query, keys)});
+  return query._wrap({clauses: {orderby: parseValues(query, keys)}});
 }
 
 function parseValues(table, params) {

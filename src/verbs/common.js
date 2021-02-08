@@ -11,9 +11,9 @@ import createColumn from '../utils/create-column';
  */
 export function set_verb(verb) {
   return (query, others) => {
-    const select = query._schema.columns.map(col => createColumn(col));
+    const select = query.columnNames().map(col => createColumn(col));
     const tables = others.map(sqlQuery);
-    return query._wrap({select, [verb]: tables});
+    return query._wrap({clauses: {select, [verb]: tables}});
   };
 }
 
