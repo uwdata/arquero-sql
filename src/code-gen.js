@@ -28,7 +28,8 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   /** @type {SqlQuery} */
   const {
     _clauses: clauses,
-    _schema: {columns, groupby},
+    _columns: columns,
+    _group: groupby
   } = query;
 
   const tables = [null, 'table' + counter.next(), clauses.join ? 'table' + counter.next() : null];

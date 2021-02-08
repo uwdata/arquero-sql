@@ -29,7 +29,10 @@ export default function (query, values, options = {}) {
 
   let groupby_cols = [];
   if (query.isGrouped()) {
-    groupby_cols = query._schema.groupby.map(key => createColumn(GB_KEY(key)));
+    groupby_cols = query._group.map(key => createColumn(GB_KEY(key)));
   }
-  return query._wrap({select: [...columns.values(), ...groupby_cols]}, s => ({...s, columns: [...columns.keys()]}));
+  return query._wrap({
+    clauses: {select: [...columns.values(), ...groupby_cols]},
+    columns: [...columns.keys()],
+  });
 }

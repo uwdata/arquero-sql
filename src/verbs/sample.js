@@ -27,24 +27,19 @@ export default function (query, size, options = {}) {
     throw new Error("Arquero-SQL's sample does not support weight");
   }
 
-  const {groupby} = query._schema;
-
-  if (groupby) {
+  if (query.isGrouped()) {
     query = query
       .ungroup()
       // TODO: need a better way to get the row number without ungroup then group
       .derive({[TMP_COL]: () => op.row_number()})
-      ._wrap(
-        c => c,
-        schema => ({...schema, groupby}),
-      );
+      ._wrap({group: query._group});
   } else {
     query = query.derive({[TMP_COL]: () => op.row_number()});
   }
 
   return query
     .orderby([() => op.random()])
-    ._append(clauses => ({...clauses, limit: size}))
+    ._append({clauses: c => ({...c, limit: size})})
     .orderby([TMP_COL])
     .select([not(TMP_COL)]);
 }
