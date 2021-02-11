@@ -29,7 +29,8 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   const {
     _clauses: clauses,
     _columns: columns,
-    _group: groupby
+    _group: groupby,
+    _order: order
   } = query;
 
   const tables = [null, 'table' + counter.next(), clauses.join ? 'table' + counter.next() : null];
@@ -46,7 +47,9 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
       const _expr = genExpr(s, {}, tables);
       const _as = as ? ` AS ${as}` : '';
       if (hasAggregation(s) && query.isGrouped()) {
-        const _over = ' OVER (PARTITION BY ' + groupby.map(gb => GB_KEY(gb)).join(', ') + ')';
+        // TODO: add orderby
+        const _order = order ? ' ORDER BY ' + order.exprs.map((g, i) => genExpr(g, {}, tables) + (order.descs[i] ? ' DESC' : '')).join(',') : '';
+        const _over = ' OVER (PARTITION BY ' + groupby.map(gb => GB_KEY(gb)).join(', ') + + _order + ')';
         return _expr + _over + _as;
       }
       return _expr + _as;
