@@ -25,8 +25,9 @@ export class SqlQuery extends internal.Transformable {
    * @param {string[]} schema object of table schema
    * @param {Clauses} [clauses] object of sql clauses
    * @param {string[]} [group]
+   * @param {OrderInfo} [order]
    */
-  constructor(source, schema, clauses, group) {
+  constructor(source, schema, clauses, group, order) {
     super({});
     /** @type {Source} */
     this._source = source;
@@ -39,6 +40,9 @@ export class SqlQuery extends internal.Transformable {
 
     /** @type {string[]} */
     this._group = group;
+
+    /** @type {OrderInfo} */
+    this._order = order;
   }
 
   /**
@@ -47,18 +51,20 @@ export class SqlQuery extends internal.Transformable {
    * @prop {string[] | (s: string[]) => string[]} columns
    * @prop {Clauses | (c: Clauses) => Caluses} clauses
    * @prop {string[] | (s: string[]) => string[]} group
+   * @prop {OrderInfo[] | (o: OrderInfo[]) => OrderInfo[]} order
    */
 
   /**
    *
    * @param {WrapParams} param0
    */
-  _append({columns, clauses, group}) {
+  _append({columns, clauses, group, order}) {
     return new SqlQuery(
       this._source,
       columns ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
       clauses ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : this._clauses,
       group ? (isFunction(group) ? group(this._group) : group) : this._group,
+      order ? (isFunction(order) ? order(this._order) : order) : this._order,
     );
   }
 
@@ -66,12 +72,13 @@ export class SqlQuery extends internal.Transformable {
    *
    * @param {WrapParams} param0
    */
-  _wrap({columns, clauses, group}) {
+  _wrap({columns, clauses, group, order}) {
     return new SqlQuery(
       this,
       columns ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
       clauses ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : {},
       group ? (isFunction(group) ? group(this._group) : group) : this._group,
+      order ? (isFunction(order) ? order(this._order) : order) : this._order,
     );
   }
 
@@ -138,7 +145,7 @@ export class SqlQuery extends internal.Transformable {
       throw new Error('TODO: support optimization');
     }
 
-    return codeGen(this.ungroup());
+    return codeGen(this.ungroup()._append({clauses: {orderby: this._order}, order: null}));
   }
 }
 
@@ -170,7 +177,7 @@ for (const name in verbs) {
  */
 
 /**
- * @typedef {object} OrderbyInfo
+ * @typedef {object} OrderInfo
  * @prop {AstNode[]} exprs
  * @prop {boolean[]} descs
  */
@@ -182,7 +189,7 @@ for (const name in verbs) {
  * @prop {AstNode[]} [groupby]
  * @prop {AstNode[]} [having]
  * @prop {JoinInfo} [join]
- * @prop {OrderbyInfo} [orderby]
+ * @prop {OrderInfo} [orderby]
  * @prop {number} [limit]
  * @prop {Source[]} [concat]
  * @prop {Source[]} [union]
