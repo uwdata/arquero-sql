@@ -13,3 +13,4 @@ export {default as sample} from './sample';
 export {default as select} from './select';
 export {default as ungroup} from './ungroup';
 export {default as union} from './union';
+export {default as unorder} from './unorder';
