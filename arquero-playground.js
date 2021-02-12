@@ -64,6 +64,9 @@ dt.groupby({a: d => d.Chicago > 100})
 dt.join(dt, [d => d.Seattle, 'Seattle'])
 .print()
 
+dt.derive({k: `d => d['Seattle']`})
+  .print()
+
 
 // console.log(Verbs.select('d', 'ddd', all()).toAST())
 

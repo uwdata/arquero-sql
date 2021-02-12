@@ -4,7 +4,7 @@
 import {internal, not} from 'arquero';
 import {hasAggregation} from '../visitors/has-aggregation';
 
-const TMP_COL = '___arquero_sql_filter_predicate___';
+const TMP_COL = '___arquero_sql_predicate___';
 
 /**
  *

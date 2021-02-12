@@ -33,6 +33,6 @@ export default function (query, columns) {
 
   return query._wrap({
     clauses: {select: [...cols, ...groupby_cols]},
-    columns: cols.map(col => col.as || col.name)
+    columns: cols.map(col => col.as || col.name),
   });
 }

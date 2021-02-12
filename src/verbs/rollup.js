@@ -27,6 +27,6 @@ export default function (query, keys = []) {
   return query._wrap({
     clauses: {select: [...columns.values()]},
     columns: [...columns.keys()],
-    group: null
+    group: null,
   });
 }
