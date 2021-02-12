@@ -34,9 +34,9 @@ function parseValues(table, params) {
     } else {
       add(
         isNumber(expr)
-          ? `d => d.${table.columnName(expr)}`
+          ? `d => d["${table.columnName(expr)}"]`
           : isString(expr)
-          ? `d => d.${expr}`
+          ? `d => d["${expr}"]`
           : isFunction(expr)
           ? param
           : error(`Invalid orderby field: ${param + ''}`),

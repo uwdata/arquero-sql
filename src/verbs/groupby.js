@@ -25,14 +25,14 @@ export default function (query, keys) {
     if (isFunction(key)) {
       // selection
       const sel = resolve(query, key);
-      sel.forEach((v, k) => (_keys[GB_KEY(k)] = `d => d.${v}`));
+      sel.forEach((v, k) => (_keys[GB_KEY(k)] = `d => d["${v}"]`));
     } else if (typeof key === 'object') {
       // derive
       Object.entries(key).forEach(([k, v]) => (_keys[GB_KEY(k)] = v));
     } else {
       // column
       key = isNumber(key) ? query.columnName(key) : key;
-      _keys[GB_KEY(key)] = `d => d.${key}`;
+      _keys[GB_KEY(key)] = `d => d["${key}"]`;
     }
   });
 

@@ -35,7 +35,12 @@ export function optimize(query) {
   const source_highest_key = Math.max(...source_keys.map(key => CLAUSE_EXEC_ORDER.indexOf(key)), 0);
   if (source_highest_key === 0) {
     const where = [...(query._clauses.where || []), ...(source._clauses.where || [])];
-    return new SqlQuery(source._source, query._columns, {...query._clauses, ...(where.length === 0 ? {} : {where})}, query._group);
+    return new SqlQuery(
+      source._source,
+      query._columns,
+      {...query._clauses, ...(where.length === 0 ? {} : {where})},
+      query._group,
+    );
   }
 
   // genearl fuse clauses

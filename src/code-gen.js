@@ -26,33 +26,28 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   }
 
   /** @type {SqlQuery} */
-  const {
-    _clauses: clauses,
-    _columns: columns,
-    _group: groupby,
-    _order: order
-  } = query;
+  const {_clauses, _columns, _group, _order} = query;
 
-  const tables = [null, 'table' + counter.next(), clauses.join ? 'table' + counter.next() : null];
+  const tables = [null, 'table' + counter.next(), _clauses.join ? 'table' + counter.next() : null];
 
   // SELECT
   code.push(indent);
   code.push('SELECT ');
-  const select = clauses.select || [
-    ...columns.map(c => createColumn(c)),
-    ...(groupby || []).map(c => createColumn(GB_KEY(c))),
+  const select = _clauses.select || [
+    ..._columns.map(c => createColumn(c)),
+    ...(_group || []).map(c => createColumn(GB_KEY(c))),
   ];
+  const orderExpr = (g, i) => genExpr(g, {}, tables) + (_order.descs[i] ? ' DESC' : '');
   const select_str = select
     .map(({as, ...s}) => {
-      const _expr = genExpr(s, {}, tables);
+      const expr = genExpr(s, {}, tables);
       const _as = as ? ` AS ${as}` : '';
       if (hasAggregation(s) && query.isGrouped()) {
-        // TODO: add orderby
-        const _order = order ? ' ORDER BY ' + order.exprs.map((g, i) => genExpr(g, {}, tables) + (order.descs[i] ? ' DESC' : '')).join(',') : '';
-        const _over = ' OVER (PARTITION BY ' + groupby.map(gb => GB_KEY(gb)).join(', ') + + _order + ')';
-        return _expr + _over + _as;
+        const order = _order ? ' ORDER BY ' + _order.exprs.map(orderExpr).join(',') : '';
+        const over = ' OVER (PARTITION BY ' + _group.map(GB_KEY).join(', ') + order + ')';
+        return expr + over + _as;
       }
-      return _expr + _as;
+      return expr + _as;
     })
     .join(',');
   code.push(...select_str, nl);
@@ -63,43 +58,43 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   code.push(codeGen(query._source, indentStr, indentLvl + 1, counter));
   code.push(indent);
   code.push(') AS ', tables[1]);
-  if (clauses.join) {
-    code.push(' ', clauses.join.join_type, ' JOIN (', nl);
-    code.push(codeGen(clauses.join.other, indentStr, indentLvl + 1, counter));
+  if (_clauses.join) {
+    code.push(' ', _clauses.join.join_type, ' JOIN (', nl);
+    code.push(codeGen(_clauses.join.other, indentStr, indentLvl + 1, counter));
     code.push(indent);
     code.push(') AS ', tables[2]);
     code.push(' ON ');
-    code.push(genExpr(clauses.join.on, {}, tables));
+    code.push(genExpr(_clauses.join.on, {}, tables));
   }
   code.push(nl);
 
   // WHERE
-  if (clauses.where) {
+  if (_clauses.where) {
     code.push(indent);
     code.push('WHERE ');
-    code.push(clauses.where.map(w => genExpr(w, {}, tables)).join(' AND '));
+    code.push(_clauses.where.map(w => genExpr(w, {}, tables)).join(' AND '));
     code.push(nl);
   }
 
   // GROUP BY
-  if (clauses.groupby) {
+  if (_clauses.groupby) {
     code.push(indent);
     code.push('GROUP BY ');
-    code.push(clauses.groupby.map(g => genExpr(g, {}, tables).join(',')));
+    code.push(_clauses.groupby.map(g => genExpr(g, {}, tables).join(',')));
     code.push(nl);
   }
 
   // HAVING
-  if (clauses.having) {
+  if (_clauses.having) {
     code.push(indent);
     code.push('HAVING ');
-    code.push(clauses.having.map(w => genExpr(w, {}, tables).join(' AND ')));
+    code.push(_clauses.having.map(w => genExpr(w, {}, tables).join(' AND ')));
     code.push(nl);
   }
 
   // ORDER BY
-  if (clauses.orderby) {
-    const {exprs, descs} = clauses.orderby;
+  if (_clauses.orderby) {
+    const {exprs, descs} = _clauses.orderby;
     code.push(indent);
     code.push('ORDER BY ');
     code.push(exprs.map((g, i) => genExpr(g, {}, tables) + (descs[i] ? ' DESC' : '')).join(','));
@@ -107,16 +102,16 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   }
 
   // LIMIT
-  if (clauses.limit || clauses.limit === 0) {
+  if (_clauses.limit || _clauses.limit === 0) {
     code.push(indent);
-    code.push('LIMIT ', clauses.limit, nl);
+    code.push('LIMIT ', _clauses.limit, nl);
   }
 
   // SET VERBS
   ['concat', 'except', 'intersect', 'union']
-    .filter(verb => clauses[verb])
+    .filter(verb => _clauses[verb])
     .forEach(verb => {
-      clauses[verb].forEach(q => {
+      _clauses[verb].forEach(q => {
         code.push(indent);
         code.push(verb.toUpperCase(), ' (', nl);
         code.push(codeGen(q, indentStr, indentLvl + 1, counter));

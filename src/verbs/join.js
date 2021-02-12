@@ -40,7 +40,7 @@ export default function (query, other, on, values, options = {}) {
       .map((l, i) => {
         l = isNumber(l) ? query.columnName(l) : l;
         const r = isNumber(onR[i]) ? other.columnName(onR[i]) : l;
-        return `a.${l} === b.${r}`;
+        return `a["${l}"] === b["${r}"]`;
       })
       .join(' && ');
     on = `(a, b) => ${body}`;
