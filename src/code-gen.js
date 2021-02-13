@@ -80,7 +80,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   if (_clauses.groupby) {
     code.push(indent);
     code.push('GROUP BY ');
-    code.push(_clauses.groupby.map(g => genExpr(g, {}, tables).join(',')));
+    code.push(_clauses.groupby.map(g => genExpr(g, {}, tables)).join(','));
     code.push(nl);
   }
 
