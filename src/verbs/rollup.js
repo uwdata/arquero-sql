@@ -25,7 +25,10 @@ export default function (query, keys = []) {
   });
 
   return query._wrap({
-    clauses: {select: [...columns.values()]},
+    clauses: {
+      select: [...columns.values()],
+      ...(query.isGrouped() ? {groupby: query._group.map(g => createColumn(GB_KEY(g)))} : {}),
+    },
     columns: [...columns.keys()],
     group: null,
   });
