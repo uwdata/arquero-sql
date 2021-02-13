@@ -63,6 +63,16 @@ export function deepEqualAll(t, actuals, expecteds) {
   expecteds.forEach(([expected, message], idx) => t.deepEqual(copy(actuals[idx]), expected, message));
 }
 
+/**
+ *
+ * @param {object} t
+ * @param {SqlQuery} actual
+ * @param {string[]} expectedClauses
+ */
+export function onlyContainClsuses(t, actual, expectedClauses) {
+  t.deepEqual(Object.keys(actual._clauses), expectedClauses, `only have ${expectedClauses.join(' ')} clauses`);
+}
+
 export function pprint(json, indent = 2) {
   console.log('------------------------------------');
   console.log(JSON.stringify(json, null, indent));

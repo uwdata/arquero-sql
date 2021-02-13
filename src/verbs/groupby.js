@@ -37,5 +37,6 @@ export default function (query, keys) {
   });
 
   const group = Object.keys(_keys).map(key => key.substring(GB_KEY_PREFIX.length, key.length - GB_KEY_SUFFIX.length));
-  return query.derive(_keys)._append({group});
+  // BUG: remove newly derived key
+  return query.derive(_keys)._append({group, columns: query.columnNames()});
 }
