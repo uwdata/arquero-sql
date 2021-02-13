@@ -22,7 +22,7 @@ function parseValues(table, params) {
   let index = -1;
   const exprs = new Map();
   const descs = [];
-  const add = (val, desc) => (exprs.set(++index + '', val), descs.push(desc));
+  const add = (val, desc) => (exprs.set(++index + '', val), descs.push(!!desc));
 
   params.forEach(param => {
     const expr = param.expr != null ? param.expr : param;
