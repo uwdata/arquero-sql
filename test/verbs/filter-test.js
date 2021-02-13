@@ -1,6 +1,6 @@
 import tape from 'tape';
 import {op} from 'arquero';
-import {base, copy, onlyContainClsuses} from './common';
+import {base, copy, group, onlyContainClsuses} from './common';
 import createColumn from '../../src/utils/create-column';
 
 tape('SqlQuery: filter', t => {
@@ -76,6 +76,28 @@ tape('SqlQuery: filter with aggregate function', t => {
     ['a', 'b', 'c', 'd', '___arquero_sql_predicate___'],
     'filter does not change schema',
   );
+
+  t.end();
+});
+
+tape('SqlQuery: filter after groupby', t => {
+  const filter = group.filter(d => d.a === 3);
+  onlyContainClsuses(t, filter, ['where']);
+  t.deepEqual(filter._source, group, 'only filter from previous query');
+  t.deepEqual(
+    copy(filter._clauses.where),
+    [
+      {
+        type: 'BinaryExpression',
+        left: {type: 'Column', name: 'a'},
+        operator: '===',
+        right: {type: 'Literal', value: 3, raw: '3'},
+      },
+    ],
+    'correct filter',
+  );
+  t.deepEqual(filter._columns, ['a', 'b', 'c', 'd'], 'filter does not change schema');
+  t.deepEqual(filter._group, group._group, 'filter does not change group');
 
   t.end();
 });
