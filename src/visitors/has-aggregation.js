@@ -14,7 +14,7 @@ const list = array => {
   return array.some(node => hasAggregation(node));
 };
 
-const AGGREGATED_OPS = ['mean'];
+const AGGREGATED_OPS = ['mean', 'row_number'];
 
 const visitors = {
   Column: () => false,

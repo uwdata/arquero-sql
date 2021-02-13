@@ -16,7 +16,7 @@ const list = array => {
   return array.map(node => aggregatedColumns(node)).flat();
 };
 
-const AGGREGATED_OPS = ['mean'];
+const AGGREGATED_OPS = ['mean', 'row_number'];
 
 const visitors = {
   Column: () => [],

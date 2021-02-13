@@ -61,10 +61,10 @@ export class SqlQuery extends internal.Transformable {
   _append({columns, clauses, group, order}) {
     return new SqlQuery(
       this._source,
-      columns ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
-      clauses ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : this._clauses,
-      group ? (isFunction(group) ? group(this._group) : group) : this._group,
-      order ? (isFunction(order) ? order(this._order) : order) : this._order,
+      columns !== undefined ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
+      clauses !== undefined ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : this._clauses,
+      group != undefined ? (isFunction(group) ? group(this._group) : group) : this._group,
+      order != undefined ? (isFunction(order) ? order(this._order) : order) : this._order,
     );
   }
 
@@ -75,10 +75,10 @@ export class SqlQuery extends internal.Transformable {
   _wrap({columns, clauses, group, order}) {
     return new SqlQuery(
       this,
-      columns ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
-      clauses ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : {},
-      group ? (isFunction(group) ? group(this._group) : group) : this._group,
-      order ? (isFunction(order) ? order(this._order) : order) : this._order,
+      columns !== undefined ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
+      clauses !== undefined ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : {},
+      group !== undefined ? (isFunction(group) ? group(this._group) : group) : this._group,
+      order !== undefined ? (isFunction(order) ? order(this._order) : order) : this._order,
     );
   }
 
