@@ -22,7 +22,7 @@ function objToString(obj) {
     return obj.map(o => objToString(o));
   } else if (typeof obj === 'function') {
     return obj.toString();
-  } else if (typeof obj === 'object') {
+  } else if (typeof obj === 'object' && obj) {
     return Object.entries(obj).reduce((acc, [k, v]) => ((acc[k] = objToString(v)), acc), {});
   } else {
     return obj;

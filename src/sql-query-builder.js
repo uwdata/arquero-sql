@@ -69,7 +69,7 @@ export class SqlQueryBuilder extends SqlQuery {
 
   _derive(verb) {
     if (verb.values.some(d => hasAggregation(d))) {
-      throw new Error('Derive does not allow aggregated operations');
+      // throw new Error('Derive does not allow aggregated operations');
     }
 
     const fields = verb.values.filter(value => value.type !== 'Column' || value.name !== value.as);
