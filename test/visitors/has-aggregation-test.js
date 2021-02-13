@@ -15,7 +15,7 @@ tape('has-aggregation', t => {
 
   t.deepEqual(
     exprs.map(expr => hasAggregation(expr)),
-    [false, false, false, true, false],
+    [false, false, false, true, true],
     'can detect aggregation operations',
   );
 
