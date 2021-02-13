@@ -1,18 +1,50 @@
 import tape from 'tape';
-import {base, group, pprint} from './common';
+import createColumn from '../../src/utils/create-column';
+import {GB_KEY} from '../../src/verbs/groupby';
+import {base, copy, group, onlyContainClsuses} from './common';
 
 tape('SqlQuery: groupby', t => {
-  const groupby1 = base.groupby('a', {f: d => d.a + d.b});
-  // TODO: do real testing
-  pprint(groupby1);
+  const groupby = base.groupby('a', 'b');
+  onlyContainClsuses(t, groupby, ['select']);
+  t.deepEqual(
+    copy(groupby._clauses.select),
+    [...base.columnNames().map(c => createColumn(c)), ...['a', 'b'].map(c => createColumn(c, GB_KEY(c)))],
+    'select includes groupby columns',
+  );
+  t.deepEqual(groupby._group, ['a', 'b'], 'annotate group in SqlQuery object');
+  t.deepEqual(groupby.columnNames(), base.columnNames(), 'groupby do not change schema');
+  t.equal(groupby._source, base, 'groupby wraps over previous query');
 
-  const groupby2 = base.groupby({f: d => d.a + d.b});
-  // TODO: do real testing
-  pprint(groupby2);
+  t.end();
+});
 
-  const groupby3 = group.groupby({f: d => d.a + d.b});
-  // TODO: do real testing
-  pprint(groupby3);
+tape('SqlQuery: groupby with derived columns', t => {
+  const groupby = base.groupby('a', {f: d => d.a + d.b});
+  onlyContainClsuses(t, groupby, ['select']);
+  t.deepEqual(
+    copy(groupby._clauses.select),
+    [
+      ...base.columnNames().map(c => createColumn(c)),
+      {type: 'Column', name: 'a', as: '___arquero_sql_group_a___'},
+      {
+        type: 'BinaryExpression',
+        left: {type: 'Column', name: 'a'},
+        operator: '+',
+        right: {type: 'Column', name: 'b'},
+        as: '___arquero_sql_group_f___',
+      },
+    ],
+    'select includes groupby columns',
+  );
+  t.deepEqual(groupby._group, ['a', 'f'], 'annotate group in SqlQuery object');
+  t.deepEqual(groupby.columnNames(), base.columnNames(), 'groupby do not change schema');
+
+  t.end();
+});
+
+tape('SqlQuery: groupby on grouped query', t => {
+  const groupby = group.groupby({f: d => d.a + d.b});
+  t.deepEqual(groupby, group.ungroup().groupby({f: d => d.a + d.b}), 'ungroup before grouping again');
 
   t.end();
 });
