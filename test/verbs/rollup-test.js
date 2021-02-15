@@ -4,7 +4,7 @@ import createColumn from '../../src/utils/create-column';
 import {GB_KEY} from '../../src/verbs/groupby';
 import {base, copy, group, onlyContainClsuses} from './common';
 
-tape('SqlQuery: rollup', t => {
+tape('verb: rollup', t => {
   const rollup = group.rollup({k: d => op.mean(d.a)});
   onlyContainClsuses(t, rollup, ['select', 'groupby']);
   t.deepEqual(rollup._source, group, 'rollup wraps around the previous query');
@@ -27,7 +27,7 @@ tape('SqlQuery: rollup', t => {
   t.end();
 });
 
-tape('SqlQuery: rollup without groupby', t => {
+tape('verb: rollup without groupby', t => {
   const rollup = base.rollup({k: d => op.mean(d.a)});
   onlyContainClsuses(t, rollup, ['select']);
   t.deepEqual(rollup._source, base, 'rollup wraps around the previous query');

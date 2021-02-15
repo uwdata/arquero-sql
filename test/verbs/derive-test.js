@@ -3,7 +3,7 @@ import {base, copy, group, onlyContainClsuses} from './common';
 import createColumn from '../../src/utils/create-column';
 import {GB_KEY} from '../../src/verbs/groupby';
 
-tape('SqlQuery: derive', t => {
+tape('verb: derive', t => {
   const derive = base.derive({f: d => d.a, g: d => d.a + d.b});
   onlyContainClsuses(t, derive, ['select']);
   t.deepEqual(
@@ -30,7 +30,7 @@ tape('SqlQuery: derive', t => {
   t.end();
 });
 
-tape('SqlQuery: derive (overriding column)', t => {
+tape('verb: derive (overriding column)', t => {
   const derive = base.derive({f: d => d.a + 1, a: d => d.b + 2});
   onlyContainClsuses(t, derive, ['select']);
   t.deepEqual(
@@ -68,7 +68,7 @@ tape('SqlQuery: derive (overriding column)', t => {
   t.end();
 });
 
-tape('SqlQuery: derive (grouped query)', t => {
+tape('verb: derive (grouped query)', t => {
   const derive = group.derive({f: d => d.a, g: d => d.a + d.b});
   onlyContainClsuses(t, derive, ['select']);
   t.deepEqual(derive._source, group, 'only select from previous query');

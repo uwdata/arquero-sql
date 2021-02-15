@@ -3,7 +3,7 @@ import createColumn from '../../src/utils/create-column';
 import {GB_KEY} from '../../src/verbs/groupby';
 import {base, copy, group, onlyContainClsuses} from './common';
 
-tape('SqlQuery: groupby', t => {
+tape('verb: groupby', t => {
   const groupby = base.groupby('a', 'b');
   onlyContainClsuses(t, groupby, ['select']);
   t.deepEqual(
@@ -18,7 +18,7 @@ tape('SqlQuery: groupby', t => {
   t.end();
 });
 
-tape('SqlQuery: groupby with derived columns', t => {
+tape('verb: groupby with derived columns', t => {
   const groupby = base.groupby('a', {f: d => d.a + d.b});
   onlyContainClsuses(t, groupby, ['select']);
   t.deepEqual(
@@ -42,7 +42,7 @@ tape('SqlQuery: groupby with derived columns', t => {
   t.end();
 });
 
-tape('SqlQuery: groupby on grouped query', t => {
+tape('verb: groupby on grouped query', t => {
   const groupby = group.groupby({f: d => d.a + d.b});
   t.deepEqual(groupby, group.ungroup().groupby({f: d => d.a + d.b}), 'ungroup before grouping again');
 

@@ -4,7 +4,7 @@ import {copy} from './verbs/common';
 import * as verbs from '../src/verbs/index';
 import {op} from 'arquero';
 
-tape('sql-query', t => {
+tape('sql-query: interface', t => {
   const table1 = new SqlQuery('table1', ['Seattle', 'Chicago', 'New York']);
   const table2 = new SqlQuery('table2', ['Seattle', 'Chicago', 'New York']);
   const table3 = new SqlQuery('table3', ['Seattle', 'Chicago', 'New York']);
