@@ -1,6 +1,6 @@
 import tape from 'tape';
 import {SqlQuery} from '../src';
-import {copy} from './sql-query-builder/common';
+import {copy} from './verbs/common';
 import * as verbs from '../src/verbs/index';
 import {op} from 'arquero';
 
