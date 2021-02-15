@@ -2,7 +2,7 @@ import tape from 'tape';
 import {not} from 'arquero';
 import {base, copy, group, onlyContainClsuses} from './common';
 
-tape('SqlQuery: select', t => {
+tape('verb: select', t => {
   const select = base.select(1, 'd');
   onlyContainClsuses(t, select, ['select']);
   t.deepEqual(
@@ -24,7 +24,7 @@ tape('SqlQuery: select', t => {
   t.end();
 });
 
-tape('SqlQuery: select with selection function', t => {
+tape('verb: select with selection function', t => {
   const select = base.select('d', not('b'));
   onlyContainClsuses(t, select, ['select']);
   t.deepEqual(
@@ -41,7 +41,7 @@ tape('SqlQuery: select with selection function', t => {
   t.end();
 });
 
-tape('SqlQuery: select with grouped query', t => {
+tape('verb: select with grouped query', t => {
   const select = group.select('d', not('b'));
   onlyContainClsuses(t, select, ['select']);
   t.deepEqual(

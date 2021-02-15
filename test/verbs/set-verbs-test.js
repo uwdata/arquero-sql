@@ -4,7 +4,7 @@ import createColumn from '../../src/utils/create-column';
 import {base, base2, group} from './common';
 
 ['concat', 'except', 'intersect', 'union'].forEach(verb => {
-  tape('SqlQuery: ' + verb, t => {
+  tape('verb: ' + verb, t => {
     const sv1 = base[verb](group);
     t.equal(sv1._source, base, 'store inner table');
     t.equal(sv1._clauses[verb].length, 1, `${verb} correctly`);

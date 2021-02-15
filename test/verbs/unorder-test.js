@@ -1,7 +1,7 @@
 import tape from 'tape';
 import {base} from './common';
 
-tape('SqlQuery: unorder', t => {
+tape('verb: unorder', t => {
   const unorder = base.orderby('a').unorder();
   t.deepEqual(
     unorder._source,
@@ -13,7 +13,7 @@ tape('SqlQuery: unorder', t => {
   t.end();
 });
 
-tape('SqlQuery: unorder a query without order', t => {
+tape('verb: unorder a query without order', t => {
   const unorder = base.unorder();
   t.equal(
     unorder,
