@@ -72,9 +72,3 @@ export function deepEqualAll(t, actuals, expecteds) {
 export function onlyContainClsuses(t, actual, expectedClauses) {
   t.deepEqual(Object.keys(actual._clauses), expectedClauses, `only have ${expectedClauses.join(' ')} clauses`);
 }
-
-export function pprint(json, indent = 2) {
-  console.log('------------------------------------');
-  console.log(JSON.stringify(json, null, indent));
-  console.log('------------------------------------');
-}
