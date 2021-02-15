@@ -54,15 +54,27 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
 
   // FROM
   code.push(indent);
-  code.push('FROM (', nl);
-  code.push(codeGen(query._source, indentStr, indentLvl + 1, counter));
-  code.push(indent);
-  code.push(') AS ', tables[1]);
-  if (_clauses.join) {
-    code.push(' ', _clauses.join.join_type, ' JOIN (', nl);
-    code.push(codeGen(_clauses.join.other, indentStr, indentLvl + 1, counter));
+  code.push('FROM ');
+  if (typeof query._source === 'string') {
+    code.push(query._source);
+  } else {
+    code.push('(', nl);
+    code.push(codeGen(query._source, indentStr, indentLvl + 1, counter));
     code.push(indent);
-    code.push(') AS ', tables[2]);
+    code.push(')');
+  }
+  code.push(' AS ', tables[1]);
+  if (_clauses.join) {
+    code.push(' ', _clauses.join.join_type, ' JOIN ');
+    if (typeof _clauses.join.other === 'string') {
+      code.push(_clauses.join.other);
+    } else {
+      code.push('(', nl);
+      code.push(codeGen(_clauses.join.other, indentStr, indentLvl + 1, counter));
+      code.push(indent);
+      code.push(')');
+    }
+    code.push(' AS ', tables[2]);
     code.push(' ON ');
     code.push(genExpr(_clauses.join.on, {}, tables));
   }
