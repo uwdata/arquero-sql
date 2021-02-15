@@ -67,6 +67,14 @@ dt.join(dt, [d => d.Seattle, 'Seattle'])
 dt.derive({k: `d => d['Seattle']`})
   .print()
 
+console.log(dt.data().Seattle.data);
+
+for (let i = 0; i < 12; i++) {
+  console.log(`insert into base values (${
+    dt.data().Seattle.data[i]}, ${
+      dt.data().Chicago.data[i]}, ${
+        dt.data()['San Francisco'].data[i]});`);
+}
 
 // console.log(Verbs.select('d', 'ddd', all()).toAST())
 
