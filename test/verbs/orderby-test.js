@@ -2,7 +2,7 @@ import tape from 'tape';
 import {desc} from 'arquero';
 import {base, copy, onlyContainClsuses} from './common';
 
-tape('SqlQuery: orderby', t => {
+tape('verb: orderby', t => {
   const orderby = base.orderby(desc('a'), d => d.b * 2, desc({k: d => d.a + 3}));
   onlyContainClsuses(t, orderby, []);
   t.deepEqual(orderby._source, base, 'orderby wraps around the previous query');
@@ -30,7 +30,7 @@ tape('SqlQuery: orderby', t => {
   t.end();
 });
 
-tape('SqlQuery: orderby before other query', t => {
+tape('verb: orderby before other query', t => {
   const orderby = base.orderby(desc('a')).filter(d => d.a === 1);
   t.deepEqual(
     copy(orderby._order.exprs),

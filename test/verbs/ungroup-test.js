@@ -1,7 +1,7 @@
 import tape from 'tape';
 import {base, group} from './common';
 
-tape('SqlQuery: ungroup', t => {
+tape('verb: ungroup', t => {
   const ungroup = group.ungroup();
   t.deepEqual(
     ungroup._source,
@@ -13,7 +13,7 @@ tape('SqlQuery: ungroup', t => {
   t.end();
 });
 
-tape('SqlQuery: ungroup a query without group', t => {
+tape('verb: ungroup a query without group', t => {
   const ungroup = base.ungroup();
   t.equal(
     ungroup,

@@ -3,7 +3,7 @@ import {op} from 'arquero';
 import {base, copy, group, onlyContainClsuses} from './common';
 import createColumn from '../../src/utils/create-column';
 
-tape('SqlQuery: filter', t => {
+tape('verb: filter', t => {
   const filter = base.filter(d => d.a === 3);
   onlyContainClsuses(t, filter, ['where']);
   t.deepEqual(filter._source, base, 'only filter from previous query');
@@ -24,7 +24,7 @@ tape('SqlQuery: filter', t => {
   t.end();
 });
 
-tape('SqlQuery: filter with aggregate function', t => {
+tape('verb: filter with aggregate function', t => {
   const filter = base.filter(d => op.mean(d.a) === 3);
   onlyContainClsuses(t, filter, ['select']);
   t.deepEqual(
@@ -80,7 +80,7 @@ tape('SqlQuery: filter with aggregate function', t => {
   t.end();
 });
 
-tape('SqlQuery: filter after groupby', t => {
+tape('verb: filter after groupby', t => {
   const filter = group.filter(d => d.a === 3);
   onlyContainClsuses(t, filter, ['where']);
   t.deepEqual(filter._source, group, 'only filter from previous query');

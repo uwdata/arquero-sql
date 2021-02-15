@@ -2,7 +2,7 @@ import tape from 'tape';
 import {op} from 'arquero';
 import {group} from './common';
 
-tape('SqlQuery: count', t => {
+tape('verb: count', t => {
   const count1 = group.count({as: 'count_'});
   const rollup1 = group.rollup({count_: () => op.count()});
 
