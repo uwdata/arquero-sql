@@ -1,3 +1,5 @@
+/** @typedef {import('../src/sql-query').SqlQuery} SqlQuery */
+/** @typedef {import('arquero').internal.ColumnTable} ColumnTable */
 import tape from 'tape';
 // import {base, base2, base3, group} from './verbs/common';
 import {table} from 'arquero';
@@ -11,16 +13,34 @@ const baseArquero = table({
 });
 const baseSql = setupTable(baseArquero, 'base');
 
-function tableEqual(t, actual, expected, message) {
+const group = base => base.groupby('Seattle');
+
+const bases = [baseSql, baseArquero];
+const groups = bases.map(group);
+
+/**
+ * 
+ * @param {object} t 
+ * @param {SqlQuery} actual 
+ * @param {ColumnTable} expected 
+ * @param {string} message 
+ * @param {*} [client]
+ */
+function tableEqual(t, actual, expected, message, client) {
+  if (!client) {
+    client = connectClient();
+  }
+
   const columns = expected.columnNames();
   const _actual = {};
   const _expected = {};
+  const expectedData = JSON.parse(expected.toJSON()).data;
   columns.forEach(c => {
     const _c = c.toLowerCase();
     _actual[_c] = [];
-    _expected[_c] = expected.column(c).data;
+    _expected[_c] = expectedData[c];
   });
-  actual.forEach(r => {
+  client.querySync(actual.toSql()).forEach(r => {
     Object.entries(r).forEach(([c, v], i) => {
       if (columns[i].toLowerCase() !== c.toLowerCase()) {
         t.fail(`incorrect column order: expecting ${columns[i]}, received ${c}`);
@@ -33,10 +53,9 @@ function tableEqual(t, actual, expected, message) {
 
 tape('code-gen: filter', t => {
   const client = connectClient();
-  const sql = baseSql.filter(d => d.Seattle > 200);
-  const ar = baseArquero.filter(d => d.Seattle > 200);
-
-  tableEqual(t, client.querySync(sql.toSql()), ar, 'same result as arquero');
+  const filter = base => base.filter(d => d.Seattle > 200);
+  tableEqual(t, ...bases.map(filter), 'same result as arquero', client);
+  tableEqual(t, ...groups.map(filter), 'same result as arquero', client);
   client.end();
   t.end();
 });
