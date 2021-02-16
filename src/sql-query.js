@@ -145,7 +145,7 @@ export class SqlQuery extends internal.Transformable {
       throw new Error('TODO: support optimization');
     }
 
-    return codeGen(this.ungroup()._append({clauses: {orderby: this._order}, order: null}));
+    return codeGen(this.ungroup()._wrap({clauses: {orderby: this._order}, order: null}));
   }
 }
 

@@ -78,6 +78,8 @@ for (let i = 0; i < 12; i++) {
 
 // console.log(Verbs.select('d', 'ddd', all()).toAST())
 
+console.log(JSON.parse(dt.filter(d => d.Seattle > 200).toJSON()).data);
+
 function dd(d) {
   return d.Seattle * d.Chicago
 }
