@@ -16,11 +16,11 @@
     "format": "yarn lint --fix && prettier '{src,test}/**/*.js' --write"
   },
   "dependencies": {
-    "arquero": "^2.2.0"
+    "arquero": "^3.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^10.0.0",
+    "@rollup/plugin-node-resolve": "^11.2.0",
     "eslint": "^7.15.0",
     "esm": "^3.2.25",
     "mkdirp": "^1.0.4",
