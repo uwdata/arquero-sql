@@ -16,7 +16,7 @@
     "format": "yarn lint --fix && prettier '{src,test}/**/*.js' --write"
   },
   "dependencies": {
-    "arquero": "^1.0.0"
+    "arquero": "^2.2.0"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^4.1.0",
@@ -24,6 +24,7 @@
     "eslint": "^7.15.0",
     "esm": "^3.2.25",
     "mkdirp": "^1.0.4",
+    "pg-native": "^3.0.0",
     "prettier": "^2.2.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.33.3",

@@ -1,66 +1,32 @@
-export const genExpr = (node, opt, tables) => {
-  return visitors[node.type](node, opt, tables);
+export const columns = node => {
+  return visitors[node.type](node);
 };
 
-const binary = (node, opt, tables) => {
-  return (
-    '(' +
-    genExpr(node.left, opt, tables) +
-    (BINARY_OPS[node.operator] || node.operator) +
-    genExpr(node.right, opt, tables) +
-    ')'
-  );
+const binary = node => {
+  return [...columns(node.left), ...columns(node.right)];
 };
 
-const call = (node, opt, tables) => {
-  return genExpr(node.callee, opt, tables) + '(' + list(node.arguments, opt, tables) + ')';
+const call = node => {
+  return [...columns(node.callee), ...list(node.arguments)];
 };
 
-const list = (array, opt, tables, delim = ',') => {
-  return array.map(node => genExpr(node, opt, tables)).join(delim);
-};
-
-const ARQUERO_OPS_TO_SQL = {
-  row_number: 'ROW_NUMBER',
-  mean: 'AVG',
-  max: 'MAX',
-  random: 'RANDOM',
-};
-
-const BINARY_OPS = {
-  '===': '=',
-  '==': '=',
-  '!==': '<>',
-  '!=': '<>',
+const list = array => {
+  return array.map(node => columns(node)).flat();
 };
 
 const visitors = {
-  Column: (node, opt, tables) => {
-    if (opt && 'index' in opt) throw new Error('row is not supported');
-    return `${node.table && tables ? tables[node.table] + '.' : ''}${node.name}`;
-  },
-  Constant: node => {
-    throw new Error('TODO: implement Constant visitor: ' + JSON.stringify(node));
-    // return node.raw;
-  },
-  Function: node => ARQUERO_OPS_TO_SQL[node.name],
+  Column: node => [node],
+  Constant: () => [],
+  Function: node => node.arguments.map(a => columns(a)).flat(),
   Parameter: node => {
     throw new Error('Parameter is not supported: ' + JSON.stringify(node));
   },
   OpLookup: node => {
     throw new Error('OpLookup is not supported: ' + JSON.stringify(node));
   },
-  Literal: node => node.raw,
-  Identifier: node => node.name,
-  TemplateLiteral: (node, opt, tables) => {
-    const {quasis, expressions} = node;
-    const n = expressions.length;
-    let t = '"' + quasis[0].value.raw + '"';
-    for (let i = 0; i < n; ) {
-      t += ', ' + genExpr(expressions[i], opt, tables) + ', "' + quasis[++i].value.raw + '"';
-    }
-    return 'CONCAT(' + t + ')';
-  },
+  Literal: () => false,
+  Identifier: () => false,
+  TemplateLiteral: node => node.expressions.map(e => columns(e)).flat(),
   MemberExpression: node => {
     throw new Error('MemberExpression is not supported: ' + JSON.stringify(node));
   },
@@ -76,20 +42,8 @@ const visitors = {
   },
   BinaryExpression: binary,
   LogicalExpression: binary,
-  UnaryExpression: (node, opt, tables) => {
-    return '(' + node.operator + genExpr(node.argument, opt, tables) + ')';
-  },
-  ConditionalExpression: (node, opt, tables) => {
-    return (
-      'IF(' +
-      genExpr(node.test, opt, tables) +
-      ',' +
-      genExpr(node.consequent, opt, tables) +
-      ',' +
-      genExpr(node.alternate, opt, tables) +
-      ')'
-    );
-  },
+  UnaryExpression: node => columns(node.argument),
+  ConditionalExpression: node => [...columns(node.test), ...columns(node.consequent), ...columns(node.alternate)],
   ObjectExpression: node => {
     throw new Error('ObjectExpression is not supported: ' + JSON.stringify(node));
   },
@@ -129,9 +83,7 @@ const visitors = {
   BreakStatement: node => {
     throw new Error('BreakStatement is not supported: ' + JSON.stringify(node));
   },
-  ExpressionStatement: (node, opt, tables) => {
-    return genExpr(node.expression, opt, tables);
-  },
+  ExpressionStatement: node => columns(node.expression),
   IfStatement: node => {
     throw new Error('IfStatement is not supported: ' + JSON.stringify(node));
   },
