@@ -8,7 +8,7 @@ import {base, base2, group} from './common';
     const sv1 = base[verb](group);
     t.equal(sv1._source, base, 'store inner table');
     t.equal(sv1._clauses[verb].length, 1, `${verb} correctly`);
-    t.equal(sv1._clauses[verb][0], group, `${verb} correctly`);
+    t.deepEqual( sv1._clauses[verb][0], group.ungroup(), `${verb} correctly`);
     t.deepEqual(sv1._columns, base._columns, 'correct schema');
     t.deepEqual(
       sv1._clauses.select,
@@ -18,8 +18,8 @@ import {base, base2, group} from './common';
 
     const sv2 = base[verb](base2, group);
     t.equal(2, sv2._clauses[verb].length, `${verb} correctly`);
-    t.deepEqual(base2, sv2._clauses[verb][0], `${verb} correctly`);
-    t.deepEqual(group, sv2._clauses[verb][1], `${verb} correctly`);
+    t.deepEqual(sv2._clauses[verb][0], base2, `${verb} correctly`);
+    t.deepEqual(sv2._clauses[verb][1], group.ungroup(), `${verb} correctly`);
 
     const sv3 = base[verb]('table2', 'table3');
     t.equal(2, sv3._clauses[verb].length, `${verb} correctly`);
