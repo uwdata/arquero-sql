@@ -2,6 +2,7 @@
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
 import {internal} from 'arquero';
+import error from 'arquero/src/util/error';
 import createColumn from '../utils/create-column';
 import {GB_KEY} from './groupby';
 
@@ -14,7 +15,7 @@ import {GB_KEY} from './groupby';
  */
 export default function (query, values, options = {}) {
   if (Object.keys(options).length > 0) {
-    console.warn("TODO: support derive's option");
+    error("Arquero-SQL does not support derive's option");
   }
 
   /** @type {Map<string, object>} */
