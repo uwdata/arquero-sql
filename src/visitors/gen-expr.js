@@ -39,13 +39,17 @@ const binary = (node, opt, tables) => {
 
 const call = (node, opt, tables) => {
   const over = [];
-  if (node.callee.type === 'Function') {
+  if (node.callee.type === 'Function' && [ARQUERO_AGGREGATION_FN, ARQUERO_WINDOW_FN].some(fn => fn.includes(node.callee.name))) {
     over.push(' OVER (');
+    const toOrder = opt.order && ARQUERO_WINDOW_FN.includes(node.callee.name);
     if (opt.partition) {
-      over.push(' PARTITION BY ', opt.partition);
+      over.push('PARTITION BY ', opt.partition);
+      if (toOrder) {
+        over.push(' ');
+      }
     }
-    if (opt.order && ARQUERO_WINDOW_FN.includes(node.callee.name)) {
-      over.push(' ORDERBY ', opt.order);
+    if (toOrder) {
+      over.push('ORDER BY ', opt.order);
     }
     over.push(')');
   }

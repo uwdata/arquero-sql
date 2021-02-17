@@ -2,7 +2,7 @@
 /** @typedef {import('arquero').internal.ColumnTable} ColumnTable */
 import tape from 'tape';
 // import {base, base2, base3, group} from './verbs/common';
-import {table, op} from 'arquero';
+import {op, table} from 'arquero';
 
 import {connectClient, setupTable} from './pg-utils';
 
@@ -59,7 +59,10 @@ tape('code-gen: filter', t => {
   tableEqual(t, ...bases.map(filter), 'same result as arquero', client);
   tableEqual(t, ...groups.map(filter), 'same result as arquero', client);
 
-  const filter2 = base => base.filter(d => op.mean(d.Chicago) > 200);
+  const filter2 = base => base
+    .filter(d => op.mean(d.Chicago) > 200)
+    // need to order afterward because PostgreSQL does not preserve original order
+    .orderby('Seattle');
   tableEqual(t, ...bases.map(filter2), 'same result as arquero', client);
   tableEqual(t, ...groups.map(filter2), 'same result as arquero', client);
   client.end();
@@ -67,9 +70,9 @@ tape('code-gen: filter', t => {
 });
 
 tape('code-gen: set verbs', t => {
-  const client = connectClient();
+  // const client = connectClient();
   t.end();
-})
+});
 
 tape('code-gen', t => {
   // TODO: do real testing
