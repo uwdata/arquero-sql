@@ -2,7 +2,7 @@
 /** @typedef {import('arquero').internal.ColumnTable} ColumnTable */
 import tape from 'tape';
 // import {base, base2, base3, group} from './verbs/common';
-import {table} from 'arquero';
+import {table, op} from 'arquero';
 
 import {connectClient, setupTable} from './pg-utils';
 
@@ -13,7 +13,7 @@ const baseArquero = table({
 });
 const baseSql = setupTable(baseArquero, 'base');
 
-const group = base => base.groupby('Seattle');
+const group = base => base.groupby({a: d => d.Seattle % 10});
 
 const bases = [baseSql, baseArquero];
 const groups = bases.map(group);
@@ -40,6 +40,8 @@ function tableEqual(t, actual, expected, message, client) {
     _actual[_c] = [];
     _expected[_c] = expectedData[c];
   });
+  console.log(actual.toSql());
+  console.log(client.querySync(actual.toSql()));
   client.querySync(actual.toSql()).forEach(r => {
     Object.entries(r).forEach(([c, v], i) => {
       if (columns[i].toLowerCase() !== c.toLowerCase()) {
@@ -56,9 +58,18 @@ tape('code-gen: filter', t => {
   const filter = base => base.filter(d => d.Seattle > 200);
   tableEqual(t, ...bases.map(filter), 'same result as arquero', client);
   tableEqual(t, ...groups.map(filter), 'same result as arquero', client);
+
+  const filter2 = base => base.filter(d => op.mean(d.Chicago) > 200);
+  tableEqual(t, ...bases.map(filter2), 'same result as arquero', client);
+  tableEqual(t, ...groups.map(filter2), 'same result as arquero', client);
   client.end();
   t.end();
 });
+
+tape('code-gen: set verbs', t => {
+  const client = connectClient();
+  t.end();
+})
 
 tape('code-gen', t => {
   // TODO: do real testing

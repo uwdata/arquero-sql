@@ -14,10 +14,12 @@ tape('gen-expr', t => {
   }).toAST().values;
 
   t.deepEqual(
-    exprs1.map(expr => genExpr(expr)),
-    ['(1+1)', '(a*b)', '(a*(b+3))', 'AVG(a)', 'ROW_NUMBER()'],
+    exprs1.map(expr => genExpr(expr, {})),
+    ['(1+1)', '(a*b)', '(a*(b+3))', '(AVG(a) OVER ())', '(ROW_NUMBER() OVER ())'],
     'should generate expression correctly',
   );
+
+  // TODO: test partition order
 
   const expr2 = Verbs.join('t2', (a, b) => a.k1 === b.k2, ['_1', '_2']).toAST();
   t.deepEqual(
