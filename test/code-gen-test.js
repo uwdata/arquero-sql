@@ -19,11 +19,11 @@ const bases = [baseSql, baseArquero];
 const groups = bases.map(group);
 
 /**
- * 
- * @param {object} t 
- * @param {SqlQuery} actual 
- * @param {ColumnTable} expected 
- * @param {string} message 
+ *
+ * @param {object} t
+ * @param {SqlQuery} actual
+ * @param {ColumnTable} expected
+ * @param {string} message
  * @param {*} [client]
  */
 function tableEqual(t, actual, expected, message, client) {
@@ -59,10 +59,11 @@ tape('code-gen: filter', t => {
   tableEqual(t, ...bases.map(filter), 'same result as arquero', client);
   tableEqual(t, ...groups.map(filter), 'same result as arquero', client);
 
-  const filter2 = base => base
-    .filter(d => op.mean(d.Chicago) > 200)
-    // need to order afterward because PostgreSQL does not preserve original order
-    .orderby('Seattle');
+  const filter2 = base =>
+    base
+      .filter(d => op.mean(d.Chicago) > 200)
+      // need to order afterward because PostgreSQL does not preserve original order
+      .orderby('Seattle');
   tableEqual(t, ...bases.map(filter2), 'same result as arquero', client);
   tableEqual(t, ...groups.map(filter2), 'same result as arquero', client);
   client.end();
