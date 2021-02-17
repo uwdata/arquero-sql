@@ -17,6 +17,12 @@ const group = base => base.groupby({a: d => d.Seattle % 10});
 
 const bases = [baseSql, baseArquero];
 const groups = bases.map(group);
+const [groupSql, groupArquero] = groups;
+
+const base1 = bases.map(b => b.filter(d => d.Seattle > 150));
+const [baseSql1, baseArquero1] = base1;
+const base2 = bases.map(b => b.filter(d => d.Seattle < 200));
+const [baseSql2, baseArquero2] = base2;
 
 /**
  *
@@ -40,6 +46,7 @@ function tableEqual(t, actual, expected, message, client) {
     _actual[_c] = [];
     _expected[_c] = expectedData[c];
   });
+  console.log(actual.toSql());
   client.querySync(actual.toSql()).forEach(r => {
     Object.entries(r).forEach(([c, v], i) => {
       if (columns[i].toLowerCase() !== c.toLowerCase()) {
@@ -68,8 +75,24 @@ tape('code-gen: filter', t => {
   t.end();
 });
 
-tape('code-gen: set verbs', t => {
-  // const client = connectClient();
+tape('code-gen: union', t => {
+  const client = connectClient();
+  // const b = [[baseSql, [baseSql1]], [baseArquero, [baseArquero1]]];
+  tableEqual(
+    t,
+    baseSql1.union(baseSql2).orderby('Seattle'),
+    baseArquero1.union(baseArquero2).orderby('Seattle'),
+    'same result as arquero',
+    client,
+  );
+  tableEqual(
+    t,
+    groupSql.union(baseSql2).orderby('Seattle'),
+    groupArquero.union(baseArquero2).orderby('Seattle'),
+    'same result as arquero',
+    client,
+  );
+  client.end();
   t.end();
 });
 
