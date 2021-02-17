@@ -22,7 +22,14 @@ tape('gen-expr: 1 table expression', t => {
 
   t.deepEqual(
     exprs.map(expr => genExpr(expr, {partition: 'a,b'})),
-    ['(1+1)', '(a*b)', '(a*(b+3))', '(AVG(a) OVER (PARTITION BY a,b))', '(ROW_NUMBER() OVER (PARTITION BY a,b))', '(RANDOM())'],
+    [
+      '(1+1)',
+      '(a*b)',
+      '(a*(b+3))',
+      '(AVG(a) OVER (PARTITION BY a,b))',
+      '(ROW_NUMBER() OVER (PARTITION BY a,b))',
+      '(RANDOM())',
+    ],
     'should generate expression correctly',
   );
 
@@ -34,13 +41,19 @@ tape('gen-expr: 1 table expression', t => {
 
   t.deepEqual(
     exprs.map(expr => genExpr(expr, {partition: 'a,b', order: 'c,d'})),
-    ['(1+1)', '(a*b)', '(a*(b+3))', '(AVG(a) OVER (PARTITION BY a,b))', '(ROW_NUMBER() OVER (PARTITION BY a,b ORDER BY c,d))', '(RANDOM())'],
+    [
+      '(1+1)',
+      '(a*b)',
+      '(a*(b+3))',
+      '(AVG(a) OVER (PARTITION BY a,b))',
+      '(ROW_NUMBER() OVER (PARTITION BY a,b ORDER BY c,d))',
+      '(RANDOM())',
+    ],
     'should generate expression correctly',
   );
 
   t.end();
 });
-
 
 tape('gen-expr: 2 tables expression', t => {
   const expr = Verbs.join('t2', (a, b) => a.k1 === b.k2, ['_1', '_2']).toAST();
