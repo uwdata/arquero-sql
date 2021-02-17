@@ -1,24 +1,6 @@
-export const genExpr = (node, opt, tables) => {
-  return visitors[node.type](node, opt, tables);
-};
-
-const binary = (node, opt, tables) => {
-  return (
-    '(' +
-    genExpr(node.left, opt, tables) +
-    (BINARY_OPS[node.operator] || node.operator) +
-    genExpr(node.right, opt, tables) +
-    ')'
-  );
-};
-
-const call = (node, opt, tables) => {
-  return genExpr(node.callee, opt, tables) + '(' + list(node.arguments, opt, tables) + ')';
-};
-
-const list = (array, opt, tables, delim = ',') => {
-  return array.map(node => genExpr(node, opt, tables)).join(delim);
-};
+export const ARQUERO_AGGREGATION_FN = ['mean', 'max'];
+export const ARQUERO_WINDOW_FN = ['row_number'];
+export const ARQUERO_FN = ['random'];
 
 const ARQUERO_OPS_TO_SQL = {
   row_number: 'ROW_NUMBER',
@@ -32,6 +14,48 @@ const BINARY_OPS = {
   '==': '=',
   '!==': '<>',
   '!=': '<>',
+};
+
+export const genExpr = (node, opt, tables) => {
+  return visitors[node.type](node, opt, tables);
+};
+
+const binary = (node, opt, tables) => {
+  if (node.operator === '%') {
+    return 'MOD(' +
+    genExpr(node.left, opt, tables) +
+    ',' +
+    genExpr(node.right, opt, tables) +
+    ')';
+  }
+  return (
+    '(' +
+    genExpr(node.left, opt, tables) +
+    (BINARY_OPS[node.operator] || node.operator) +
+    genExpr(node.right, opt, tables) +
+    ')'
+  );
+};
+
+const call = (node, opt, tables) => {
+  const over = [];
+  if (node.callee.type === 'Function') {
+    over.push(' OVER (');
+    if (opt.partition) {
+      over.push(' PARTITION BY ', opt.partition);
+    }
+    if (opt.order && ARQUERO_WINDOW_FN.includes(node.callee.name)) {
+      over.push(' ORDERBY ', opt.order);
+    }
+    over.push(')');
+  }
+  const callee = genExpr(node.callee, opt, tables);
+  const args = list(node.arguments, opt, tables);
+  return `(${callee}(${args})${over.join('')})`;
+};
+
+const list = (array, opt, tables, delim = ',') => {
+  return array.map(node => genExpr(node, opt, tables)).join(delim);
 };
 
 const visitors = {

@@ -29,6 +29,11 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   const {_clauses, _columns, _group, _order} = query;
 
   const tables = [null, 'table' + counter.next(), _clauses.join ? 'table' + counter.next() : null];
+  const partition = _group && _group.map(GB_KEY).join(',')
+  const orderExpr = (g, i) => genExpr(g, {partition}, tables) + (_order.descs[i] ? ' DESC' : '');
+  const order = _order && _order.exprs.map(orderExpr).join(',')
+
+  const opt = {partition, order};
 
   // SELECT
   code.push(indent);
@@ -37,16 +42,10 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
     ..._columns.map(c => createColumn(c)),
     ...(_group || []).map(c => createColumn(GB_KEY(c))),
   ];
-  const orderExpr = (g, i) => genExpr(g, {}, tables) + (_order.descs[i] ? ' DESC' : '');
   const select_str = select
     .map(({as, ...s}) => {
-      const expr = genExpr(s, {}, tables);
+      const expr = genExpr(s, opt, tables);
       const _as = as ? ` AS ${as}` : '';
-      if (hasAggregation(s) && query.isGrouped()) {
-        const order = _order ? ' ORDER BY ' + _order.exprs.map(orderExpr).join(',') : '';
-        const over = ' OVER (PARTITION BY ' + _group.map(GB_KEY).join(', ') + order + ')';
-        return expr + over + _as;
-      }
       return expr + _as;
     })
     .join(',');
@@ -76,7 +75,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
     }
     code.push(' AS ', tables[2]);
     code.push(' ON ');
-    code.push(genExpr(_clauses.join.on, {}, tables));
+    code.push(genExpr(_clauses.join.on, opt, tables));
   }
   code.push(nl);
 
@@ -84,7 +83,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   if (_clauses.where) {
     code.push(indent);
     code.push('WHERE ');
-    code.push(_clauses.where.map(w => genExpr(w, {}, tables)).join(' AND '));
+    code.push(_clauses.where.map(w => genExpr(w, opt, tables)).join(' AND '));
     code.push(nl);
   }
 
@@ -92,7 +91,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   if (_clauses.groupby) {
     code.push(indent);
     code.push('GROUP BY ');
-    code.push(_clauses.groupby.map(g => genExpr(g, {}, tables)).join(','));
+    code.push(partition);
     code.push(nl);
   }
 
@@ -100,16 +99,15 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   if (_clauses.having) {
     code.push(indent);
     code.push('HAVING ');
-    code.push(_clauses.having.map(w => genExpr(w, {}, tables).join(' AND ')));
+    code.push(_clauses.having.map(w => genExpr(w, opt, tables).join(' AND ')));
     code.push(nl);
   }
 
   // ORDER BY
   if (_clauses.orderby) {
-    const {exprs, descs} = _clauses.orderby;
     code.push(indent);
     code.push('ORDER BY ');
-    code.push(exprs.map((g, i) => genExpr(g, {}, tables) + (descs[i] ? ' DESC' : '')).join(','));
+    code.push(order);
     code.push(nl);
   }
 
