@@ -14,42 +14,35 @@ tape('gen-expr: 1 table expression', t => {
     random: () => op.random(),
   }).toAST().values;
 
+  const common_exprs = ['(1+1)', '(a*b)', '(a*(b+3))'];
+
   t.deepEqual(
     exprs.map(expr => genExpr(expr, {})),
-    ['(1+1)', '(a*b)', '(a*(b+3))', '(AVG(a) OVER ())', '(ROW_NUMBER() OVER ())', '(RANDOM())'],
+    [...common_exprs, '(AVG(a) OVER ())', '(ROW_NUMBER() OVER ())', '(RANDOM())'],
     'should generate expression correctly',
   );
 
   t.deepEqual(
     exprs.map(expr => genExpr(expr, {partition: 'a,b'})),
-    [
-      '(1+1)',
-      '(a*b)',
-      '(a*(b+3))',
-      '(AVG(a) OVER (PARTITION BY a,b))',
-      '(ROW_NUMBER() OVER (PARTITION BY a,b))',
-      '(RANDOM())',
-    ],
-    'should generate expression correctly',
+    [...common_exprs, '(AVG(a) OVER (PARTITION BY a,b))', '(ROW_NUMBER() OVER (PARTITION BY a,b))', '(RANDOM())'],
+    'should generate expression correctly: with partition',
   );
 
   t.deepEqual(
     exprs.map(expr => genExpr(expr, {order: 'c,d'})),
-    ['(1+1)', '(a*b)', '(a*(b+3))', '(AVG(a) OVER ())', '(ROW_NUMBER() OVER (ORDER BY c,d))', '(RANDOM())'],
-    'should generate expression correctly',
+    [...common_exprs, '(AVG(a) OVER ())', '(ROW_NUMBER() OVER (ORDER BY c,d))', '(RANDOM())'],
+    'should generate expression correctly: with order',
   );
 
   t.deepEqual(
     exprs.map(expr => genExpr(expr, {partition: 'a,b', order: 'c,d'})),
     [
-      '(1+1)',
-      '(a*b)',
-      '(a*(b+3))',
+      ...common_exprs,
       '(AVG(a) OVER (PARTITION BY a,b))',
       '(ROW_NUMBER() OVER (PARTITION BY a,b ORDER BY c,d))',
       '(RANDOM())',
     ],
-    'should generate expression correctly',
+    'should generate expression correctly: with partition and order',
   );
 
   t.end();
