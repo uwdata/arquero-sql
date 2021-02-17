@@ -5,7 +5,6 @@ import {Counter} from './counter';
 import createColumn from './utils/create-column';
 import {GB_KEY} from './verbs/groupby';
 import {genExpr} from './visitors/gen-expr';
-import {hasAggregation} from './visitors/has-aggregation';
 
 /**
  *
@@ -29,9 +28,9 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   const {_clauses, _columns, _group, _order} = query;
 
   const tables = [null, 'table' + counter.next(), _clauses.join ? 'table' + counter.next() : null];
-  const partition = _group && _group.map(GB_KEY).join(',')
+  const partition = _group && _group.map(GB_KEY).join(',');
   const orderExpr = (g, i) => genExpr(g, {partition}, tables) + (_order.descs[i] ? ' DESC' : '');
-  const order = _order && _order.exprs.map(orderExpr).join(',')
+  const order = _order && _order.exprs.map(orderExpr).join(',');
 
   const opt = {partition, order};
 
@@ -105,9 +104,10 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
 
   // ORDER BY
   if (_clauses.orderby) {
+    const {exprs, descs} = _clauses.orderby;
     code.push(indent);
     code.push('ORDER BY ');
-    code.push(order);
+    code.push(exprs.map((g, i) => genExpr(g, {partition}, tables) + (descs[i] ? ' DESC' : '')).join(','));
     code.push(nl);
   }
 
