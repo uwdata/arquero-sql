@@ -3,8 +3,13 @@
 import tape from 'tape';
 // import {base, base2, base3, group} from './verbs/common';
 import {op, table} from 'arquero';
+import {types} from 'pg';
 
 import {connectClient, setupTable} from './pg-utils';
+
+types.setTypeParser(types.builtins.FLOAT4, val => parseFloat(val));
+types.setTypeParser(types.builtins.FLOAT8, val => parseFloat(val));
+console.log(types.builtins.FLOAT4);
 
 const baseArquero = table({
   Seattle: [69, 108, 178, 207, 253, 268, 312, 281, 221, 142, 72, 52],
@@ -47,51 +52,74 @@ function tableEqual(t, actual, expected, message, client) {
     _expected[_c] = expectedData[c];
   });
   console.log(actual.toSql());
+  console.log(client.querySync(actual.toSql()));
   client.querySync(actual.toSql()).forEach(r => {
     Object.entries(r).forEach(([c, v], i) => {
       if (columns[i].toLowerCase() !== c.toLowerCase()) {
         t.fail(`incorrect column order: expecting ${columns[i]}, received ${c}`);
       }
+      v = typeof v === 'string' ? parseFloat(v) : v;
       _actual[c].push(v);
     });
   });
+  expected.print({limit: 30});
+  table(_actual).print({limit: 30});
   t.deepEqual(_actual, _expected, message);
 }
 
 tape('code-gen: filter', t => {
   const client = connectClient();
   const filter = base => base.filter(d => d.Seattle > 200);
-  tableEqual(t, ...bases.map(filter), 'same result as arquero', client);
-  tableEqual(t, ...groups.map(filter), 'same result as arquero', client);
+  tableEqual(t, ...bases.map(filter), 'basic filter', client);
+  tableEqual(t, ...groups.map(filter), 'basic filter on grouped query', client);
 
   const filter2 = base =>
     base
       .filter(d => op.mean(d.Chicago) > 200)
       // need to order afterward because PostgreSQL does not preserve original order
       .orderby('Seattle');
-  tableEqual(t, ...bases.map(filter2), 'same result as arquero', client);
-  tableEqual(t, ...groups.map(filter2), 'same result as arquero', client);
+  tableEqual(t, ...bases.map(filter2), 'filter with aggregated function', client);
+  tableEqual(t, ...groups.map(filter2), 'filter with aggregated function on grouped query', client);
   client.end();
   t.end();
 });
 
-tape('code-gen: union', t => {
+// TODO: PostgreSQL does not have CONCAT
+['intersect', 'except', 'union'].map(v => {
+  tape('code-gen: ' + v, t => {
+    const client = connectClient();
+    tableEqual(
+      t,
+      baseSql1[v](baseSql2).orderby('Seattle'),
+      baseArquero1[v](baseArquero2).orderby('Seattle'),
+      'basic ' + v,
+      client,
+    );
+    tableEqual(
+      t,
+      groupSql[v](baseSql2).orderby('Seattle'),
+      groupArquero[v](baseArquero2).orderby('Seattle'),
+      'ungroup before ' + v,
+      client,
+    );
+    client.end();
+    t.end();
+  });
+});
+
+tape('code-gen: derive', t => {
   const client = connectClient();
-  // const b = [[baseSql, [baseSql1]], [baseArquero, [baseArquero1]]];
-  tableEqual(
-    t,
-    baseSql1.union(baseSql2).orderby('Seattle'),
-    baseArquero1.union(baseArquero2).orderby('Seattle'),
-    'same result as arquero',
-    client,
-  );
-  tableEqual(
-    t,
-    groupSql.union(baseSql2).orderby('Seattle'),
-    groupArquero.union(baseArquero2).orderby('Seattle'),
-    'same result as arquero',
-    client,
-  );
+  const derive = base =>
+    base.derive({
+      col1: d => d.Seattle + d.Chicago,
+      col2: d => op.mean(d.Seattle),
+      col3: () => op.row_number(),
+    });
+  tableEqual(t, ...bases.map(derive), 'basic derive', client);
+  tableEqual(t, ...groups.map(derive), 'basic derive on grouped query', client);
+
+  // TODO: add row number column to every intermediate query
+
   client.end();
   t.end();
 });

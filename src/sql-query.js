@@ -1,4 +1,4 @@
-import {internal} from 'arquero';
+import {all, internal} from 'arquero';
 import isFunction from 'arquero/src/util/is-function';
 import codeGen from './code-gen';
 import {optimize} from './optimizer';
@@ -145,7 +145,11 @@ export class SqlQuery extends internal.Transformable {
       throw new Error('TODO: support optimization');
     }
 
-    return codeGen(this.ungroup()._wrap({clauses: {orderby: this._order}, order: null}));
+    return codeGen(
+      this.ungroup()
+        .select(all())
+        ._append({clauses: c => ({...c, orderby: this._order}), order: null}),
+    );
   }
 }
 

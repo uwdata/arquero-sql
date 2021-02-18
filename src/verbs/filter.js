@@ -2,7 +2,8 @@
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
 import {internal, not} from 'arquero';
-import {hasAggregation} from '../visitors/has-aggregation';
+import {ARQUERO_AGGREGATION_FN} from '../visitors/gen-expr';
+import hasFunction from '../visitors/has-function';
 
 const TMP_COL = '___arquero_sql_predicate___';
 
@@ -15,7 +16,7 @@ const TMP_COL = '___arquero_sql_predicate___';
 export default function (query, criteria) {
   const _criteria = internal.parse({p: criteria}, {ast: true}).exprs[0];
 
-  if (!hasAggregation(_criteria)) {
+  if (!hasFunction(_criteria, ARQUERO_AGGREGATION_FN)) {
     return query._wrap({clauses: {where: [_criteria]}});
   }
 
