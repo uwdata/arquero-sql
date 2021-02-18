@@ -4,7 +4,7 @@ import {SqlQuery} from '../src/sql-query';
 
 const DATABASE = 'arquerosql';
 const USER = 'aq';
-const PASS = '';
+const PASS = 'aq';
 export function connectClient() {
   const client = new Client();
   client.connectSync(`postgresql://${USER}:${PASS}@localhost:5432/${DATABASE}`);
