@@ -50,7 +50,6 @@ function tableEqual(t, actual, expected, message, client) {
     _actual[_c] = [];
     _expected[_c] = expectedData[c];
   });
-  console.log(actual.toSql());
   client.querySync(actual.toSql()).forEach(r => {
     Object.entries(r).forEach(([c, v], i) => {
       if (columns[i].toLowerCase() !== c.toLowerCase()) {
