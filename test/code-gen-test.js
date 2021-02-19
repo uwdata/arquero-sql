@@ -62,23 +62,6 @@ function tableEqual(t, actual, expected, message, client) {
   t.deepEqual(_actual, _expected, message);
 }
 
-tape('code-gen: filter', t => {
-  const client = connectClient();
-  const filter = base => base.filter(d => d.Seattle > 200);
-  tableEqual(t, ...bases.map(filter), 'basic filter', client);
-  tableEqual(t, ...groups.map(filter), 'basic filter on grouped query', client);
-
-  const filter2 = base =>
-    base
-      .filter(d => op.mean(d.Chicago) > 200)
-      // need to order afterward because PostgreSQL does not preserve original order
-      .orderby('Seattle');
-  tableEqual(t, ...bases.map(filter2), 'filter with aggregated function', client);
-  tableEqual(t, ...groups.map(filter2), 'filter with aggregated function on grouped query', client);
-  client.end();
-  t.end();
-});
-
 // TODO: PostgreSQL does not have CONCAT
 ['intersect', 'except', 'union'].map(v => {
   tape('code-gen: ' + v, t => {
@@ -102,6 +85,18 @@ tape('code-gen: filter', t => {
   });
 });
 
+tape('code-gen: dedupe', t => {
+  const client = connectClient();
+  const dedupe = base =>
+    base.dedupe({
+      col1: d => d.Seattle % 10,
+    }).orderby('Seattle');
+  tableEqual(t, ...bases.map(dedupe), 'basic dedupe', client);
+
+  client.end();
+  t.end();
+});
+
 tape('code-gen: derive', t => {
   const client = connectClient();
   const derive = base =>
@@ -112,6 +107,23 @@ tape('code-gen: derive', t => {
     });
   tableEqual(t, ...bases.map(derive), 'basic derive', client);
 
+  client.end();
+  t.end();
+});
+
+tape('code-gen: filter', t => {
+  const client = connectClient();
+  const filter = base => base.filter(d => d.Seattle > 200);
+  tableEqual(t, ...bases.map(filter), 'basic filter', client);
+  tableEqual(t, ...groups.map(filter), 'basic filter on grouped query', client);
+
+  const filter2 = base =>
+    base
+      .filter(d => op.mean(d.Chicago) > 200)
+      // need to order afterward because PostgreSQL does not preserve original order
+      .orderby('Seattle');
+  tableEqual(t, ...bases.map(filter2), 'filter with aggregated function', client);
+  tableEqual(t, ...groups.map(filter2), 'filter with aggregated function on grouped query', client);
   client.end();
   t.end();
 });
