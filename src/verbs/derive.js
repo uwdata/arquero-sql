@@ -4,6 +4,8 @@
 import {internal} from 'arquero';
 import error from 'arquero/src/util/error';
 import createColumn from '../utils/create-column';
+import {ARQUERO_WINDOW_FN} from '../visitors/gen-expr';
+import hasFunction from '../visitors/has-function';
 import {GB_KEY} from './groupby';
 
 /**
@@ -27,6 +29,18 @@ export default function (query, values, options = {}) {
     const as = names[idx];
     columns.set(as, {...expr, as});
   });
+
+  if (query.isGrouped()) {
+    // eslint-disable-next-line no-console
+    console.warn('Deriving with group may produce output with different ordering of rows');
+
+    if ([...columns.values()].some(v => hasFunction(v, ARQUERO_WINDOW_FN))) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        'Deriving with window functions with group and without and explicit ordering may produce different result than Arquero',
+      );
+    }
+  }
 
   let groupby_cols = [];
   if (query.isGrouped()) {

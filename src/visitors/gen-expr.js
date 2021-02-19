@@ -19,9 +19,9 @@ const BINARY_OPS = {
 };
 
 /**
- * 
- * @param {*} node 
- * @param {GenExprOpt} opt 
+ *
+ * @param {*} node
+ * @param {GenExprOpt} opt
  */
 export function genExpr(node, opt) {
   return visitors[node.type](node, opt);
@@ -31,13 +31,7 @@ const binary = (node, opt) => {
   if (node.operator === '%') {
     return 'MOD(' + genExpr(node.left, opt) + ',' + genExpr(node.right, opt) + ')';
   }
-  return (
-    '(' +
-    genExpr(node.left, opt) +
-    (BINARY_OPS[node.operator] || node.operator) +
-    genExpr(node.right, opt) +
-    ')'
-  );
+  return '(' + genExpr(node.left, opt) + (BINARY_OPS[node.operator] || node.operator) + genExpr(node.right, opt) + ')';
 };
 
 const call = (node, opt) => {
@@ -102,13 +96,7 @@ const visitors = {
   },
   ConditionalExpression: (node, opt) => {
     return (
-      'IF(' +
-      genExpr(node.test, opt) +
-      ',' +
-      genExpr(node.consequent, opt) +
-      ',' +
-      genExpr(node.alternate, opt) +
-      ')'
+      'IF(' + genExpr(node.test, opt) + ',' + genExpr(node.consequent, opt) + ',' + genExpr(node.alternate, opt) + ')'
     );
   },
   ObjectExpression: unsuported,

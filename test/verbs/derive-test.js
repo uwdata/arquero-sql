@@ -2,6 +2,8 @@ import tape from 'tape';
 import {base, copy, group, onlyContainClsuses} from './common';
 import createColumn from '../../src/utils/create-column';
 import {GB_KEY} from '../../src/verbs/groupby';
+import {consoleWrapper} from '../utils';
+import {op} from 'arquero';
 
 tape('verb: derive', t => {
   const derive = base.derive({f: d => d.a, g: d => d.a + d.b});
@@ -68,28 +70,47 @@ tape('verb: derive (overriding column)', t => {
   t.end();
 });
 
-tape('verb: derive (grouped query)', t => {
-  const derive = group.derive({f: d => d.a, g: d => d.a + d.b});
-  onlyContainClsuses(t, derive, ['select']);
-  t.deepEqual(derive._source, group, 'only select from previous query');
-  t.deepEqual(
-    copy(derive._clauses.select),
-    [
-      ...base.columnNames().map(c => createColumn(c)),
-      {type: 'Column', name: 'a', as: 'f'},
-      {
-        type: 'BinaryExpression',
-        left: {type: 'Column', name: 'a'},
-        operator: '+',
-        right: {type: 'Column', name: 'b'},
-        as: 'g',
-      },
-      ...group._group.map(c => createColumn(GB_KEY(c))),
-    ],
-    'derive groupby columns',
-  );
-  t.deepEqual(derive._columns, ['a', 'b', 'c', 'd', 'f', 'g'], 'correct schema');
-  t.deepEqual(derive._group, ['a', 'b'], 'group remains the same');
+tape(
+  'verb: derive (grouped query)',
+  consoleWrapper(
+    'warn',
+    ['Deriving with group may produce output with different ordering of rows'],
+    'warn when derive with group',
+    t => {
+      const derive = group.derive({f: d => d.a, g: d => d.a + d.b});
+      onlyContainClsuses(t, derive, ['select']);
+      t.deepEqual(derive._source, group, 'only select from previous query');
+      t.deepEqual(
+        copy(derive._clauses.select),
+        [
+          ...base.columnNames().map(c => createColumn(c)),
+          {type: 'Column', name: 'a', as: 'f'},
+          {
+            type: 'BinaryExpression',
+            left: {type: 'Column', name: 'a'},
+            operator: '+',
+            right: {type: 'Column', name: 'b'},
+            as: 'g',
+          },
+          ...group._group.map(c => createColumn(GB_KEY(c))),
+        ],
+        'derive groupby columns',
+      );
+      t.deepEqual(derive._columns, ['a', 'b', 'c', 'd', 'f', 'g'], 'correct schema');
+      t.deepEqual(derive._group, ['a', 'b'], 'group remains the same');
+    },
+  ),
+);
 
-  t.end();
-});
+tape(
+  'verb: derive (grouped query with window function)',
+  consoleWrapper(
+    'warn',
+    [
+      'Deriving with group may produce output with different ordering of rows',
+      'Deriving with window functions with group and without and explicit ordering may produce different result than Arquero',
+    ],
+    'warn when derive with group',
+    () => group.derive({f: () => op.row_number()}),
+  ),
+);
