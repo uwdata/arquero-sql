@@ -51,7 +51,7 @@ tape('gen-expr: 1 table expression', t => {
 tape('gen-expr: 2 tables expression', t => {
   const expr = Verbs.join('t2', (a, b) => a.k1 === b.k2, ['_1', '_2']).toAST();
   t.deepEqual(
-    genExpr(expr.on, null, {1: 't1', 2: 't2'}),
+    genExpr(expr.on, {tables: ['t1', 't2']}),
     '(t1.k1=t2.k2)',
     "should generate expression with tables' alias correctly",
   );
