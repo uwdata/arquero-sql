@@ -69,6 +69,8 @@ dt.derive({k: `d => d['Seattle']`})
 
 console.log(dt.data().Seattle.data);
 
+dt.rollup({k: d => op.row_number()}).print();
+
 for (let i = 0; i < 12; i++) {
   console.log(`insert into base values (${
     dt.data().Seattle.data[i]}, ${

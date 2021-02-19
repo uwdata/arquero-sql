@@ -72,7 +72,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
       code.push(indent);
       code.push(')');
     }
-    code.push(' AS '[1]);
+    code.push(' AS ', tables[1]);
     code.push(' ON ');
     code.push(genExpr(_clauses.join.on, opt));
   }
