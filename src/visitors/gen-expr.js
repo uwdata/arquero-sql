@@ -1,3 +1,5 @@
+import error from 'arquero/src/util/error';
+
 export const ARQUERO_AGGREGATION_FN = ['mean', 'max'];
 export const ARQUERO_WINDOW_FN = ['row_number'];
 export const ARQUERO_FN = ['random'];
@@ -16,24 +18,29 @@ const BINARY_OPS = {
   '!=': '<>',
 };
 
-export const genExpr = (node, opt, tables) => {
-  return visitors[node.type](node, opt, tables);
-};
+/**
+ * 
+ * @param {*} node 
+ * @param {GenExprOpt} opt 
+ */
+export function genExpr(node, opt) {
+  return visitors[node.type](node, opt);
+}
 
-const binary = (node, opt, tables) => {
+const binary = (node, opt) => {
   if (node.operator === '%') {
-    return 'MOD(' + genExpr(node.left, opt, tables) + ',' + genExpr(node.right, opt, tables) + ')';
+    return 'MOD(' + genExpr(node.left, opt) + ',' + genExpr(node.right, opt) + ')';
   }
   return (
     '(' +
-    genExpr(node.left, opt, tables) +
+    genExpr(node.left, opt) +
     (BINARY_OPS[node.operator] || node.operator) +
-    genExpr(node.right, opt, tables) +
+    genExpr(node.right, opt) +
     ')'
   );
 };
 
-const call = (node, opt, tables) => {
+const call = (node, opt) => {
   const over = [];
   if (
     node.callee.type === 'Function' &&
@@ -52,126 +59,86 @@ const call = (node, opt, tables) => {
     }
     over.push(')');
   }
-  const callee = genExpr(node.callee, opt, tables);
-  const args = list(node.arguments, opt, tables);
+  const callee = genExpr(node.callee, opt);
+  const args = list(node.arguments, opt);
   return `(${callee}(${args})${over.join('')})`;
 };
 
-const list = (array, opt, tables, delim = ',') => {
-  return array.map(node => genExpr(node, opt, tables)).join(delim);
+const list = (array, opt, delim = ',') => {
+  return array.map(node => genExpr(node, opt)).join(delim);
 };
 
+const unsuported = node => error(node.type + ' is not supported: ' + JSON.stringify(node));
+
 const visitors = {
-  Column: (node, opt, tables) => {
+  Column: (node, opt) => {
     if (opt && 'index' in opt) throw new Error('row is not supported');
-    return `${node.table && tables ? tables[node.table] + '.' : ''}${node.name}`;
+    return `${node.table && opt.tables ? opt.tables[node.table - 1] + '.' : ''}${node.name}`;
   },
-  Constant: node => {
-    throw new Error('TODO: implement Constant visitor: ' + JSON.stringify(node));
-    // return node.raw;
-  },
+  Constant: node => node.raw,
   Function: node => ARQUERO_OPS_TO_SQL[node.name],
-  Parameter: node => {
-    throw new Error('Parameter is not supported: ' + JSON.stringify(node));
-  },
-  OpLookup: node => {
-    throw new Error('OpLookup is not supported: ' + JSON.stringify(node));
-  },
+  Parameter: unsuported,
+  OpLookup: unsuported,
   Literal: node => node.raw,
   Identifier: node => node.name,
-  TemplateLiteral: (node, opt, tables) => {
+  TemplateLiteral: (node, opt) => {
     const {quasis, expressions} = node;
     const n = expressions.length;
     let t = '"' + quasis[0].value.raw + '"';
     for (let i = 0; i < n; ) {
-      t += ', ' + genExpr(expressions[i], opt, tables) + ', "' + quasis[++i].value.raw + '"';
+      t += ', ' + genExpr(expressions[i], opt) + ', "' + quasis[++i].value.raw + '"';
     }
     return 'CONCAT(' + t + ')';
   },
-  MemberExpression: node => {
-    throw new Error('MemberExpression is not supported: ' + JSON.stringify(node));
-  },
+  MemberExpression: unsuported,
   CallExpression: call,
-  NewExpression: node => {
-    throw new Error('NewExpression is not supported: ' + JSON.stringify(node));
-  },
-  ArrayExpression: node => {
-    throw new Error('ArrayExpression is not supported: ' + JSON.stringify(node));
-  },
-  AssignmentExpression: node => {
-    throw new Error('AssignmentExpression is not supported: ' + JSON.stringify(node));
-  },
+  NewExpression: unsuported,
+  ArrayExpression: unsuported,
+  AssignmentExpression: unsuported,
   BinaryExpression: binary,
   LogicalExpression: binary,
-  UnaryExpression: (node, opt, tables) => {
-    return '(' + node.operator + genExpr(node.argument, opt, tables) + ')';
+  UnaryExpression: (node, opt) => {
+    return '(' + node.operator + genExpr(node.argument, opt) + ')';
   },
-  ConditionalExpression: (node, opt, tables) => {
+  ConditionalExpression: (node, opt) => {
     return (
       'IF(' +
-      genExpr(node.test, opt, tables) +
+      genExpr(node.test, opt) +
       ',' +
-      genExpr(node.consequent, opt, tables) +
+      genExpr(node.consequent, opt) +
       ',' +
-      genExpr(node.alternate, opt, tables) +
+      genExpr(node.alternate, opt) +
       ')'
     );
   },
-  ObjectExpression: node => {
-    throw new Error('ObjectExpression is not supported: ' + JSON.stringify(node));
-  },
-  Property: node => {
-    throw new Error('Property is not supported: ' + JSON.stringify(node));
-  },
+  ObjectExpression: unsuported,
+  Property: unsuported,
 
-  ArrowFunctionExpression: node => {
-    throw new Error('ArrowFunctionExpression is not supported: ' + JSON.stringify(node));
-  },
-  FunctionExpression: node => {
-    throw new Error('FunctionExpression is not supported: ' + JSON.stringify(node));
-  },
-  FunctionDeclaration: node => {
-    throw new Error('FunctionDeclaration is not supported: ' + JSON.stringify(node));
-  },
+  ArrowFunctionExpression: unsuported,
+  FunctionExpression: unsuported,
+  FunctionDeclaration: unsuported,
 
-  ArrayPattern: node => {
-    throw new Error('ArrayPattern is not supported: ' + JSON.stringify(node));
-  },
-  ObjectPattern: node => {
-    throw new Error('ObjectPattern is not supported: ' + JSON.stringify(node));
-  },
-  VariableDeclaration: node => {
-    throw new Error('VariableDeclaration is not supported: ' + JSON.stringify(node));
-  },
-  VariableDeclarator: node => {
-    throw new Error('VariableDeclarator is not supported: ' + JSON.stringify(node));
-  },
-  SpreadElement: node => {
-    throw new Error('SpreadElement is not supported: ' + JSON.stringify(node));
-  },
+  ArrayPattern: unsuported,
+  ObjectPattern: unsuported,
+  VariableDeclaration: unsuported,
+  VariableDeclarator: unsuported,
+  SpreadElement: unsuported,
 
-  BlockStatement: node => {
-    throw new Error('BlockStatement is not supported: ' + JSON.stringify(node));
+  BlockStatement: unsuported,
+  BreakStatement: unsuported,
+  ExpressionStatement: (node, opt) => {
+    return genExpr(node.expression, opt);
   },
-  BreakStatement: node => {
-    throw new Error('BreakStatement is not supported: ' + JSON.stringify(node));
-  },
-  ExpressionStatement: (node, opt, tables) => {
-    return genExpr(node.expression, opt, tables);
-  },
-  IfStatement: node => {
-    throw new Error('IfStatement is not supported: ' + JSON.stringify(node));
-  },
-  SwitchStatement: node => {
-    throw new Error('SwitchStatement is not supported: ' + JSON.stringify(node));
-  },
-  SwitchCase: node => {
-    throw new Error('SwitchCase is not supported: ' + JSON.stringify(node));
-  },
-  ReturnStatement: node => {
-    throw new Error('ReturnStatement is not supported: ' + JSON.stringify(node));
-  },
-  Program: node => {
-    throw new Error('Program is not supported: ' + JSON.stringify(node));
-  },
+  IfStatement: unsuported,
+  SwitchStatement: unsuported,
+  SwitchCase: unsuported,
+  ReturnStatement: unsuported,
+  Program: unsuported,
 };
+
+/**
+ * @typedef {object} GenExprOpt
+ * @prop {string} [partition]
+ * @prop {string} [order]
+ * @prop {string[]} [tables]
+ */
