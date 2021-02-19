@@ -38,7 +38,8 @@ const call = (node, opt) => {
   const over = [];
   if (
     node.callee.type === 'Function' &&
-    [ARQUERO_AGGREGATION_FN, ARQUERO_WINDOW_FN].some(fn => fn.includes(node.callee.name))
+    [ARQUERO_AGGREGATION_FN, ARQUERO_WINDOW_FN].some(fn => fn.includes(node.callee.name)) &&
+    !opt.withoutOver
   ) {
     over.push(' OVER (');
     const toOrder = opt.order && ARQUERO_WINDOW_FN.includes(node.callee.name);
@@ -129,4 +130,5 @@ const visitors = {
  * @prop {string} [partition]
  * @prop {string} [order]
  * @prop {string[]} [tables]
+ * @prop {boolean} [withoutOver]
  */
