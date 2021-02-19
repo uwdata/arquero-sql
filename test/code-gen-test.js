@@ -9,7 +9,6 @@ import {connectClient, setupTable} from './pg-utils';
 
 types.setTypeParser(types.builtins.FLOAT4, val => parseFloat(val));
 types.setTypeParser(types.builtins.FLOAT8, val => parseFloat(val));
-console.log(types.builtins.FLOAT4);
 
 const baseArquero = table({
   Seattle: [69, 108, 178, 207, 253, 268, 312, 281, 221, 142, 72, 52],
@@ -51,8 +50,6 @@ function tableEqual(t, actual, expected, message, client) {
     _actual[_c] = [];
     _expected[_c] = expectedData[c];
   });
-  console.log(actual.toSql());
-  console.log(client.querySync(actual.toSql()));
   client.querySync(actual.toSql()).forEach(r => {
     Object.entries(r).forEach(([c, v], i) => {
       if (columns[i].toLowerCase() !== c.toLowerCase()) {
@@ -62,8 +59,6 @@ function tableEqual(t, actual, expected, message, client) {
       _actual[c].push(v);
     });
   });
-  expected.print({limit: 30});
-  table(_actual).print({limit: 30});
   t.deepEqual(_actual, _expected, message);
 }
 
@@ -116,9 +111,6 @@ tape('code-gen: derive', t => {
       col3: () => op.row_number(),
     });
   tableEqual(t, ...bases.map(derive), 'basic derive', client);
-  tableEqual(t, ...groups.map(derive), 'basic derive on grouped query', client);
-
-  // TODO: add row number column to every intermediate query
 
   client.end();
   t.end();
