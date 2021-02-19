@@ -29,8 +29,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
 
   const tables = ['table' + counter.next(), _clauses.join ? 'table' + counter.next() : null];
   const partition = _group && _group.map(GB_KEY).join(',');
-  const orderExpr = (g, i) => genExpr(g, {partition, tables}) + (_order.descs[i] ? ' DESC' : '');
-  const order = _order && _order.exprs.map(orderExpr).join(',');
+  const order = _order && genOrderClause(_order, {partition, tables});
 
   const opt = {partition, order, tables};
 
@@ -43,7 +42,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   ];
   const select_str = select
     .map(({as, ...s}) => {
-      const expr = genExpr(s, opt);
+      const expr = genExpr(s, {...opt, withoutOver: !!_clauses.groupby});
       const _as = as ? ` AS ${as}` : '';
       return expr + _as;
     })
@@ -82,7 +81,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   if (_clauses.where) {
     code.push(indent);
     code.push('WHERE ');
-    code.push(_clauses.where.map(w => genExpr(w, opt)).join(' AND '));
+    code.push(genExprList(_clauses.where, opt, ' AND '));
     code.push(nl);
   }
 
@@ -90,7 +89,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   if (_clauses.groupby) {
     code.push(indent);
     code.push('GROUP BY ');
-    code.push(partition);
+    code.push(genExprList(_clauses.groupby, opt, ','));
     code.push(nl);
   }
 
@@ -98,16 +97,15 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   if (_clauses.having) {
     code.push(indent);
     code.push('HAVING ');
-    code.push(_clauses.having.map(w => genExpr(w, opt).join(' AND ')));
+    code.push(genExprList(_clauses.having, opt, ' AND '));
     code.push(nl);
   }
 
   // ORDER BY
   if (_clauses.orderby) {
-    const {exprs, descs} = _clauses.orderby;
     code.push(indent);
     code.push('ORDER BY ');
-    code.push(exprs.map((g, i) => genExpr(g, {partition}) + (descs[i] ? ' DESC' : '')).join(','));
+    code.push(genOrderClause(_clauses.orderby, {partition, tables}));
     code.push(nl);
   }
 
@@ -130,6 +128,27 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
     });
 
   return code.join('');
+}
+
+/**
+ *
+ * @param {import('./sql-query').OrderInfo} orderby
+ * @param {import('./visitors/gen-expr').GenExprOpt} opt
+ * @returns {string}
+ */
+function genOrderClause(orderby, opt) {
+  const {exprs, descs} = orderby;
+  return exprs.map((g, i) => genExpr(g, opt) + (descs[i] ? ' DESC' : '')).join(',');
+}
+
+/**
+ *
+ * @param {import('./sql-query').AstNode[]} list
+ * @param {import('./visitors/gen-expr').GenExprOpt} opt
+ * @param {string} delim
+ */
+function genExprList(list, opt, delim) {
+  return list.map(n => genExpr(n, opt)).join(delim);
 }
 
 /**

@@ -50,6 +50,7 @@ function tableEqual(t, actual, expected, message, client) {
     _actual[_c] = [];
     _expected[_c] = expectedData[c];
   });
+  console.log(actual.toSql());
   client.querySync(actual.toSql()).forEach(r => {
     Object.entries(r).forEach(([c, v], i) => {
       if (columns[i].toLowerCase() !== c.toLowerCase()) {
@@ -111,6 +112,24 @@ tape('code-gen: derive', t => {
       col3: () => op.row_number(),
     });
   tableEqual(t, ...bases.map(derive), 'basic derive', client);
+
+  client.end();
+  t.end();
+});
+
+tape('code-gen: groupby', t => {
+  const client = connectClient();
+  const groupby = base =>
+    base.derive({
+      col1: d => d.Seattle + d.Chicago,
+    });
+  tableEqual(t, ...groups.map(groupby), 'groupby without aggregate/window derive', client);
+
+  const groupby2 = base => groupby(base).rollup().orderby('a');
+  tableEqual(t, ...groups.map(groupby2), 'groupby with empty rollup', client);
+
+  const groupby3 = base => base.rollup({b: d => op.mean(d.Chicago)}).orderby('a');
+  tableEqual(t, ...groups.map(groupby3), 'groupby with rollup', client);
 
   client.end();
   t.end();
