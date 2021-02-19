@@ -69,7 +69,6 @@ dt.derive({k: `d => d['Seattle']`})
 
 console.log(dt.data().Seattle.data);
 
-dt.rollup({k: d => op.row_number()}).print();
 
 for (let i = 0; i < 12; i++) {
   console.log(`insert into base values (${
@@ -81,6 +80,7 @@ for (let i = 0; i < 12; i++) {
 // console.log(Verbs.select('d', 'ddd', all()).toAST())
 
 console.log(JSON.parse(dt.filter(d => d.Seattle > 200).toJSON()).data);
+dt.join(dt, 'Seattle', null, {right: true}).print();
 
 function dd(d) {
   return d.Seattle * d.Chicago

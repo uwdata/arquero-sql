@@ -9,9 +9,10 @@ import isArray from 'arquero/src/util/is-array';
 import isNumber from 'arquero/src/util/is-number';
 import isString from 'arquero/src/util/is-string';
 import toArray from 'arquero/src/util/to-array';
+import toString from 'arquero/src/util/to-string';
 
 /** @type {['INNER', 'RIGHT', 'LEFT', 'OUTER']} */
-const JOIN_TYPES = ['INNER', 'RIGHT', 'LEFT', 'OUTER'];
+export const JOIN_TYPES = ['INNER', 'RIGHT', 'LEFT', 'OUTER'];
 
 const OPT_L = {aggregate: false, window: false};
 const OPT_R = {...OPT_L, index: 1};
@@ -54,9 +55,9 @@ export default function (query, other, on, values, options = {}) {
   on = internal.parse({on}, {ast: true, join: true}).exprs[0];
 
   const {exprs, names} = parseValues(query, other, values, optParse, options.suffix);
-  exprs.forEach((expr, i) => (expr.as = names[i]));
+  exprs.forEach((expr, i) => (expr.name === names[i] ? null : (expr.as = names[i])));
 
-  const join_type = JOIN_TYPES[(~~options.left << 1) + ~~options.RIGHT];
+  const join_type = JOIN_TYPES[(~~options.left << 1) + ~~options.right];
   return query._wrap({
     clauses: {
       select: exprs,
