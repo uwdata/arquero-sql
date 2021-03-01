@@ -114,3 +114,11 @@ tape(
     () => group.derive({f: () => op.row_number()}),
   ),
 );
+
+tape('verb: derive (do not allow window and aggregation function in the same expression)', t => {
+  t.throws(() => {
+    base.derive({col: d => op.row_number() + op.mean(d)});
+  }, 'Cannot derive an expression containing both an aggregation function and a window fundtion');
+
+  t.end();
+});

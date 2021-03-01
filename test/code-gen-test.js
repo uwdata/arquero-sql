@@ -88,9 +88,11 @@ function tableEqual(t, actual, expected, message, client) {
 tape('code-gen: dedupe', t => {
   const client = connectClient();
   const dedupe = base =>
-    base.dedupe({
-      col1: d => d.Seattle % 10,
-    }).orderby('Seattle');
+    base
+      .dedupe({
+        col1: d => d.Seattle % 10,
+      })
+      .orderby('Seattle');
   tableEqual(t, ...bases.map(dedupe), 'basic dedupe', client);
 
   client.end();
