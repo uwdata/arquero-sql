@@ -72,8 +72,8 @@ tape('sql-query: interface', t => {
   expected = verbs.sample(table1, 5);
   t.deepEqual(copy(actual), copy(expected), 'correct interface: sample');
 
-  actual = table1.select('Seattle', {c: 'Chicago'});
-  expected = verbs.select(table1, ['Seattle', {c: 'Chicago'}]);
+  actual = table1.select('Seattle', {Chicago: 'c'});
+  expected = verbs.select(table1, ['Seattle', {Chicago: 'c'}]);
   t.deepEqual(copy(actual), copy(expected), 'correct interface: select');
 
   actual = table1.ungroup();

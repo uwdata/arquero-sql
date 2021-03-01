@@ -81,6 +81,7 @@ for (let i = 0; i < 12; i++) {
 
 console.log(JSON.parse(dt.filter(d => d.Seattle > 200).toJSON()).data);
 dt.join(dt, (a, b) => a.Seattle === (b.Seattle)).print();
+console.log(dt.select({Seattle: 'Seattle2'}).objects())
 
 function dd(d) {
   return d.Seattle * d.Chicago

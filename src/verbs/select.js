@@ -16,7 +16,7 @@ import {GB_KEY} from './groupby';
 export default function (query, columns) {
   /** @type {ColumnType[]} */
   const cols = [];
-  resolve(query, columns).forEach((curr, next) => {
+  resolve(query, columns).forEach((next, curr) => {
     next = isString(next) ? next : curr;
     if (next) {
       if (!query._columns.includes(curr)) {

@@ -35,11 +35,23 @@ const binary = (node, opt) => {
 };
 
 const call = (node, opt) => {
+  if (node.callee.type === 'Function') {
+    const _args = node.arguments.map(a => genExpr(a, opt));
+    switch (node.callee.name) {
+      case 'equal':
+        if (_args[0] === 'null') {
+          return `(${_args[1]} IS NULL)`;
+        } else if (_args[1] === 'null') {
+          return `(${_args[0]} IS NULL)`;
+        }
+    }
+  }
+
   const over = [];
   if (
+    !opt.withoutOver &&
     node.callee.type === 'Function' &&
-    [ARQUERO_AGGREGATION_FN, ARQUERO_WINDOW_FN].some(fn => fn.includes(node.callee.name)) &&
-    !opt.withoutOver
+    [ARQUERO_AGGREGATION_FN, ARQUERO_WINDOW_FN].some(fn => fn.includes(node.callee.name))
   ) {
     over.push(' OVER (');
     const toOrder = opt.order && ARQUERO_WINDOW_FN.includes(node.callee.name);
@@ -97,7 +109,13 @@ const visitors = {
   },
   ConditionalExpression: (node, opt) => {
     return (
-      'IF(' + genExpr(node.test, opt) + ',' + genExpr(node.consequent, opt) + ',' + genExpr(node.alternate, opt) + ')'
+      '(CASE WHEN ' +
+      genExpr(node.test, opt) +
+      ' THEN ' +
+      genExpr(node.consequent, opt) +
+      ' ELSE ' +
+      genExpr(node.alternate, opt) +
+      ' END)'
     );
   },
   ObjectExpression: unsuported,

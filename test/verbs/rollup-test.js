@@ -29,7 +29,7 @@ tape('verb: rollup', t => {
 
 tape('verb: rollup without groupby', t => {
   const rollup = base.rollup({k: d => op.mean(d.a)});
-  onlyContainClsuses(t, rollup, ['select']);
+  onlyContainClsuses(t, rollup, ['select', 'groupby']);
   t.deepEqual(rollup._source, base, 'rollup wraps around the previous query');
   t.deepEqual(
     copy(rollup._clauses.select),
@@ -43,7 +43,16 @@ tape('verb: rollup without groupby', t => {
     ],
     'rollup selects groupby keys and rollup expressions',
   );
+  t.equal(rollup._clauses.groupby, true, 'group all into 1 row');
   t.deepEqual(rollup._columns, ['k'], 'correct schema');
+
+  t.end();
+});
+
+tape('verb: rollup (do not allow window function)', t => {
+  t.throws(() => {
+    base.rollup({col: () => op.row_number()});
+  }, 'Cannot rollup an expression containing a window fundtion');
 
   t.end();
 });
