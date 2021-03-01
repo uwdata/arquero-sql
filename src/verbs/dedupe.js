@@ -13,11 +13,8 @@ const ROW_NUMBER = '___arquero_sql_row_number___';
  */
 export default function (query, keys = []) {
   return query
-    .derive({[ROW_NUMBER]: () => op.row_number()})
     .groupby(...(keys.length ? keys : query.columnNames()))
-    .orderby(ROW_NUMBER)
     .filter(() => op.row_number() === 1)
-    .unorder()
     .ungroup()
     .select(not(ROW_NUMBER));
 }
