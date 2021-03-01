@@ -86,7 +86,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   }
 
   // GROUP BY
-  if (_clauses.groupby) {
+  if (Array.isArray(_clauses.groupby)) {
     code.push(indent);
     code.push('GROUP BY ');
     code.push(genExprList(_clauses.groupby, opt, ','));
