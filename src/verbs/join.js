@@ -11,8 +11,8 @@ import isString from 'arquero/src/util/is-string';
 import toArray from 'arquero/src/util/to-array';
 import toString from 'arquero/src/util/to-string';
 
-/** @type {['INNER', 'RIGHT', 'LEFT', 'OUTER']} */
-export const JOIN_TYPES = ['INNER', 'RIGHT', 'LEFT', 'OUTER'];
+/** @type {['INNER', 'RIGHT', 'LEFT', 'FULL']} */
+export const JOIN_TYPES = ['INNER', 'RIGHT', 'LEFT', 'FULL'];
 
 const OPT_L = {aggregate: false, window: false};
 const OPT_R = {...OPT_L, index: 1};
@@ -86,7 +86,7 @@ function inferValues(tableL, onL, onR, options) {
     return [
       tableL.columnNames().map(s => {
         const c = `[${toString(s)}]`;
-        return shared.has(s) ? {[s]: `(a, b) => a${c} == null ? b${c} : a${c}`} : s;
+        return shared.has(s) ? {[s]: `(a, b) => op.equal(a${c}, null) ? b${c} : a${c}`} : s;
       }),
       vR,
     ];

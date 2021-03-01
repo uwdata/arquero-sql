@@ -158,7 +158,7 @@ for (const name in verbs) {
   SqlQuery.prototype['__' + name] = verb
     ? (qb, ...args) => verb(qb, ...args)
     : function () {
-        throw new Error('TODO: implement ' + name);
+        throw new Error('Arquero-SQL does not support ' + name);
       };
 }
 
@@ -170,7 +170,7 @@ for (const name in verbs) {
  */
 
 /**
- * @typedef {'INNER' | 'LEFT' | 'RIGHT' | "OUTER"} JoinType
+ * @typedef {'INNER' | 'LEFT' | 'RIGHT' | "FULL"} JoinType
  */
 
 /**
@@ -190,7 +190,7 @@ for (const name in verbs) {
  * @typedef {object} Clauses _clauses in SqlQuery
  * @prop {AstNode[]} [select]
  * @prop {AstNode[]} [where]
- * @prop {AstNode[]} [groupby]
+ * @prop {AstNode[] | boolean} [groupby]
  * @prop {AstNode[]} [having]
  * @prop {JoinInfo} [join]
  * @prop {OrderInfo} [orderby]

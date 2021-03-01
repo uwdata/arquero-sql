@@ -2,7 +2,7 @@
 /** @typedef {import('arquero').internal.ColumnTable} ColumnTable */
 import tape from 'tape';
 // import {base, base2, base3, group} from './verbs/common';
-import {op, table} from 'arquero';
+import {all, not, op, startswith, table} from 'arquero';
 import {types} from 'pg';
 
 import {connectClient, setupTable} from './pg-utils';
@@ -44,11 +44,11 @@ function tableEqual(t, actual, expected, message, client) {
   const columns = expected.columnNames();
   const _actual = {};
   const _expected = {};
-  const expectedData = JSON.parse(expected.toJSON()).data;
+  const expectedData = expected.reify()._data;
   columns.forEach(c => {
     const _c = c.toLowerCase();
     _actual[_c] = [];
-    _expected[_c] = expectedData[c];
+    _expected[_c] = expectedData[c].data;
   });
   client.querySync(actual.toSql()).forEach(r => {
     Object.entries(r).forEach(([c, v], i) => {
@@ -56,6 +56,7 @@ function tableEqual(t, actual, expected, message, client) {
         t.fail(`incorrect column order: expecting ${columns[i]}, received ${c}`);
       }
       v = typeof v === 'string' ? parseFloat(v) : v;
+      v = v === null ? undefined : v;
       _actual[c].push(v);
     });
   });
@@ -162,7 +163,10 @@ tape('code-gen: orderby', t => {
   const query = base => base.orderby('Chicago');
   tableEqual(t, ...bases.map(query), 'simple order', client);
 
-  const query2 = base => query(base).groupby({key: d => d.Seattle > 200}).derive({col: () => op.row_number()});
+  const query2 = base =>
+    query(base)
+      .groupby({key: d => d.Seattle > 200})
+      .derive({col: () => op.row_number()});
   tableEqual(t, ...bases.map(query2), 'ordering for window function', client);
 
   const query3 = base => base.groupby({key: d => d.Seattle > 200}).derive({col: d => op.max(d.Chicago)});
@@ -174,12 +178,79 @@ tape('code-gen: orderby', t => {
   t.end();
 });
 
+tape('code-gen: select', t => {
+  const client = connectClient();
+  const query = base => base.select('Chicago', 'Seattle');
+  tableEqual(t, ...bases.map(query), 'simple select', client);
+
+  const query2 = base => base.select(not('Chicago'), 'Chicago');
+  tableEqual(t, ...bases.map(query2), 'select not', client);
+
+  const query3 = base => base.select(all());
+  tableEqual(t, ...bases.map(query3), 'select all', client);
+
+  const query4 = base => base.select(startswith('S'));
+  tableEqual(t, ...bases.map(query4), 'start with', client);
+
+  const query5 = base => base.select('Chicago', 'Seattle', {Seattle: 'Seattle2'});
+  tableEqual(t, ...bases.map(query5), 'select with new name', client);
+
+  client.end();
+  t.end();
+});
+
+tape('code-gen: ungroup', t => {
+  const client = connectClient();
+  const query = base => base.ungroup().rollup({col: d => op.max(d.Seattle)});
+  tableEqual(t, ...bases.map(query), 'ungroup before rollup', client);
+  tableEqual(t, ...groups.map(query), 'ungroup before rollup', client);
+
+  client.end();
+  t.end();
+});
+
+tape('code-gen: join', t => {
+  const client = connectClient();
+  const chicago = baseSql.select('Seattle', 'Chicago');
+  const sanfrancisco = baseSql.select('Seattle', 'San_Francisco');
+  tableEqual(
+    t,
+    chicago.join(sanfrancisco, 'Seattle').orderby('Seattle'),
+    baseArquero.orderby('Seattle'),
+    'simple join',
+    client,
+  );
+  tableEqual(
+    t,
+    chicago.join(sanfrancisco, 'Seattle', [all(), all()]).orderby('Seattle_1'),
+    baseArquero
+      .derive({Seattle_1: d => d.Seattle, Seattle_2: d => d.Seattle})
+      .select('Seattle_1', 'Chicago', 'Seattle_2', 'San_Francisco')
+      .orderby('Seattle_1'),
+    'simple join (with custom output columns)',
+    client,
+  );
+
+  const [chicagoSql, chicagoArquero] = base1.map(base => base.select('Seattle', 'Chicago'));
+  const [sfSql, sfArquero] = base2.map(base => base.select('Seattle', 'San_Francisco'));
+
+  ['inner', 'right', 'left', 'outer'].forEach((joinType, idx) => {
+    tableEqual(
+      t,
+      chicagoSql.join(sfSql, 'Seattle', null, {left: idx >> 1, right: idx & 1}).orderby('Seattle'),
+      chicagoArquero.join(sfArquero, 'Seattle', null, {left: idx >> 1, right: idx & 1}).orderby('Seattle'),
+      joinType + ' join' + (idx >> 1) + ' ' + (idx & 1),
+      client,
+    );
+  });
+
+  client.end();
+  t.end();
+});
+
 tape('code-gen', t => {
   // const cg6 = base.join(base3, 'a', [all(), not('e')], {left: true});
   // console.log(codeGen(cg6));
-
-  // select
-  // ungroup -> group then ungroup then rollup
 
   t.end();
 });

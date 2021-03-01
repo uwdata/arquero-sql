@@ -2,7 +2,10 @@
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
 import {internal} from 'arquero';
+import error from 'arquero/src/util/error';
 import createColumn from '../utils/create-column';
+import {ARQUERO_WINDOW_FN} from '../visitors/gen-expr';
+import hasFunction from '../visitors/has-function';
 import {GB_KEY} from './groupby';
 
 /**
@@ -20,6 +23,10 @@ export default function (query, keys = []) {
 
   const {exprs, names} = internal.parse(keys, {ast: true, argonly: true});
   exprs.forEach((expr, idx) => {
+    if (hasFunction(expr, ARQUERO_WINDOW_FN)) {
+      error('Cannot rollup an expression containing a window fundtion');
+    }
+
     const as = names[idx];
     columns.set(as, {...expr, as});
   });
@@ -27,7 +34,7 @@ export default function (query, keys = []) {
   return query._wrap({
     clauses: {
       select: [...columns.values()],
-      ...(query.isGrouped() ? {groupby: query._group.map(g => createColumn(GB_KEY(g)))} : {}),
+      groupby: !query.isGrouped() || query._group.map(g => createColumn(GB_KEY(g))),
     },
     columns: [...columns.keys()],
     group: null,

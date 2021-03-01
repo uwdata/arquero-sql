@@ -13,10 +13,12 @@ function columnIfNotNull(table, name) {
   return {
     type: 'ConditionalExpression',
     test: {
-      type: 'BinaryExpression',
-      left: createColumn(name, name, table),
-      operator: '==',
-      right: {type: 'Literal', value: null, raw: 'null'},
+      type: 'CallExpression',
+      callee: {type: 'Function', name: 'equal'},
+      arguments: [
+        createColumn(name, name, table),
+        {type: 'Literal', value: null, raw: 'null'},
+      ],
     },
     consequent: createColumn(name, name, 3 - table),
     alternate: createColumn(name, name, table),
@@ -37,7 +39,7 @@ JOIN_TYPES.forEach((joinType, idx) => {
     t.deepEqual(
       copy(join._clauses.select),
       [
-        ...(joinType === 'OUTER' ? [columnIfNotNull(1, 'a')] : []),
+        ...(joinType === 'FULL' ? [columnIfNotNull(1, 'a')] : []),
         ...(joinType === 'INNER' || joinType === 'LEFT' ? join_col(1) : []),
         createColumn('b', 'b_1', 1),
         createColumn('c', 'c_1', 1),
@@ -125,7 +127,7 @@ JOIN_TYPES.forEach((joinType, idx) => {
 
     t.deepEqual(
       copy(join._clauses.select),
-      joinType === 'OUTER' ? outerColumns : nonOuterColumns,
+      joinType === 'FULL' ? outerColumns : nonOuterColumns,
       "select both tables' columns with suffixes",
     );
     t.deepEqual(
