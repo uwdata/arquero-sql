@@ -4,7 +4,7 @@
 import {internal} from 'arquero';
 import error from 'arquero/src/util/error';
 import createColumn from '../utils/create-column';
-import {ARQUERO_WINDOW_FN} from '../visitors/gen-expr';
+import {ARQUERO_AGGREGATION_FN, ARQUERO_WINDOW_FN} from '../visitors/gen-expr';
 import hasFunction from '../visitors/has-function';
 import {GB_KEY} from './groupby';
 
@@ -25,6 +25,10 @@ export default function (query, values, options = {}) {
   const {exprs, names} = internal.parse(values, {ast: true});
   query.columnNames().forEach(columnName => columns.set(columnName, createColumn(columnName)));
   exprs.forEach((expr, idx) => {
+    if ([ARQUERO_AGGREGATION_FN, ARQUERO_WINDOW_FN].every(f => hasFunction(expr, f))) {
+      error('Cannot derive an expression containing both an aggregation function and a window fundtion');
+    }
+
     /** @type {string} */
     const as = names[idx];
     columns.set(as, {...expr, as});
