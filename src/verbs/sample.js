@@ -1,9 +1,7 @@
 /** @typedef {import('./common').Verb} Verb */
 /** @typedef {import('../sql-query').SqlQuery} SqlQuery */
 
-import {not, op} from 'arquero';
-
-const TMP_COL = '___arquero_sql_temp_column_row_number___';
+import {op} from 'arquero';
 
 /**
  *
@@ -27,19 +25,10 @@ export default function (query, size, options = {}) {
     throw new Error("Arquero-SQL's sample does not support weight");
   }
 
-  if (query.isGrouped()) {
-    query = query
-      .ungroup()
-      // TODO: need a better way to get the row number without ungroup then group
-      .derive({[TMP_COL]: () => op.row_number()})
-      ._wrap({group: query._group});
-  } else {
-    query = query.derive({[TMP_COL]: () => op.row_number()});
-  }
-
+  // eslint-disable-next-line no-console
+  console.warn('Sampling will produce output with different ordering of rows');
   return query
     .orderby([() => op.random()])
     ._append({clauses: c => ({...c, limit: size})})
-    .orderby([TMP_COL])
-    .select([not(TMP_COL)]);
+    .unorder();
 }
