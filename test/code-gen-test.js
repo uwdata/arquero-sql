@@ -87,13 +87,11 @@ function tableEqual(t, actual, expected, message, client) {
 
 tape('code-gen: dedupe', t => {
   const client = connectClient();
-  const dedupe = base =>
-    base
-      .dedupe({
-        col1: d => d.Seattle % 10,
-      })
-      .orderby('Seattle');
-  tableEqual(t, ...bases.map(dedupe), 'basic dedupe', client);
+  const query = base =>
+    base.orderby('Seattle').dedupe({
+      col1: d => d.Seattle % 10,
+    });
+  tableEqual(t, ...bases.map(query), 'basic dedupe', client);
 
   client.end();
   t.end();
@@ -101,13 +99,13 @@ tape('code-gen: dedupe', t => {
 
 tape('code-gen: derive', t => {
   const client = connectClient();
-  const derive = base =>
+  const query = base =>
     base.derive({
       col1: d => d.Seattle + d.Chicago,
       col2: d => op.mean(d.Seattle),
       col3: () => op.row_number(),
     });
-  tableEqual(t, ...bases.map(derive), 'basic derive', client);
+  tableEqual(t, ...bases.map(query), 'basic derive', client);
 
   client.end();
   t.end();
@@ -115,65 +113,73 @@ tape('code-gen: derive', t => {
 
 tape('code-gen: filter', t => {
   const client = connectClient();
-  const filter = base => base.filter(d => d.Seattle > 200);
-  tableEqual(t, ...bases.map(filter), 'basic filter', client);
-  tableEqual(t, ...groups.map(filter), 'basic filter on grouped query', client);
+  const query = base => base.filter(d => d.Seattle > 200);
+  tableEqual(t, ...bases.map(query), 'basic filter', client);
+  tableEqual(t, ...groups.map(query), 'basic filter on grouped query', client);
 
-  const filter2 = base =>
+  const query2 = base =>
     base
       .filter(d => op.mean(d.Chicago) > 200)
       // need to order afterward because PostgreSQL does not preserve original order
       .orderby('Seattle');
-  tableEqual(t, ...bases.map(filter2), 'filter with aggregated function', client);
-  tableEqual(t, ...groups.map(filter2), 'filter with aggregated function on grouped query', client);
+  tableEqual(t, ...bases.map(query2), 'filter with aggregated function', client);
+  tableEqual(t, ...groups.map(query2), 'filter with aggregated function on grouped query', client);
   client.end();
   t.end();
 });
 
 tape('code-gen: groupby', t => {
   const client = connectClient();
-  const groupby = base =>
+  const query = base =>
     base.derive({
       col1: d => d.Seattle + d.Chicago,
     });
-  tableEqual(t, ...groups.map(groupby), 'groupby without aggregate/window derive', client);
+  tableEqual(t, ...groups.map(query), 'groupby without aggregate/window derive', client);
 
-  const groupby2 = base => groupby(base).rollup().orderby('a');
-  tableEqual(t, ...groups.map(groupby2), 'groupby with empty rollup', client);
+  const query2 = base => query(base).rollup().orderby('a');
+  tableEqual(t, ...groups.map(query2), 'groupby with empty rollup', client);
 
-  const groupby3 = base => base.rollup({b: d => op.mean(d.Chicago)}).orderby('a');
-  tableEqual(t, ...groups.map(groupby3), 'groupby with rollup', client);
+  const query3 = base => base.rollup({b: d => op.mean(d.Chicago)}).orderby('a');
+  tableEqual(t, ...groups.map(query3), 'groupby with rollup', client);
+
+  client.end();
+  t.end();
+});
+
+tape('code-gen: sample', t => {
+  const client = connectClient();
+  const query = baseSql.sample(10).orderby('Seattle');
+  const query2 = query.intersect(baseSql);
+
+  t.deepEqual(client.querySync(query.toSql()), client.querySync(query2.toSql()), 'sample from existing rows');
+
+  client.end();
+  t.end();
+});
+
+tape('code-gen: orderby', t => {
+  const client = connectClient();
+  const query = base => base.orderby('Chicago');
+  tableEqual(t, ...bases.map(query), 'simple order', client);
+
+  const query2 = base => query(base).groupby({key: d => d.Seattle > 200}).derive({col: () => op.row_number()});
+  tableEqual(t, ...bases.map(query2), 'ordering for window function', client);
+
+  const query3 = base => base.groupby({key: d => d.Seattle > 200}).derive({col: d => op.max(d.Chicago)});
+  const query3Sql = base => query3(query(base));
+  const query3Arquero = base => query3(base).orderby('Chicago');
+  tableEqual(t, query3Sql(baseSql), query3Arquero(baseArquero), 'ordering for aggregation function', client);
 
   client.end();
   t.end();
 });
 
 tape('code-gen', t => {
-  // TODO: do real testing
-
-  // const cg1 = base.filter(d => d.a !== 2);
-  // console.log(codeGen(cg1));
-
-  // const cg2 = group.filter(d => op.mean(d.c) === 5);
-  // console.log(codeGen(cg2));
-
-  // const cg3 = group.rollup({f: d => op.mean(d.c)});
-  // console.log(codeGen(cg3));
-
-  // const cg4 = group.dedupe('c', 'b');
-  // console.log(codeGen(cg4));
-
-  // const cg5 = base.concat(base2, base3);
-  // console.log(codeGen(cg5));
-
   // const cg6 = base.join(base3, 'a', [all(), not('e')], {left: true});
   // console.log(codeGen(cg6));
 
-  // const cg7 = base.sample(5);
-  // console.log(codeGen(cg7));
-
-  // const cg8 = base.orderby(d => d.a + 2, 'b', desc('c'));
-  // console.log(codeGen(cg8));
+  // select
+  // ungroup -> group then ungroup then rollup
 
   t.end();
 });
