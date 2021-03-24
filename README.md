@@ -10,6 +10,7 @@ yarn build
 
 ## Test
 ```sh
+# install and start local postgresql server
 yarn test
 ```
 
