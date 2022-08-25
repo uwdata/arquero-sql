@@ -1,6 +1,7 @@
 # Arquero-SQL
 SQL backend support for [Arquero](https://github.com/uwdata/arquero).
 Arquero-SQL can generate an SQL code that imitate an Arquero query and execute it in a SQL backend.
+Demo video: https://youtu.be/RO0luOvpiOY
 
 ## Setup
 ```sh
