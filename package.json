@@ -16,7 +16,9 @@
     "format": "yarn lint --fix && prettier '{src,test}/**/*.js' --write"
   },
   "dependencies": {
-    "arquero": "^3.0.0"
+    "arquero": "^3.0.0",
+    "fast-csv": "^4.3.6",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@rollup/plugin-json": "^4.1.0",
