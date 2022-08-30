@@ -38,6 +38,9 @@ jobs:
       - name: Install dependencies
         run: yarn --frozen-lockfile
 
+      - name: Format esm
+        run: yarn prettieresm
+
       - name: Run tests
         run: yarn test
         env:
