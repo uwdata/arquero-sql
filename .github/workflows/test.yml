@@ -2,8 +2,6 @@ name: Test
 
 on:
   push:
-    branches:
-      - main
   pull_request:
 
 jobs:
@@ -12,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        node: [14, 16, 17]
+        node: [16]
 
     name: Node ${{ matrix.node }}
 
