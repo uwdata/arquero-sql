@@ -44,7 +44,7 @@ jobs:
         run: yarn prettieresm
       
       - name: cat esm
-        run: cap /home/runner/work/arquero-sql/arquero-sql/node_modules/esm/esm.js
+        run: cat /home/runner/work/arquero-sql/arquero-sql/node_modules/esm/esm.js
 
       - name: Run tests
         run: yarn test
