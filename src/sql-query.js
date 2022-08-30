@@ -1,4 +1,4 @@
-import {all, internal} from 'arquero';
+import aq, {all, internal} from 'arquero';
 import isFunction from 'arquero/src/util/is-function';
 import codeGen from './code-gen';
 import {optimize} from './optimizer';
@@ -26,14 +26,22 @@ export class SqlQuery extends internal.Transformable {
    * @param {Clauses} [clauses] object of sql clauses
    * @param {string[]} [group]
    * @param {OrderInfo} [order]
+   * @param {import('./databases/database').Database?} database
    */
-  constructor(source, schema, clauses, group, order) {
+  constructor(source, schema, clauses, group, order, database) {
     super({});
     /** @type {Source} */
     this._source = source;
 
     /** @type {string[]} */
     this._columns = schema;
+
+    database = database || source.database;
+    if (typeof source !== 'string' && database !== source.database) {
+      throw new Error('Database must match with parent');
+    }
+    /** @type {import('./databases/database').Database} */
+    this._database = database;
 
     /** @type {Clauses} */
     this._clauses = clauses || {};
@@ -49,7 +57,7 @@ export class SqlQuery extends internal.Transformable {
    *
    * @typedef {object} WrapParams
    * @prop {string[] | (s: string[]) => string[]} columns
-   * @prop {Clauses | (c: Clauses) => Caluses} clauses
+   * @prop {Clauses | (c: Clauses) => Clauses} clauses
    * @prop {string[] | (s: string[]) => string[]} group
    * @prop {OrderInfo[] | (o: OrderInfo[]) => OrderInfo[]} order
    */
@@ -135,21 +143,105 @@ export class SqlQuery extends internal.Transformable {
   }
 
   /**
-   * @param {{optimize?: boolean}} options option for translating to SQL
    * @returns {string} SQL representation of this SqlQuery
    */
-  toSql(options = {}) {
-    const {optimize} = options;
-    // const table = optimize === false ? this : this.optimize();
-    if (optimize) {
-      throw new Error('TODO: support optimization');
-    }
+  toSql() {
+    // const table = this.optimize();
 
     return codeGen(
       this.ungroup()
         .select(all())
         ._append({clauses: c => ({...c, orderby: this._order}), order: null}),
     );
+  }
+
+  /**
+   * @returns {Promise<internal.ColumnTable>}
+   */
+  async toArquero() {
+    const results = await this.objects()
+      // eslint-disable-next-line no-console
+      .catch(e => (console.error(e), null));
+    if (results === null) {
+      return null;
+    }
+    return aq.from(results);
+  }
+
+  /**
+   * @typedef {object} PrintOptions
+   * @property {number} [limit=Infinity]
+   * @property {number} [offset=0]
+   * @property {import('arquero/src/table/transformable').Select} [columns]
+   */
+
+  /**
+   * 
+   * @param {PrintOptions | number} options
+   */
+  async print(options = {}) {
+    // TODO: fix optimization
+    const table = await this
+      .toArquero({optimize: false})
+      // eslint-disable-next-line no-console
+      .catch(e => (console.error(e), null));
+    if (table === null) {
+      return null;
+    }
+
+    table.print(options);
+    return this;
+  }
+
+  /**
+   * @typedef {object} ObjectsOptions
+   * @property {number} [limit=Infinity]
+   * @property {number} [offset=0]
+   * @property {import('../table/transformable').Select} [columns]
+   * @property {'map'|'entries'|'object'|boolean} [grouped=false]
+   */
+
+  /**
+   * @param {ObjectsOptions} [options]
+   */
+  async objects(options = {}) {
+    const {grouped, limit, offset} = options;
+
+    if (grouped) {
+      throw new Error('TODO: support output grouped table');
+    }
+
+    let t = this;
+    if (limit !== undefined) {
+      t = this._append({clauses: c => ({...c, limit: options.limit})});
+    }
+    if (offset !== undefined) {
+      t = this._append({clauses: c => ({...c, offset: offset})});
+    }
+
+    // TODO: fix optimization
+    const sql = t.toSql({optimize: false});
+
+    const results = await this._database
+      .executeQuery(sql)
+      // eslint-disable-next-line no-console
+      .catch(e => (console.error(e), null));
+    if (results === null) {
+      return null;
+    }
+
+    return results.output;
+  }
+
+  /**
+   * @param {number} row
+   */
+  async object(row = 0) {
+    const o = await this.objects({limit: 1, offset: row});
+    if (o === null) {
+      return null;
+    }
+    return o[0];
   }
 }
 
@@ -195,6 +287,7 @@ for (const name in verbs) {
  * @prop {JoinInfo} [join]
  * @prop {OrderInfo} [orderby]
  * @prop {number} [limit]
+ * @prop {number} [offset]
  * @prop {Source[]} [concat]
  * @prop {Source[]} [union]
  * @prop {Source[]} [intersect]

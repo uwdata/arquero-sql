@@ -3,12 +3,15 @@ import {SqlQuery} from '../sql-query';
 export class Database {
   async table(name) {
     const columnNames = await this.getColumnNames(name);
+    if (columnNames === null) {
+      return null;
+    }
     return new SqlQuery(name, columnNames, null, null, null, this);
   }
 
   /**
    * @param {string} table
-   * @returns {Promise<string[]>}
+   * @returns {Promise<string[] | null>}
    */
   // eslint-disable-next-line no-unused-vars
   async getColumnNames(table) {
@@ -19,7 +22,7 @@ export class Database {
    * Execute Query to Database
    * @param {string} text A query string to be executed
    * @param {string[]?} values
-   * @returns {Promise<{schema: string[], output: any[][]}>} execution results
+   * @returns {Promise<{schema: string[], output: any[][]} | null>} execution results
    */
   // eslint-disable-next-line no-unused-vars
   async executeQuery(text, values) {
