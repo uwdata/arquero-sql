@@ -2,12 +2,15 @@
 import Client from 'pg-native';
 import {SqlQuery} from '../src/sql-query';
 
-const DATABASE = 'arquerosql';
-const USER = 'aq';
-const PASS = 'aq';
+
+const DATABASE = process.env.PGDB;
+const USER = process.env.PGUSER;
+const PASS = process.env.PGPASSWORD;
+const HOST = process.env.PGHOST;
+const PORT = process.env.PGPORT;
 export function connectClient() {
   const client = new Client();
-  client.connectSync(`postgresql://${USER}:${PASS}@localhost:5432/${DATABASE}`);
+  client.connectSync(`postgresql://${USER}:${PASS}@${HOST}:${PORT}/${DATABASE}`);
   return client;
 }
 

@@ -1,4 +1,5 @@
-import aq, {all, internal} from 'arquero';
+import * as aq from 'arquero';
+import {all, internal} from 'arquero';
 import isFunction from 'arquero/src/util/is-function';
 import codeGen from './code-gen';
 import {optimize} from './optimizer';
