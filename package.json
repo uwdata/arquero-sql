@@ -11,7 +11,7 @@
   "scripts": {
     "prebuild": "rimraf dist && mkdir dist",
     "build": "rollup -c",
-    "test": "TZ=America/Los_Angeles tape 'test/**/*-test.js' --require esm && yarn lint",
+    "test": "TZ=America/Los_Angeles tape 'test/**/*-test.js' --require esm",
     "lint": "yarn eslint src test --ext .js",
     "format": "yarn lint --fix && prettier '{src,test}/**/*.js' --write"
   },
