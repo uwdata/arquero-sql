@@ -13,7 +13,7 @@
     "build": "rollup -c",
     "test": "TZ=America/Los_Angeles tape 'test/**/*-test.js' --require esm",
     "lint": "yarn eslint src test --ext .js",
-    "prettieresm": "prettier 'node_modules/esm/esm.js' --write",
+    "prettieresm": "cp node_modules/esm/esm.js . && prettier 'esm.js' --write && mv esm.js node_modules/esm/esm.js",
     "format": "yarn lint --fix && prettier '{src,test}/**/*.js' --write"
   },
   "dependencies": {

@@ -2,7 +2,7 @@ import {SqlQuery} from './sql-query';
 export {SqlQuery} from './sql-query';
 
 export const internal = {
-    SqlQuery,
+  SqlQuery,
 };
 
 export * as db from './databases';

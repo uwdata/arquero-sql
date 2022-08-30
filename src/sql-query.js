@@ -177,13 +177,12 @@ export class SqlQuery extends internal.Transformable {
    */
 
   /**
-   * 
+   *
    * @param {PrintOptions | number} options
    */
   async print(options = {}) {
     // TODO: fix optimization
-    const table = await this
-      .toArquero({optimize: false})
+    const table = await this.toArquero({optimize: false})
       // eslint-disable-next-line no-console
       .catch(e => (console.error(e), null));
     if (table === null) {
