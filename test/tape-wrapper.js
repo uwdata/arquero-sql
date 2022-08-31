@@ -11,9 +11,9 @@ let setupPromise = new Promise(resolve => {
   tape('setup', t => {
     const pg = new db.Postgres({user, host, database, password, port});
     (async () => {
-      await pg.update('DROP TABLE IF EXISTS a1');
-      await pg.update('CREATE TABLE a1 (Seattle INT, Chicago INT, NewYork INT)');
-      await pg.update(`
+      await pg.query('DROP TABLE IF EXISTS a1');
+      await pg.query('CREATE TABLE a1 (Seattle INT, Chicago INT, NewYork INT)');
+      await pg.query(`
           INSERT INTO a1 (Seattle, Chicago, NewYork)
           VALUES
             (69, 135, 165),
