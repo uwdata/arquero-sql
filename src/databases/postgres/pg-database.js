@@ -188,7 +188,7 @@ export class PostgresDatabase extends Database {
 function getTableAfter(db, promise, name) {
   const pbuilder = promise
     .then(() => db.getColumnNames(name))
-    .then(colNames => new PostgresQueryBuilder(name, colNames, null, null, null, this))
+    .then(colNames => new PostgresQueryBuilder(name, colNames, null, null, null, db))
     .catch(e => (console.error(e), null));
   return new DBTable(pbuilder);
 }
