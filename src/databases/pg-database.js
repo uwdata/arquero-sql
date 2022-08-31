@@ -61,7 +61,7 @@ export class PostgresDatabase extends Database {
    * @returns {Promise<import('../sql-query').SqlQuery | null>}
    */
   async fromCSV(path, schema, name) {
-    name = name || `table-${uuid()}`;
+    name = name || `__aq__table__${uuid()}__`;
     const columnNames = schema.map(({name}) => name);
 
     const createResult = await this
@@ -101,7 +101,7 @@ export class PostgresDatabase extends Database {
    * @returns {Promise<import('../sql-query').SqlQuery | null>}
    */
   async fromArquero(table, name) {
-    name = name || `table-${uuid()}`;
+    name = name || `__aq__table__${uuid()}__`;
     const columnNames = table.columnNames();
     const numRows = table.numRows();
 
