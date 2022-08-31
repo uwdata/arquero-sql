@@ -1,5 +1,5 @@
-import tape from 'tape';
-import {genExpr} from '../../src/visitors/gen-expr';
+import tape from '../tape-wrapper';
+import {genExpr} from '../../src/databases/postgres/visitors/gen-expr';
 import {internal, op} from 'arquero';
 
 const {Verbs} = internal;

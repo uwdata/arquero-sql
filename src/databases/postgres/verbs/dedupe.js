@@ -1,4 +1,4 @@
-/** @typedef {import('../sql-query').SqlQuery} SqlQuery */
+/** @typedef {import('../pg-query-builder').PostgresQueryBuilder} PostgresQueryBuilder */
 /** @typedef {import('arquero/src/table/transformable').ListEntry} ListEntry */
 
 import {not, op} from 'arquero';
@@ -7,9 +7,9 @@ const ROW_NUMBER = '___arquero_sql_row_number___';
 
 /**
  *
- * @param {SqlQuery} query
+ * @param {PostgresQueryBuilder} query
  * @param {ListEntry[]} keys
- * @returns {SqlQuery}
+ * @returns {PostgresQueryBuilder}
  */
 export default function (query, keys = []) {
   return query

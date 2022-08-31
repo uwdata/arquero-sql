@@ -1,4 +1,4 @@
-import tape from 'tape';
+import tape from './tape-wrapper';
 // import {SqlQueryBuilder} from '../src';
 // import {internal} from 'arquero';
 // const {Verbs} = internal;

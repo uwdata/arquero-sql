@@ -1,4 +1,4 @@
-/** @typedef { import('../sql-query').SqlQuery } SqlQuery */
+/** @typedef { import('../pg-query-builder').PostgresQueryBuilder } PostgresQueryBuilder */
 /** @typedef { import('../utils/create-column').ColumnType } ColumnType */
 /** @typedef { import('./common').Verb } Verb */
 
@@ -9,9 +9,9 @@ import {GB_KEY} from './groupby';
 
 /**
  *
- * @param {SqlQuery} query
+ * @param {PostgresQueryBuilder} query
  * @param {import('arquero/src/table/transformable').SelectEntry[]} columns
- * @returns {SqlQuery}
+ * @returns {PostgresQueryBuilder}
  */
 export default function (query, columns) {
   /** @type {ColumnType[]} */

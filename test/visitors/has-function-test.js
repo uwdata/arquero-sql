@@ -1,7 +1,7 @@
-import tape from 'tape';
+import tape from '../tape-wrapper';
 import {internal, op} from 'arquero';
-import hasFunction from '../../src/visitors/has-function';
-import {ARQUERO_AGGREGATION_FN, ARQUERO_WINDOW_FN} from '../../src/visitors/gen-expr';
+import hasFunction from '../../src/databases/postgres/visitors/has-function';
+import {ARQUERO_AGGREGATION_FN, ARQUERO_WINDOW_FN} from '../../src/databases/postgres/visitors/gen-expr';
 
 const {Verbs} = internal;
 

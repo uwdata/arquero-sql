@@ -1,5 +1,5 @@
 /** @typedef {import('./common').Verb} Verb */
-/** @typedef {import('../sql-query').SqlQuery} SqlQuery */
+/** @typedef {import('../pg-query-builder').PostgresQueryBuilder} PostgresQueryBuilder */
 
 import {internal} from 'arquero';
 import error from 'arquero/src/util/error';
@@ -10,9 +10,9 @@ import {GB_KEY} from './groupby';
 
 /**
  *
- * @param {SqlQuery} query
+ * @param {PostgresQueryBuilder} query
  * @param {import('arquero/src/table/transformable').ExprObject} [keys]
- * @returns {SqlQuery}
+ * @returns {PostgresQueryBuilder}
  */
 export default function (query, keys = []) {
   /** @type {Map<string, object>} */

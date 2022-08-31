@@ -1,4 +1,4 @@
-/** @typedef { import('../sql-query').SqlQuery } SqlQuery */
+/** @typedef { import('../pg-query-builder').PostgresQueryBuilder } PostgresQueryBuilder */
 /** @typedef { import('./common').Verb} Verb */
 
 import {internal} from 'arquero';
@@ -10,9 +10,9 @@ import isString from 'arquero/src/util/is-string';
 
 /**
  *
- * @param {SqlQuery} query
+ * @param {PostgresQueryBuilder} query
  * @param {import('arquero/src/table/transformable').OrderKey[]} keys
- * @returns {SqlQuery}
+ * @returns {PostgresQueryBuilder}
  */
 export default function (query, keys) {
   return query._wrap({order: parseValues(query, keys)});

@@ -1,19 +1,19 @@
-/** @typedef {import('./sql-query').SqlQuery} SqlQuery */
+/** @typedef {import('./pg-query-builder').PosgresQueryBuilder} PosgresQueryBuilder */
 
 import isString from 'arquero/src/util/is-string';
-import {Counter} from './counter';
 import createColumn from './utils/create-column';
 import {GB_KEY} from './verbs/groupby';
 import {genExpr} from './visitors/gen-expr';
 
 /**
  *
- * @param {SqlQuery|string} query
+ * @param {PosgresQueryBuilder|string} query
  * @param {string} [indentStr]
  * @param {number} [indentLvl]
  * @param {Counter} [counter]
  */
-export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter = new Counter()) {
+export default function postgresCodeGen(query, indentStr = '  ', indentLvl = 0, counter = new Counter()) {
+  /** @type {string[]} */
   const code = [];
   const indent = _indent(indentLvl, indentStr).join('');
   const nl = indentStr ? '\n' : ' ';
@@ -24,7 +24,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
     return code.join('');
   }
 
-  /** @type {SqlQuery} */
+  /** @type {PosgresQueryBuilder} */
   const {_clauses, _columns, _group, _order} = query;
 
   const tables = ['table' + counter.next(), _clauses.join ? 'table' + counter.next() : null];
@@ -56,7 +56,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
     code.push(query._source);
   } else {
     code.push('(', nl);
-    code.push(codeGen(query._source, indentStr, indentLvl + 1, counter));
+    code.push(postgresCodeGen(query._source, indentStr, indentLvl + 1, counter));
     code.push(indent);
     code.push(')');
   }
@@ -67,7 +67,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
       code.push(_clauses.join.other);
     } else {
       code.push('(', nl);
-      code.push(codeGen(_clauses.join.other, indentStr, indentLvl + 1, counter));
+      code.push(postgresCodeGen(_clauses.join.other, indentStr, indentLvl + 1, counter));
       code.push(indent);
       code.push(')');
     }
@@ -122,7 +122,7 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
       _clauses[verb].forEach(q => {
         code.push(indent);
         code.push(verb.toUpperCase(), ' (', nl);
-        code.push(codeGen(q, indentStr, indentLvl + 1, counter));
+        code.push(postgresCodeGen(q, indentStr, indentLvl + 1, counter));
         code.push(')', nl);
       });
     });
@@ -130,10 +130,20 @@ export default function codeGen(query, indentStr = '  ', indentLvl = 0, counter 
   return code.join('');
 }
 
+export class Counter {
+  constructor() {
+    this.counter = 0;
+  }
+
+  next() {
+    return this.counter++;
+  }
+}
+
 /**
  *
- * @param {import('./sql-query').OrderInfo} orderby
- * @param {import('./visitors/gen-expr').GenExprOpt} opt
+ * @param {import('./pg-query-builder').OrderInfo} orderby
+ * @param {import('../../visitors/gen-expr').GenExprOpt} opt
  * @returns {string}
  */
 function genOrderClause(orderby, opt) {
@@ -143,8 +153,8 @@ function genOrderClause(orderby, opt) {
 
 /**
  *
- * @param {import('./sql-query').AstNode[]} list
- * @param {import('./visitors/gen-expr').GenExprOpt} opt
+ * @param {import('./pg-query-builder').AstNode[]} list
+ * @param {import('../../visitors/gen-expr').GenExprOpt} opt
  * @param {string} delim
  */
 function genExprList(list, opt, delim) {

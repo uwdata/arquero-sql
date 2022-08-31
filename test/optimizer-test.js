@@ -1,4 +1,4 @@
-import tape from 'tape';
+import tape from './tape-wrapper';
 // import {SqlQueryBuilder} from '../src';
 // import {all} from 'arquero';
 // import {copy, toAst} from './sql-query-builder/common';

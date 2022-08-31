@@ -12,7 +12,7 @@ module.exports = {
     sourceType: 'module'
   },
   rules: {
-    'no-console': 'warn',
+    'no-console': ['warn', {allow: ['warn', 'error']}],
     'no-cond-assign': 'off',
     'no-fallthrough': ['error', { commentPattern: 'break omitted' }],
     'semi': 'error',

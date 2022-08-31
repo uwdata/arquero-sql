@@ -1,6 +1,5 @@
-import tape from 'tape';
-import {SqlQuery} from '../../src';
-import createColumn from '../../src/utils/create-column';
+import tape from '../tape-wrapper';
+import createColumn from '../../src/databases/postgres/utils/create-column';
 import {base, base2, group} from './common';
 
 ['concat', 'except', 'intersect', 'union'].forEach(verb => {
@@ -20,11 +19,6 @@ import {base, base2, group} from './common';
     t.equal(2, sv2._clauses[verb].length, `${verb} correctly`);
     t.deepEqual(sv2._clauses[verb][0], base2, `${verb} correctly`);
     t.deepEqual(sv2._clauses[verb][1], group.ungroup(), `${verb} correctly`);
-
-    const sv3 = base[verb]('table2', 'table3');
-    t.equal(2, sv3._clauses[verb].length, `${verb} correctly`);
-    t.deepEqual(new SqlQuery('table2'), sv3._clauses[verb][0], `${verb} correctly`);
-    t.deepEqual(new SqlQuery('table3'), sv3._clauses[verb][1], `${verb} correctly`);
 
     t.end();
   });
