@@ -31,20 +31,12 @@ export class Database {
    * Execute Query to Database
    * @param {string} text A query string to be executed
    * @param {string[]?} values
-   * @returns {Promise<{schema: string[], output: any[][]} | null>} execution results
+   * @returns {Promise<import('pg').QueryResult | null>} execution results
    */
   // eslint-disable-next-line no-unused-vars
   async query(text, values) {
     return [];
   }
-
-  /**
-   * Execute Update to Database
-   * @param {string} text An update string to be executed
-   * @param {string[]?} values
-   */
-  // eslint-disable-next-line no-unused-vars
-  async update(text, values) {}
 
   async close() {}
 }
