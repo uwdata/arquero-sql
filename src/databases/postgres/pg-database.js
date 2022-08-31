@@ -63,9 +63,9 @@ export class PostgresDatabase extends Database {
    * @returns {DBTable}
    */
   table(name) {
-    const pbuilder = this.getColumnNames(name)
-      .then(colNames => new PostgresQueryBuilder(name, colNames, null, null, null, this))
-      .catch(e => (console.error(e), null));
+    const pbuilder = this.getColumnNames(name).then(
+      colNames => new PostgresQueryBuilder(name, colNames, null, null, null, this),
+    );
     return new DBTable(pbuilder);
   }
 
@@ -88,15 +88,15 @@ export class PostgresDatabase extends Database {
     stream.pipe(csvStream);
 
     const query = insertInto(name, columnNames);
-    const results = this.query(`CREATE TABLE ${name} (${schema.map(({name, type}) => name + ' ' + type).join(',')})`)
-      .then(async () => {
-        await this.query('BEGIN');
-        for (const row in csvData) {
-          await this.query(query, row);
-        }
-        return this.query('COMMIT');
-      })
-      .catch(e => (console.error(e), null));
+    const results = this.query(
+      `CREATE TABLE ${name} (${schema.map(({name, type}) => name + ' ' + type).join(',')})`,
+    ).then(async () => {
+      await this.query('BEGIN');
+      for (const row in csvData) {
+        await this.query(query, row);
+      }
+      return this.query('COMMIT');
+    });
 
     return getTableAfter(this, results, name);
   }
@@ -126,53 +126,49 @@ export class PostgresDatabase extends Database {
       }
     }
     const insert = insertInto(name, columnNames);
-    const results = this.query(`CREATE TABLE ${name} (${columnNames.map((cn, i) => cn + ' ' + types[i]).join(',')})`)
-      .then(async () => {
-        await this.query('BEGIN');
-        for (const row of table) {
-          /** @type {string[]} */
-          const values = [];
-          for (const i in columnNames) {
-            const cn = columnNames[i];
-            const value = row[cn];
-            values.push(value);
+    const results = this.query(
+      `CREATE TABLE ${name} (${columnNames.map((cn, i) => cn + ' ' + types[i]).join(',')})`,
+    ).then(async () => {
+      await this.query('BEGIN');
+      for (const row of table) {
+        /** @type {string[]} */
+        const values = [];
+        for (const i in columnNames) {
+          const cn = columnNames[i];
+          const value = row[cn];
+          values.push(value);
 
-            const type = getPGType(value);
-            if (types[i] !== type && type !== null) {
-              console.error('types in column ' + cn + ' do not match');
-              return null;
-            }
+          const type = getPGType(value);
+          if (types[i] !== type && type !== null) {
+            throw new Error('types in column ' + cn + ' do not match');
           }
-          await this.query(insert, values);
         }
-        return this.query('COMMIT');
-      })
-      .catch(e => (console.error(e), null));
-    
+        await this.query(insert, values);
+      }
+      return this.query('COMMIT');
+    });
+
     return getTableAfter(this, results, name);
   }
 
   /**
    * @param {string} table
-   * @returns {Promise<string[] | null>}
+   * @returns {Promise<string[]>}
    */
   async getColumnNames(table) {
     return await this._pool
       .query('SELECT column_name FROM information_schema.columns WHERE table_name = $1', [table])
-      .then(result => result.rows.map(r => r.column_name))
-      .catch(e => (console.error(e), null));
+      .then(result => result.rows.map(r => r.column_name));
   }
 
   /**
    * @param {string} text
    * @param {string[]?} values
-   * @returns {Promise<import('pg').QueryResult | null>}
+   * @returns {Promise<import('pg').QueryResult>}
    */
   async query(text, values) {
     values = values || [];
-    return await this._pool
-      .query(text, values)
-      .catch(e => (console.error(e), null));
+    return await this._pool.query(text, values);
   }
 
   async close() {
@@ -182,13 +178,12 @@ export class PostgresDatabase extends Database {
 
 /**
  * @param {Database} db
- * @param {Promise<any>} promise 
- * @param {string} name 
+ * @param {Promise<any>} promise
+ * @param {string} name
  */
 function getTableAfter(db, promise, name) {
   const pbuilder = promise
     .then(() => db.getColumnNames(name))
-    .then(colNames => new PostgresQueryBuilder(name, colNames, null, null, null, db))
-    .catch(e => (console.error(e), null));
+    .then(colNames => new PostgresQueryBuilder(name, colNames, null, null, null, db));
   return new DBTable(pbuilder);
 }

@@ -131,10 +131,6 @@ export class PostgresQueryBuilder extends QueryBuilder {
     }
 
     let t = this;
-    if (t === null) {
-      return null;
-    }
-
     if (limit !== undefined) {
       t = t._append({clauses: c => ({...c, limit: options.limit})});
     }
@@ -142,12 +138,7 @@ export class PostgresQueryBuilder extends QueryBuilder {
       t = t._append({clauses: c => ({...c, offset: offset})});
     }
 
-    const results = await t._database.query(t.build()).catch(e => (console.error(e), null));
-    if (results === null) {
-      return null;
-    }
-
-    return results.rows;
+    return t._database.query(t.build()).then(results => results.rows);
   }
 }
 

@@ -17,7 +17,7 @@ export class Database {
 
   /**
    * @param {string} table
-   * @returns {Promise<string[] | null>}
+   * @returns {Promise<string[]>}
    */
   // eslint-disable-next-line no-unused-vars
   async getColumnNames(table) {
@@ -28,7 +28,7 @@ export class Database {
    * Execute Query to Database
    * @param {string} text A query string to be executed
    * @param {string[]?} values
-   * @returns {Promise<import('pg').QueryResult | null>} execution results
+   * @returns {Promise<import('pg').QueryResult>} execution results
    */
   // eslint-disable-next-line no-unused-vars
   async query(text, values) {

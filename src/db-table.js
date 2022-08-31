@@ -16,7 +16,7 @@ export class DBTable extends internal.Transformable {
    * @returns {Promise<internal.ColumnTable>}
    */
   async toArquero() {
-    const results = await this.objects().catch(e => (console.error(e), null));
+    const results = await this.objects();
     return results && aq.from(results);
   }
 
@@ -32,10 +32,7 @@ export class DBTable extends internal.Transformable {
    * @param {PrintOptions | number} options
    */
   async print(options = {}) {
-    const table = await this.toArquero().catch(e => (console.error(e), null));
-    if (table === null) {
-      return null;
-    }
+    const table = await this.toArquero();
 
     table.print(options);
     return this;
@@ -101,9 +98,9 @@ function call(verb, table, ...params) {
       return new Promise(r => r(param));
     }
   });
-  const pbuilder = Promise.all([table._builder, ...params])
-    .then(([builder, ...resolves]) => builder[verb](...resolves))
-    .catch(e => (console.error(e), null));
+  const pbuilder = Promise.all([table._builder, ...params]).then(([builder, ...resolves]) =>
+    builder[verb](...resolves),
+  );
   return new DBTable(pbuilder);
 }
 
@@ -114,8 +111,8 @@ function call(verb, table, ...params) {
  * @param {...any} params
  */
 function call_with_others(verb, table, others, ...params) {
-  const pbuilder = Promise.all([table._builder, ...others.map(o => o._builder)])
-    .then(([builder, ...otherBuilders]) => builder[verb](otherBuilders, ...params))
-    .catch(e => (console.error(e), null));
+  const pbuilder = Promise.all([table._builder, ...others.map(o => o._builder)]).then(([builder, ...otherBuilders]) =>
+    builder[verb](otherBuilders, ...params),
+  );
   return new DBTable(pbuilder);
 }
