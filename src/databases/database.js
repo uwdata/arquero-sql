@@ -1,5 +1,3 @@
-import {DBTable} from '../db-table';
-
 export class Database {
   constructor() {
     if (!Database.databases) {
@@ -10,12 +8,11 @@ export class Database {
 
   /**
    * @param {string} name
-   * @param  {Promise<any>[]} promises
    * @returns {DBTable}
    */
   // eslint-disable-next-line no-unused-vars
-  table(name, promises) {
-    return new DBTable(new Promise(resolve => resolve(null)));
+  table(name) {
+    throw new Error('Not implemented');
   }
 
   /**
@@ -24,7 +21,7 @@ export class Database {
    */
   // eslint-disable-next-line no-unused-vars
   async getColumnNames(table) {
-    return [];
+    throw new Error('Not implemented');
   }
 
   /**
@@ -35,8 +32,10 @@ export class Database {
    */
   // eslint-disable-next-line no-unused-vars
   async query(text, values) {
-    return [];
+    throw new Error('Not implemented');
   }
 
-  async close() {}
+  async close() {
+    throw new Error('Not implemented');
+  }
 }
