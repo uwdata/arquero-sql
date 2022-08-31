@@ -38,13 +38,5 @@ export class Database {
     return [];
   }
 
-  /**
-   * Execute Update to Database
-   * @param {string} text An update string to be executed
-   * @param {string[]?} values
-   */
-  // eslint-disable-next-line no-unused-vars
-  async update(text, values) {}
-
   async close() {}
 }

@@ -19,10 +19,6 @@ tape('input table', t => {
     });
 
     const db1 = pg.fromArquero(aq1);
-    db1._builder.then(() => {
-      setTimeout(async () => {
-        t.deepEqual(await db1.objects(), aq1.objects());
-      }, 1000);
-    });
+    t.deepEqual(await db1.objects(), aq1.objects());
   })();
 });

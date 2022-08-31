@@ -94,17 +94,17 @@ export class PostgresDatabase extends Database {
       .on('end', () => csvData.shift());
     stream.pipe(csvStream);
 
-    const results = this.update(
+    const results = this.query(
       `CREATE TABLE ${name} (${schema.map(({name, type}) => name + ' ' + type).join(',')})`,
       columnNames,
     )
       .then(async () => {
         const query = insertInto(name, columnNames);
-        await this.update('BEGIN');
+        await this.query('BEGIN');
         for (const row in csvData) {
-          await this.update(query, row);
+          await this.query(query, row);
         }
-        return this.update('COMMIT');
+        return this.query('COMMIT');
       })
       .catch(e => (console.error(e), null));
 
@@ -135,7 +135,7 @@ export class PostgresDatabase extends Database {
         }
       }
     }
-    const results = this.update(`CREATE TABLE ${name} (${columnNames.map((cn, i) => cn + ' ' + types[i]).join(',')})`)
+    const results = this.query(`CREATE TABLE ${name} (${columnNames.map((cn, i) => cn + ' ' + types[i]).join(',')})`)
       .then(async () => {
         /** @type {string[]} */
         const insert = insertInto(name, columnNames);
@@ -153,7 +153,7 @@ export class PostgresDatabase extends Database {
               return null;
             }
           }
-          await this.update(insert, values);
+          await this.query(insert, values);
         }
 
         let fieldLength = 0;
@@ -192,33 +192,7 @@ export class PostgresDatabase extends Database {
     values = values || [];
     return await this._pool
       .query(text, values)
-      .then(result => {
-        console.log(
-          'query',
-          result && result.rows,
-          result && result.fields,
-          result && result.command,
-          result && result.rowCount,
-        );
-        return result;
-      })
       .catch(e => (console.error(e), null));
-  }
-
-  /**
-   * @param {string} text
-   * @param {string[]?} values
-   */
-  async update(text, values) {
-    values = values || [];
-    const result = await this._pool.query(text, values);
-    console.log(
-      'update',
-      result && result.rows,
-      result && result.fields,
-      result && result.command,
-      result && result.rowCount,
-    );
   }
 
   async close() {
