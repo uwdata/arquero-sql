@@ -1,5 +1,5 @@
 /** @typedef {import('./common').Verb} Verb */
-/** @typedef {import('../sql-query').SqlQuery} SqlQuery */
+/** @typedef {import('../pg-query-builder').PostgresQueryBuilder} PostgresQueryBuilder */
 
 import {internal} from 'arquero';
 import error from 'arquero/src/util/error';
@@ -10,10 +10,10 @@ import {GB_KEY} from './groupby';
 
 /**
  *
- * @param {SqlQuery} query
+ * @param {PostgresQueryBuilder} query
  * @param {import('arquero/src/table/transformable').ExprObject} values
  * @param {import('arquero/src/table/transformable').DeriveOptions} [options]
- * @returns {SqlQuery}
+ * @returns {PostgresQueryBuilder}
  */
 export default function (query, values, options = {}) {
   if (Object.keys(options).length > 0) {
@@ -35,11 +35,9 @@ export default function (query, values, options = {}) {
   });
 
   if (query.isGrouped()) {
-    // eslint-disable-next-line no-console
     console.warn('Deriving with group may produce output with different ordering of rows');
 
     if ([...columns.values()].some(v => hasFunction(v, ARQUERO_WINDOW_FN))) {
-      // eslint-disable-next-line no-console
       console.warn(
         'Deriving with window functions with group and without and explicit ordering may produce different result than Arquero',
       );

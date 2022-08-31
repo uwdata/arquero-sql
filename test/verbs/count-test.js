@@ -1,4 +1,4 @@
-import tape from 'tape';
+import tape from '../tape-wrapper';
 import {op} from 'arquero';
 import {group} from './common';
 

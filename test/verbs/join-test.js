@@ -1,7 +1,7 @@
-import tape from 'tape';
-import createColumn from '../../src/utils/create-column';
+import tape from '../tape-wrapper';
+import createColumn from '../../src/databases/postgres/utils/create-column';
 import {base, base3, copy, onlyContainClsuses} from './common';
-import {JOIN_TYPES} from '../../src/verbs/join';
+import {JOIN_TYPES} from '../../src/databases/postgres/verbs/join';
 import {not} from 'arquero';
 
 /**
@@ -15,10 +15,7 @@ function columnIfNotNull(table, name) {
     test: {
       type: 'CallExpression',
       callee: {type: 'Function', name: 'equal'},
-      arguments: [
-        createColumn(name, name, table),
-        {type: 'Literal', value: null, raw: 'null'},
-      ],
+      arguments: [createColumn(name, name, table), {type: 'Literal', value: null, raw: 'null'}],
     },
     consequent: createColumn(name, name, 3 - table),
     alternate: createColumn(name, name, table),

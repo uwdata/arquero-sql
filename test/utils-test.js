@@ -1,5 +1,5 @@
-import tape from 'tape';
-import createColumn from '../src/utils/create-column';
+import tape from './tape-wrapper';
+import createColumn from '../src/databases/postgres/utils/create-column';
 
 tape('createColumn', t => {
   t.deepEqual(createColumn('col1'), {type: 'Column', name: 'col1'}, 'create column correctly');

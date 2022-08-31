@@ -1,7 +1,7 @@
-import tape from 'tape';
+import tape from '../tape-wrapper';
 import {base, copy, group, onlyContainClsuses} from './common';
-import createColumn from '../../src/utils/create-column';
-import {GB_KEY} from '../../src/verbs/groupby';
+import createColumn from '../../src/databases/postgres/utils/create-column';
+import {GB_KEY} from '../../src/databases/postgres/verbs/groupby';
 import {consoleWrapper} from '../utils';
 import {op} from 'arquero';
 

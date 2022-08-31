@@ -1,39 +1,32 @@
-import {all, internal} from 'arquero';
+import {all} from 'arquero';
+import {QueryBuilder} from '../query-builder';
 import isFunction from 'arquero/src/util/is-function';
-import codeGen from './code-gen';
-import {optimize} from './optimizer';
-import * as verbs from './verbs/index';
+import verbs from './verbs';
+import postgresCodeGen from './pg-code-gen';
 
-/**
- *
- * @param {any} table
- * @returns {SqlQuery}
- */
-export function sqlQuery(table) {
-  if (table instanceof SqlQuery) {
-    return table;
-  } else if (typeof table === 'string') {
-    return new SqlQuery(table);
-  } else {
-    throw new Error('Table must be a string or SqlQuery');
-  }
-}
-
-export class SqlQuery extends internal.Transformable {
+export class PostgresQueryBuilder extends QueryBuilder {
   /**
    * @param {Source} source source table or another sql query
    * @param {string[]} schema object of table schema
    * @param {Clauses} [clauses] object of sql clauses
    * @param {string[]} [group]
    * @param {OrderInfo} [order]
+   * @param {import('./pg-database').PostgresDatabase?} database
    */
-  constructor(source, schema, clauses, group, order) {
+  constructor(source, schema, clauses, group, order, database) {
     super({});
     /** @type {Source} */
     this._source = source;
 
     /** @type {string[]} */
     this._columns = schema;
+
+    database = database || source.database;
+    if (typeof source !== 'string' && database !== source.database) {
+      throw new Error('Database must match with parent');
+    }
+    /** @type {import('./pg-database').PostgresDatabase} */
+    this._database = database;
 
     /** @type {Clauses} */
     this._clauses = clauses || {};
@@ -49,7 +42,7 @@ export class SqlQuery extends internal.Transformable {
    *
    * @typedef {object} WrapParams
    * @prop {string[] | (s: string[]) => string[]} columns
-   * @prop {Clauses | (c: Clauses) => Caluses} clauses
+   * @prop {Clauses | (c: Clauses) => Clauses} clauses
    * @prop {string[] | (s: string[]) => string[]} group
    * @prop {OrderInfo[] | (o: OrderInfo[]) => OrderInfo[]} order
    */
@@ -59,7 +52,7 @@ export class SqlQuery extends internal.Transformable {
    * @param {WrapParams} param0
    */
   _append({columns, clauses, group, order}) {
-    return new SqlQuery(
+    return new PostgresQueryBuilder(
       this._source,
       columns !== undefined ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
       clauses !== undefined ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : this._clauses,
@@ -73,7 +66,7 @@ export class SqlQuery extends internal.Transformable {
    * @param {WrapParams} param0
    */
   _wrap({columns, clauses, group, order}) {
-    return new SqlQuery(
+    return new PostgresQueryBuilder(
       this,
       columns !== undefined ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
       clauses !== undefined ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : {},
@@ -88,13 +81,6 @@ export class SqlQuery extends internal.Transformable {
    */
   isGrouped() {
     return !!this._group;
-  }
-
-  /**
-   * @returns {SqlQuery} optimized query
-   */
-  optimize() {
-    return optimize(this);
   }
 
   /**
@@ -126,43 +112,48 @@ export class SqlQuery extends internal.Transformable {
     return this._columns[index];
   }
 
-  /**
-   * dummy function for parsing
-   * @returns {[]}
-   */
-  column() {
-    return [];
-  }
-
-  /**
-   * @param {{optimize?: boolean}} options option for translating to SQL
-   * @returns {string} SQL representation of this SqlQuery
-   */
-  toSql(options = {}) {
-    const {optimize} = options;
-    // const table = optimize === false ? this : this.optimize();
-    if (optimize) {
-      throw new Error('TODO: support optimization');
-    }
-
-    return codeGen(
+  build() {
+    return postgresCodeGen(
       this.ungroup()
         .select(all())
         ._append({clauses: c => ({...c, orderby: this._order}), order: null}),
     );
   }
+
+  /**
+   * @param {ObjectsOptions} [options]
+   */
+  async objects(options = {}) {
+    const {grouped, limit, offset} = options;
+
+    if (grouped) {
+      throw new Error('TODO: support output grouped table');
+    }
+
+    let t = this;
+    if (t === null) {
+      return null;
+    }
+
+    if (limit !== undefined) {
+      t = t._append({clauses: c => ({...c, limit: options.limit})});
+    }
+    if (offset !== undefined) {
+      t = t._append({clauses: c => ({...c, offset: offset})});
+    }
+
+    const results = await t._database.query(t.build()).catch(e => (console.error(e), null));
+    if (results === null) {
+      return null;
+    }
+
+    return results;
+  }
 }
 
-for (const name in verbs) {
-  const verb = verbs[name];
-  SqlQuery.prototype['__' + name] = verb
-    ? (qb, ...args) => verb(qb, ...args)
-    : function () {
-        throw new Error('Arquero-SQL does not support ' + name);
-      };
-}
+Object.assign(PostgresQueryBuilder.prototype, verbs);
 
-/** @typedef {string | SqlQuery} Source _source in SqlQuery */
+/** @typedef {string | PostgresQueryBuilder} Source _source in PostgresQueryBuilder */
 
 /**
  * @typedef {object} AstNode
@@ -176,7 +167,7 @@ for (const name in verbs) {
 /**
  * @typedef {object} JoinInfo
  * @prop {AstNode} on
- * @prop {SqlQuery} other
+ * @prop {PostgresQueryBuilder} other
  * @prop {JoinType} join_type
  */
 
@@ -187,7 +178,7 @@ for (const name in verbs) {
  */
 
 /**
- * @typedef {object} Clauses _clauses in SqlQuery
+ * @typedef {object} Clauses _clauses in PostgresQueryBuilder
  * @prop {AstNode[]} [select]
  * @prop {AstNode[]} [where]
  * @prop {AstNode[] | boolean} [groupby]
@@ -195,6 +186,7 @@ for (const name in verbs) {
  * @prop {JoinInfo} [join]
  * @prop {OrderInfo} [orderby]
  * @prop {number} [limit]
+ * @prop {number} [offset]
  * @prop {Source[]} [concat]
  * @prop {Source[]} [union]
  * @prop {Source[]} [intersect]
@@ -202,7 +194,7 @@ for (const name in verbs) {
  */
 
 /**
- * @typedef {object} Schema _schema in SqlQuery
+ * @typedef {object} Schema _schema in PostgresQueryBuilder
  * @prop {string[]} columns
  * @prop {string[]} [groupby]
  */
