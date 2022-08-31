@@ -155,6 +155,17 @@ export class PostgresDatabase extends Database {
           }
           await this.update(insert, values);
         }
+
+        let fieldLength = 0;
+        while (fieldLength !== columnNames.length) {
+          const results = await this.query(`SELECT * from ${name} LIMIT 1`);
+          if (results === null) {
+            throw new Error('Failed to inspect created table');
+          }
+
+          fieldLength = results.fields.length;
+          await new Promise(r => setTimeout(r, 200));
+        }
       })
       .catch(e => (console.error(e), null));
 
@@ -175,15 +186,21 @@ export class PostgresDatabase extends Database {
   /**
    * @param {string} text
    * @param {string[]?} values
-   * @returns {Promise<object[] | null>}
+   * @returns {Promise<import('pg').QueryResult | null>}
    */
   async query(text, values) {
     values = values || [];
     return await this._pool
       .query(text, values)
       .then(result => {
-        console.log('query', result && result.rows, result && result.fields, result && result.command, result && result.rowCount);
-        return result.rows;
+        console.log(
+          'query',
+          result && result.rows,
+          result && result.fields,
+          result && result.command,
+          result && result.rowCount,
+        );
+        return result;
       })
       .catch(e => (console.error(e), null));
   }
@@ -195,7 +212,13 @@ export class PostgresDatabase extends Database {
   async update(text, values) {
     values = values || [];
     const result = await this._pool.query(text, values);
-    console.log('update', result && result.rows, result && result.fields, result && result.command, result && result.rowCount);
+    console.log(
+      'update',
+      result && result.rows,
+      result && result.fields,
+      result && result.command,
+      result && result.rowCount,
+    );
   }
 
   async close() {

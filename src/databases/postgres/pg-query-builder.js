@@ -147,7 +147,7 @@ export class PostgresQueryBuilder extends QueryBuilder {
       return null;
     }
 
-    return results;
+    return results.rows;
   }
 }
 
