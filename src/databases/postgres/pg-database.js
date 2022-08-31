@@ -181,7 +181,10 @@ export class PostgresDatabase extends Database {
     values = values || [];
     return await this._pool
       .query(text, values)
-      .then(result => result.rows)
+      .then(result => {
+        console.log('query', result && result.rows, result && result.fields, result && result.command, result && result.rowCount);
+        return result.rows;
+      })
       .catch(e => (console.error(e), null));
   }
 
@@ -191,7 +194,8 @@ export class PostgresDatabase extends Database {
    */
   async update(text, values) {
     values = values || [];
-    await this._pool.query(text, values);
+    const result = await this._pool.query(text, values);
+    console.log('update', result && result.rows, result && result.fields, result && result.command, result && result.rowCount);
   }
 
   async close() {
