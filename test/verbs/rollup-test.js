@@ -1,7 +1,7 @@
 import {op} from 'arquero';
-import tape from 'tape';
-import createColumn from '../../src/utils/create-column';
-import {GB_KEY} from '../../src/verbs/groupby';
+import tape from '../tape-wrapper';
+import createColumn from '../../src/databases/postgres/utils/create-column';
+import {GB_KEY} from '../../src/databases/postgres/verbs/groupby';
 import {base, copy, group, onlyContainClsuses} from './common';
 
 tape('verb: rollup', t => {

@@ -1,7 +1,7 @@
-import tape from 'tape';
+import tape from '../tape-wrapper';
 import {op} from 'arquero';
 import {base, copy, group, onlyContainClsuses} from './common';
-import createColumn from '../../src/utils/create-column';
+import createColumn from '../../src/databases/postgres/utils/create-column';
 
 tape('verb: filter', t => {
   const filter = base.filter(d => d.a === 3);

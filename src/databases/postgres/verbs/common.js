@@ -1,19 +1,18 @@
 /** @typedef {import('arquero').internal.Table} Table */
-/** @typedef {import('../sql-query').SqlQuery} SqlQuery */
+/** @typedef {import('../pg-query-builder').PostgresQueryBuilder} PostgresQueryBuilder */
 
-import {sqlQuery} from '../sql-query';
 import createColumn from '../utils/create-column';
 
 /**
  *
  * @param {'concat' | 'except' | 'intersect' | 'union'} verb
- * @returns {(query: SqlQuery|string, others: (SqlQuery|string)[]) => SqlQuery}
+ * @returns {(query: PostgresQueryBuilder, others: PostgresQueryBuilder[]) => PostgresQueryBuilder}
  */
 export function set_verb(verb) {
-  return (query, others) => {
-    const select = query.columnNames().map(col => createColumn(col));
-    const tables = others.map(sqlQuery).map(other => other.ungroup());
-    return query.ungroup()._wrap({clauses: {select, [verb]: tables}});
+  return (table, others) => {
+    const select = table.columnNames().map(col => createColumn(col));
+    const tables = others.map(other => other.ungroup());
+    return table.ungroup()._wrap({clauses: {select, [verb]: tables}});
   };
 }
 

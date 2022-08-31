@@ -1,4 +1,4 @@
-import tape from 'tape';
+import tape from '../tape-wrapper';
 import {base} from './common';
 
 tape('verb: unorder', t => {

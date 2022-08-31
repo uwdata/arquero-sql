@@ -1,8 +1,11 @@
+DROP TABLE IF EXISTS a1;
+
 CREATE TABLE a1 (
     Seattle int,
     Chicago int,
     NewYork int
 );
+
 INSERT INTO a1 (Seattle, Chicago, NewYork)
 VALUES (69, 135, 165);
 INSERT INTO a1 (Seattle, Chicago, NewYork)

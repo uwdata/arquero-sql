@@ -1,5 +1,4 @@
 /**
- *
  * @param {string} name
  * @param {string[]} expectedWarnMessages
  * @param {string} message

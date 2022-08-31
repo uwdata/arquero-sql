@@ -1,14 +1,14 @@
 /** @typedef {import('./common').Verb} Verb */
-/** @typedef {import('../sql-query').SqlQuery} SqlQuery */
+/** @typedef {import('../pg-query-builder').PostgresQueryBuilder} PostgresQueryBuilder */
 
 import {op} from 'arquero';
 
 /**
  *
- * @param {SqlQuery} query
+ * @param {PostgresQueryBuilder} query
  * @param {number|import('arquero/src/table/transformable').TableExpr} size
  * @param {import('arquero/src/table/transformable').SampleOptions} options
- * @returns {SqlQuery}
+ * @returns {PostgresQueryBuilder}
  */
 export default function (query, size, options = {}) {
   if (typeof size !== 'number') {
@@ -25,7 +25,6 @@ export default function (query, size, options = {}) {
     throw new Error("Arquero-SQL's sample does not support weight");
   }
 
-  // eslint-disable-next-line no-console
   console.warn('Sampling will produce output with different ordering of rows');
   return query
     .orderby([() => op.random()])

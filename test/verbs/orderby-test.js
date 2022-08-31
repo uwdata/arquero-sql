@@ -1,4 +1,4 @@
-import tape from 'tape';
+import tape from '../tape-wrapper';
 import {desc} from 'arquero';
 import {base, copy, onlyContainClsuses} from './common';
 
