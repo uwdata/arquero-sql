@@ -1,7 +1,7 @@
-import {internal} from 'arquero';
 import * as aq from 'arquero';
+import aqVerbs from 'arquero/src/verbs';
 
-export class DBTable extends internal.Transformable {
+export class DBTable extends aq.internal.Transformable {
   /**
    * @param {Promise<import('./databases/query-builder').QueryBuilder>} builder
    */
@@ -13,7 +13,7 @@ export class DBTable extends internal.Transformable {
   }
 
   /**
-   * @returns {Promise<internal.ColumnTable>}
+   * @returns {Promise<aq.internal.ColumnTable>}
    */
   async toArquero() {
     const results = await this.objects();
@@ -33,7 +33,6 @@ export class DBTable extends internal.Transformable {
    */
   async print(options = {}) {
     const table = await this.toArquero();
-
     table.print(options);
     return this;
   }
@@ -62,57 +61,58 @@ export class DBTable extends internal.Transformable {
   }
 }
 
-[
-  'count',
-  'dedupe',
-  'derive',
-  'filter',
-  'groupby',
-  'join',
-  'orderby',
-  'rollup',
-  'sample',
-  'select',
-  'ungroup',
-  'unorder',
-].forEach(verb => {
-  verb = '__' + verb;
-  DBTable.prototype[verb] = (db, ...params) => call(verb, db, ...params);
-});
+// eslint-disable-next-line no-unused-vars
+const {__except, __concat, __intersect, __union, ...verbs} = aqVerbs;
 
-['concat', 'intersect', 'except', 'union'].forEach(verb => {
-  verb = '__' + verb;
-  DBTable.prototype[verb] = (db, ...params) => call_with_others(verb, db, ...params);
-});
+verbs.forEach(verb => (DBTable.prototype[verb] = callFactory(verb)));
+
+['concat', 'intersect', 'except', 'union']
+  .map(verb => '__' + verb)
+  .forEach(verb => (DBTable.prototype[verb] = callWithOthersFactory(verb)));
 
 /**
  * @param {string} verb
- * @param {DBTable} table
- * @param {...any} params
  */
-function call(verb, table, ...params) {
-  params = params.map(param => {
-    if (param instanceof Promise) {
-      return param;
-    } else {
-      return new Promise(r => r(param));
-    }
-  });
-  const pbuilder = Promise.all([table._builder, ...params]).then(([builder, ...resolves]) =>
-    builder[verb](...resolves),
-  );
-  return new DBTable(pbuilder);
+function callFactory(verb) {
+  /**
+   * @param {DBTable} table
+   * @param  {...any} params
+   */
+  function fn(table, ...params) {
+    const pparams = params.map(param => {
+      if (param instanceof DBTable) {
+        return param._builder;
+      } else {
+        return new Promise(r => r(param));
+      }
+    });
+    const pbuilder = Promise.all([table._builder, ...pparams]).then(([builder, ...resolves]) =>
+      builder[verb](builder, ...resolves),
+    );
+    return new DBTable(pbuilder);
+  }
+
+  return fn;
+}
+
+  return fn;
+>>>>>>> 778101d (add arquero database)
 }
 
 /**
  * @param {string} verb
- * @param {DBTable} table
- * @param {DBTable[] | DBTable} others
- * @param {...any} params
  */
-function call_with_others(verb, table, others, ...params) {
-  const pbuilder = Promise.all([table._builder, ...others.map(o => o._builder)]).then(([builder, ...otherBuilders]) =>
-    builder[verb](otherBuilders, ...params),
-  );
-  return new DBTable(pbuilder);
+function callWithOthersFactory(verb) {
+  /**
+   * @param {DBTable} table
+   * @param  {...any} params
+   */
+  function fn(table, others, ...params) {
+    const pbuilder = Promise.all([table, ...others].map(o => o._builder)).then(([builder, ...otherBuilders]) =>
+      builder[verb](builder, otherBuilders, ...params),
+    );
+    return new DBTable(pbuilder);
+  }
+
+  return fn;
 }

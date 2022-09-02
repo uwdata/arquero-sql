@@ -1,5 +1,5 @@
 import aqVerbs from 'arquero/src/verbs';
-import { QueryBuilder } from '../query-builder';
+import {QueryBuilder} from '../query-builder';
 
 export class ArqueroQueryBuilder extends QueryBuilder {
   /**
@@ -16,10 +16,6 @@ export class ArqueroQueryBuilder extends QueryBuilder {
     this._database = database;
   }
 
-  build() {
-    return this.table;
-  }
-
   /**
    * @param {import('arquero/src/table/table').ObjectsOptions} [options]
    */
@@ -28,8 +24,8 @@ export class ArqueroQueryBuilder extends QueryBuilder {
   }
 }
 
-Object.keys(aqVerbs).forEach(verb => {
-  ArqueroQueryBuilder.prototype[verb] = (qb, ...params) => {
-    return new ArqueroQueryBuilder(qb.table[verb](qb, ...params), qb._database);
-  };
-});
+Object.keys(aqVerbs).forEach(
+  verb =>
+    (ArqueroQueryBuilder.prototype[verb] = (qb, ...params) =>
+      new ArqueroQueryBuilder(qb.table[verb](qb, ...params), qb._database)),
+);

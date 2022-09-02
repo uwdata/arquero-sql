@@ -78,25 +78,31 @@ export class PostgresDatabase extends Database {
   fromCSV(path, schema, name) {
     name = name || `__aq__table__${uuid().split('-').join('')}__`;
     const columnNames = schema.map(({name}) => name);
-
-    const stream = fs.createReadStream(path);
-    const csvData = [];
-    const csvStream = fastcsv
-      .parse()
-      .on('data', csvData.push)
-      .on('end', () => csvData.shift());
-    stream.pipe(csvStream);
-
-    const query = insertInto(name, columnNames);
-    const results = this.query(
-      `CREATE TABLE ${name} (${schema.map(({name, type}) => name + ' ' + type).join(',')})`,
-    ).then(async () => {
-      await this.query('BEGIN');
-      for (const row in csvData) {
-        await this.query(query, row);
-      }
-      return this.query('COMMIT');
-    });
+    const results = new Promise()
+      .then(() => {
+        const stream = fs.createReadStream(path);
+        const csvData = [];
+        const csvStream = fastcsv
+          .parse()
+          .on('data', csvData.push)
+          .on('end', () => csvData.shift());
+        stream.pipe(csvStream);
+        return csvData;
+      })
+      .then(async csvData => {
+        await this.query(
+          `CREATE TABLE ${name} (${schema.map(({name, type}) => name + ' ' + type).join(',')})`,
+        );
+        return csvData;
+      })
+      .then(async csvData => {
+        const query = insertInto(name, columnNames);
+        await this.query('BEGIN');
+        for (const row in csvData) {
+          await this.query(query, row);
+        }
+        return this.query('COMMIT');
+      });
 
     return getTableAfter(this, results, name);
   }
@@ -109,26 +115,27 @@ export class PostgresDatabase extends Database {
   fromArquero(table, name) {
     name = name || `__aq__table__${uuid().split('-').join('')}__`;
     const columnNames = table.columnNames();
-    const numRows = table.numRows();
-    const results = (async () => {
-      /** @type {PGType[]} */
-      const types = columnNames.map(() => null);
-      for (const i in columnNames) {
-        const cn = columnNames[i];
-        const column = table.getter(cn);
-        for (let j = 0; j < numRows; j++) {
-          const val = column(j);
-          const type = getPGType(val);
-          if (type !== null) {
-            types[i] = type;
-            break;
+    const results = new Promise()
+      .then(() => {
+        const numRows = table.numRows();
+        /** @type {PGType[]} */
+        const types = columnNames.map(() => null);
+        for (const i in columnNames) {
+          const cn = columnNames[i];
+          const column = table.getter(cn);
+          for (let j = 0; j < numRows; j++) {
+            const val = column(j);
+            const type = getPGType(val);
+            if (type !== null) {
+              types[i] = type;
+              break;
+            }
           }
         }
-      }
-      return types;
-    })()
+        return types;
+      })
       .then(async types => {
-        await this.query(`CREATE TABLE ${name} (${columnNames.map((cn, i) => cn + ' ' + types[i]).join(',')})`)
+        await this.query(`CREATE TABLE ${name} (${columnNames.map((cn, i) => cn + ' ' + types[i]).join(',')})`);
         return types;
       })
       .then(async types => {
@@ -142,15 +149,16 @@ export class PostgresDatabase extends Database {
             const value = row[cn];
             values.push(value);
 
-          const type = getPGType(value);
-          if (types[i] !== type && type !== null) {
-            throw new Error('types in column ' + cn + ' do not match');
+            const type = getPGType(value);
+            if (types[i] !== type && type !== null) {
+              console.error('types in column ' + cn + ' do not match');
+              return null;
+            }
           }
+          await this.query(insert, values);
         }
-        await this.query(insert, values);
-      }
-      return this.query('COMMIT');
-    });
+        return this.query('COMMIT');
+      });
 
     return getTableAfter(this, results, name);
   }
