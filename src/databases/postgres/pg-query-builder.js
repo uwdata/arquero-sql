@@ -14,7 +14,7 @@ export class PostgresQueryBuilder extends QueryBuilder {
    * @param {import('./pg-database').PostgresDatabase?} database
    */
   constructor(source, schema, clauses, group, order, database) {
-    super({});
+    super();
     /** @type {Source} */
     this._source = source;
 
@@ -121,7 +121,7 @@ export class PostgresQueryBuilder extends QueryBuilder {
   }
 
   /**
-   * @param {ObjectsOptions} [options]
+   * @param {import('arquero/src/table/table').ObjectsOptions} [options]
    */
   async objects(options = {}) {
     const {grouped, limit, offset} = options;

@@ -110,33 +110,37 @@ export class PostgresDatabase extends Database {
     name = name || `__aq__table__${uuid().split('-').join('')}__`;
     const columnNames = table.columnNames();
     const numRows = table.numRows();
-
-    /** @type {PGType[]} */
-    const types = columnNames.map(() => null);
-    for (const i in columnNames) {
-      const cn = columnNames[i];
-      const column = table.getter(cn);
-      for (let j = 0; j < numRows; j++) {
-        const val = column(j);
-        const type = getPGType(val);
-        if (type !== null) {
-          types[i] = type;
-          break;
+    const results = (async () => {
+      /** @type {PGType[]} */
+      const types = columnNames.map(() => null);
+      for (const i in columnNames) {
+        const cn = columnNames[i];
+        const column = table.getter(cn);
+        for (let j = 0; j < numRows; j++) {
+          const val = column(j);
+          const type = getPGType(val);
+          if (type !== null) {
+            types[i] = type;
+            break;
+          }
         }
       }
-    }
-    const insert = insertInto(name, columnNames);
-    const results = this.query(
-      `CREATE TABLE ${name} (${columnNames.map((cn, i) => cn + ' ' + types[i]).join(',')})`,
-    ).then(async () => {
-      await this.query('BEGIN');
-      for (const row of table) {
-        /** @type {string[]} */
-        const values = [];
-        for (const i in columnNames) {
-          const cn = columnNames[i];
-          const value = row[cn];
-          values.push(value);
+      return types;
+    })()
+      .then(async types => {
+        await this.query(`CREATE TABLE ${name} (${columnNames.map((cn, i) => cn + ' ' + types[i]).join(',')})`)
+        return types;
+      })
+      .then(async types => {
+        const insert = insertInto(name, columnNames);
+        await this.query('BEGIN');
+        for (const row of table) {
+          /** @type {string[]} */
+          const values = [];
+          for (const i in columnNames) {
+            const cn = columnNames[i];
+            const value = row[cn];
+            values.push(value);
 
           const type = getPGType(value);
           if (types[i] !== type && type !== null) {
