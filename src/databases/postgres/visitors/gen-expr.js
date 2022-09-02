@@ -7,7 +7,10 @@ export const ARQUERO_FN = ['random'];
 const ARQUERO_OPS_TO_SQL = {
   row_number: 'ROW_NUMBER',
   mean: 'AVG',
+  average: 'AVG',
   max: 'MAX',
+  min: 'MIN',
+  stdev: 'STDEV',
   random: 'RANDOM',
 };
 
