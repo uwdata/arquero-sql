@@ -64,7 +64,7 @@ export class DBTable extends aq.internal.Transformable {
 // eslint-disable-next-line no-unused-vars
 const {__except, __concat, __intersect, __union, ...verbs} = aqVerbs;
 
-verbs.forEach(verb => (DBTable.prototype[verb] = callFactory(verb)));
+Object.keys(verbs).forEach(verb => (DBTable.prototype[verb] = callFactory(verb)));
 
 ['concat', 'intersect', 'except', 'union']
   .map(verb => '__' + verb)
@@ -93,10 +93,6 @@ function callFactory(verb) {
   }
 
   return fn;
-}
-
-  return fn;
->>>>>>> 778101d (add arquero database)
 }
 
 /**
