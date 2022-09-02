@@ -19,6 +19,7 @@
   "dependencies": {
     "arquero": "^3.0.0",
     "fast-csv": "^4.3.6",
+    "pg": "^8.5.1",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
@@ -27,8 +28,6 @@
     "eslint": "^8.21.0",
     "esm": "^3.2.25",
     "mkdirp": "^1.0.4",
-    "pg": "^8.5.1",
-    "pg-native": "^3.0.0",
     "prettier": "^2.2.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.77.3",

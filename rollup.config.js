@@ -10,8 +10,8 @@ function onwarn(warning, defaultHandler) {
 }
 
 const name = 'aqsql';
-const external = [ 'arquero', 'fast-csv', 'uuid' ];
-const globals = { 'arquero': 'arquero', 'fast-csv': 'csv', 'uuid': 'uuid' };
+const external = [ 'arquero', 'fast-csv', 'fs', 'pg', 'uuid' ];
+const globals = { 'arquero': 'arquero', 'fast-csv': 'csv', 'fs': 'fs', 'pg': 'pg', 'uuid': 'uuid' };
 
 const plugins = [
   json(),
