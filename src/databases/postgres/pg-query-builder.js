@@ -14,7 +14,7 @@ export class PostgresQueryBuilder extends QueryBuilder {
    * @param {import('./pg-database').PostgresDatabase?} database
    */
   constructor(source, schema, clauses, group, order, database) {
-    super({});
+    super();
     /** @type {Source} */
     this._source = source;
 
@@ -112,7 +112,7 @@ export class PostgresQueryBuilder extends QueryBuilder {
     return this._columns[index];
   }
 
-  build() {
+  _build() {
     return postgresCodeGen(
       this.ungroup()
         .select(all())
@@ -121,7 +121,7 @@ export class PostgresQueryBuilder extends QueryBuilder {
   }
 
   /**
-   * @param {ObjectsOptions} [options]
+   * @param {import('arquero/src/table/table').ObjectsOptions} [options]
    */
   async objects(options = {}) {
     const {grouped, limit, offset} = options;
@@ -138,7 +138,8 @@ export class PostgresQueryBuilder extends QueryBuilder {
       t = t._append({clauses: c => ({...c, offset: offset})});
     }
 
-    return t._database.query(t.build()).then(results => results.rows);
+    const results = await t._database.query(t._build());
+    return results.rows;
   }
 }
 

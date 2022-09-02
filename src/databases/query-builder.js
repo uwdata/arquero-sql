@@ -2,13 +2,6 @@ import {internal} from 'arquero';
 
 export class QueryBuilder extends internal.Transformable {
   /**
-   * @returns {string}
-   */
-  build() {
-    throw new Error('build not supported');
-  }
-
-  /**
    * @typedef {object} ObjectsOptions
    * @property {number} [limit=Infinity]
    * @property {number} [offset=0]
