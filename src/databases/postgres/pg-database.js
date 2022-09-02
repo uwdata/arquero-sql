@@ -91,9 +91,7 @@ export class PostgresDatabase extends Database {
       })
       .then(async csvData => {
         await this.query(`CREATE TABLE ${name} (${schema.map(({name, type}) => name + ' ' + type).join(',')})`);
-        return csvData;
-      })
-      .then(async csvData => {
+
         const query = insertInto(name, columnNames);
         await this.query('BEGIN');
         for (const row in csvData) {
@@ -134,9 +132,7 @@ export class PostgresDatabase extends Database {
       })
       .then(async types => {
         await this.query(`CREATE TABLE ${name} (${columnNames.map((cn, i) => cn + ' ' + types[i]).join(',')})`);
-        return types;
-      })
-      .then(async types => {
+
         const insert = insertInto(name, columnNames);
         await this.query('BEGIN');
         for (const row of table) {
@@ -166,7 +162,7 @@ export class PostgresDatabase extends Database {
    * @returns {Promise<string[]>}
    */
   async getColumnNames(table) {
-    return await this._pool
+    return this._pool
       .query('SELECT column_name FROM information_schema.columns WHERE table_name = $1', [table])
       .then(result => result.rows.map(r => r.column_name));
   }
@@ -178,7 +174,7 @@ export class PostgresDatabase extends Database {
    */
   async query(text, values) {
     values = values || [];
-    return await this._pool.query(text, values);
+    return this._pool.query(text, values);
   }
 
   async close() {
