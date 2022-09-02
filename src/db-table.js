@@ -83,7 +83,7 @@ function callFactory(verb) {
       if (param instanceof DBTable) {
         return param._builder;
       } else {
-        return new Promise(r => r(param));
+        return Promise.resolve(param);
       }
     });
     const pbuilder = Promise.all([table._builder, ...pparams]).then(([builder, ...resolves]) =>

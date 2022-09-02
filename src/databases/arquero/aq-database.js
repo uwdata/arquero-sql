@@ -17,7 +17,7 @@ export class ArqueroDatabase extends Database {
    * @param {string} name
    */
   table(name) {
-    const pbuilder = new Promise(resolve => resolve(new ArqueroQueryBuilder(this.tables.get(name), this)));
+    const pbuilder = Promise.resolve(new ArqueroQueryBuilder(this.tables.get(name), this));
     return new DBTable(pbuilder);
   }
 
@@ -28,7 +28,7 @@ export class ArqueroDatabase extends Database {
    */
   fromCSV(path, schema, name) {
     name = name || `__aq__table__${uuid().split('-').join('')}__`;
-    const result = new Promise.then(() => {
+    const result = Promise.resolve().then(() => {
       const table = aq.fromCSV(fs.readFileSync(path));
       this.tables.set(name, table);
       return table;
@@ -44,7 +44,7 @@ export class ArqueroDatabase extends Database {
    */
   fromArquero(table, name) {
     this.tables.set(name, table);
-    return new DBTable(new Promise(resolve => resolve(new ArqueroQueryBuilder(table, this))));
+    return new DBTable(Promise.resolve(new ArqueroQueryBuilder(table, this)));
   }
 
   async close() {}

@@ -78,7 +78,7 @@ export class PostgresDatabase extends Database {
   fromCSV(path, schema, name) {
     name = name || `__aq__table__${uuid().split('-').join('')}__`;
     const columnNames = schema.map(({name}) => name);
-    const results = new Promise()
+    const results = Promise.resolve()
       .then(() => {
         const stream = fs.createReadStream(path);
         const csvData = [];
@@ -90,9 +90,7 @@ export class PostgresDatabase extends Database {
         return csvData;
       })
       .then(async csvData => {
-        await this.query(
-          `CREATE TABLE ${name} (${schema.map(({name, type}) => name + ' ' + type).join(',')})`,
-        );
+        await this.query(`CREATE TABLE ${name} (${schema.map(({name, type}) => name + ' ' + type).join(',')})`);
         return csvData;
       })
       .then(async csvData => {
@@ -115,7 +113,7 @@ export class PostgresDatabase extends Database {
   fromArquero(table, name) {
     name = name || `__aq__table__${uuid().split('-').join('')}__`;
     const columnNames = table.columnNames();
-    const results = new Promise()
+    const results = Promise.resolve()
       .then(() => {
         const numRows = table.numRows();
         /** @type {PGType[]} */
