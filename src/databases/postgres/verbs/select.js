@@ -1,4 +1,4 @@
-/** @typedef { import('../pg-db-table').PostgresDBTable } PostgresDBTable */
+/** @typedef { import('../pg-table-view').PostgresTableView } PostgresTableView */
 /** @typedef { import('../utils/create-column').ColumnType } ColumnType */
 /** @typedef { import('./common').Verb } Verb */
 
@@ -9,9 +9,9 @@ import {GB_KEY} from './groupby';
 
 /**
  *
- * @param {PostgresDBTable} query
+ * @param {PostgresTableView} query
  * @param {import('arquero/src/table/transformable').SelectEntry[]} columns
- * @returns {PostgresDBTable}
+ * @returns {PostgresTableView}
  */
 export default function (query, columns) {
   /** @type {ColumnType[]} */

@@ -1,9 +1,9 @@
 import * as aq from 'arquero';
 import {v4 as uuid} from 'uuid';
 import * as fs from 'fs';
-import {AsyncDBTable} from '../../async-db-table';
+import {DBTable} from '../../db-table';
 import {Database} from '../database';
-import {ArqueroDBTable} from './aq-db-table';
+import {ArqueroTableView} from './aq-table-view';
 
 export class ArqueroDatabase extends Database {
   constructor() {
@@ -17,14 +17,14 @@ export class ArqueroDatabase extends Database {
    * @param {string} name
    */
   table(name) {
-    const pbuilder = Promise.resolve(new ArqueroDBTable(this.tables.get(name), this));
-    return new AsyncDBTable(pbuilder);
+    const pbuilder = Promise.resolve(new ArqueroTableView(this.tables.get(name), this));
+    return new DBTable(pbuilder);
   }
 
   /**
    * @param {string} path
    * @param {{name: string, type: PGType}[]} schema
-   * @param {string?} name
+   * @param {string} [name]
    */
   fromCSV(path, schema, name) {
     name = name || `__aq__table__${uuid().split('-').join('')}__`;
@@ -34,17 +34,17 @@ export class ArqueroDatabase extends Database {
       return table;
     });
 
-    return new AsyncDBTable(result.then(table => new ArqueroDBTable(table, this)));
+    return new DBTable(result.then(table => new ArqueroTableView(table, this)));
   }
 
   /**
    * @param {import('arquero').internal.Table} table
-   * @param {string?} name
-   * @returns {AsyncDBTable}
+   * @param {string} [name]
+   * @returns {DBTable}
    */
   fromArquero(table, name) {
     this.tables.set(name, table);
-    return new AsyncDBTable(Promise.resolve(new ArqueroDBTable(table, this)));
+    return new DBTable(Promise.resolve(new ArqueroTableView(table, this)));
   }
 
   async close() {}

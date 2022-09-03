@@ -1,2 +1,2 @@
 export {PostgresDatabase} from './pg-database';
-export {PostgresDBTable} from './pg-db-table';
+export {PostgresTableView} from './pg-table-view';

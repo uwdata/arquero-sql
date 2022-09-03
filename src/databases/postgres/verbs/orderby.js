@@ -1,4 +1,4 @@
-/** @typedef { import('../pg-db-table').PostgresDBTable } PostgresDBTable */
+/** @typedef { import('../pg-table-view').PostgresTableView } PostgresTableView */
 /** @typedef { import('./common').Verb} Verb */
 
 import {internal} from 'arquero';
@@ -10,9 +10,9 @@ import isString from 'arquero/src/util/is-string';
 
 /**
  *
- * @param {PostgresDBTable} query
+ * @param {PostgresTableView} query
  * @param {import('arquero/src/table/transformable').OrderKey[]} keys
- * @returns {PostgresDBTable}
+ * @returns {PostgresTableView}
  */
 export default function (query, keys) {
   return query._wrap({order: parseValues(query, keys)});

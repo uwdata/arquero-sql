@@ -1,17 +1,17 @@
 import {all} from 'arquero';
-import {DBTable} from '../db-table';
+import {TableView} from '../table-view';
 import isFunction from 'arquero/src/util/is-function';
 import verbs from './verbs';
 import postgresCodeGen from './pg-code-gen';
 
-export class PostgresDBTable extends DBTable {
+export class PostgresTableView extends TableView {
   /**
    * @param {Source} source source table or another sql query
    * @param {string[]} schema object of table schema
    * @param {Clauses} [clauses] object of sql clauses
    * @param {string[]} [group]
    * @param {OrderInfo} [order]
-   * @param {import('./pg-database').PostgresDatabase?} database
+   * @param {import('./pg-database').PostgresDatabase} [database]
    */
   constructor(source, schema, clauses, group, order, database) {
     super();
@@ -52,12 +52,13 @@ export class PostgresDBTable extends DBTable {
    * @param {WrapParams} param0
    */
   _append({columns, clauses, group, order}) {
-    return new PostgresDBTable(
+    return new PostgresTableView(
       this._source,
       columns !== undefined ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
       clauses !== undefined ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : this._clauses,
       group != undefined ? (isFunction(group) ? group(this._group) : group) : this._group,
       order != undefined ? (isFunction(order) ? order(this._order) : order) : this._order,
+      this._database,
     );
   }
 
@@ -66,12 +67,13 @@ export class PostgresDBTable extends DBTable {
    * @param {WrapParams} param0
    */
   _wrap({columns, clauses, group, order}) {
-    return new PostgresDBTable(
+    return new PostgresTableView(
       this,
       columns !== undefined ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
       clauses !== undefined ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : {},
       group !== undefined ? (isFunction(group) ? group(this._group) : group) : this._group,
       order !== undefined ? (isFunction(order) ? order(this._order) : order) : this._order,
+      this._database,
     );
   }
 
@@ -143,9 +145,9 @@ export class PostgresDBTable extends DBTable {
   }
 }
 
-Object.assign(PostgresDBTable.prototype, verbs);
+Object.assign(PostgresTableView.prototype, verbs);
 
-/** @typedef {string | PostgresDBTable} Source _source in PostgresDBTable */
+/** @typedef {string | PostgresTableView} Source _source in PostgresTableView */
 
 /**
  * @typedef {object} AstNode
@@ -159,7 +161,7 @@ Object.assign(PostgresDBTable.prototype, verbs);
 /**
  * @typedef {object} JoinInfo
  * @prop {AstNode} on
- * @prop {PostgresDBTable} other
+ * @prop {PostgresTableView} other
  * @prop {JoinType} join_type
  */
 
@@ -170,7 +172,7 @@ Object.assign(PostgresDBTable.prototype, verbs);
  */
 
 /**
- * @typedef {object} Clauses _clauses in PostgresDBTable
+ * @typedef {object} Clauses _clauses in PostgresTableView
  * @prop {AstNode[]} [select]
  * @prop {AstNode[]} [where]
  * @prop {AstNode[] | boolean} [groupby]
@@ -186,7 +188,7 @@ Object.assign(PostgresDBTable.prototype, verbs);
  */
 
 /**
- * @typedef {object} Schema _schema in PostgresDBTable
+ * @typedef {object} Schema _schema in PostgresTableView
  * @prop {string[]} columns
  * @prop {string[]} [groupby]
  */

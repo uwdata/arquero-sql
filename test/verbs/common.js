@@ -1,11 +1,11 @@
-import {PostgresDBTable} from '../../src/databases/postgres';
+import {PostgresTableView} from '../../src/databases/postgres';
 import {internal} from 'arquero';
 
 export const {Verbs} = internal;
-export const base = new PostgresDBTable('base', ['a', 'b', 'c', 'd']);
-export const base2 = new PostgresDBTable('base2', ['a', 'b', 'c', 'd', 'e']);
-export const base3 = new PostgresDBTable('base3', ['a', 'b', 'c', 'e']);
-// export const noschema = new PostgresDBTable('no-schema');
+export const base = new PostgresTableView('base', ['a', 'b', 'c', 'd']);
+export const base2 = new PostgresTableView('base2', ['a', 'b', 'c', 'd', 'e']);
+export const base3 = new PostgresTableView('base3', ['a', 'b', 'c', 'e']);
+// export const noschema = new PostgresTableView('no-schema');
 export const group = base.groupby('a', 'b');
 
 /**
@@ -66,7 +66,7 @@ export function deepEqualAll(t, actuals, expecteds) {
 /**
  *
  * @param {object} t
- * @param {PostgresDBTable} actual
+ * @param {PostgresTableView} actual
  * @param {string[]} expectedClauses
  */
 export function onlyContainClsuses(t, actual, expectedClauses) {

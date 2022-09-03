@@ -1,7 +1,7 @@
 import aqVerbs from 'arquero/src/verbs';
-import {DBTable} from '../db-table';
+import {TableView} from '../table-view';
 
-export class ArqueroDBTable extends DBTable {
+export class ArqueroTableView extends TableView {
   /**
    * @param {import('arquero').internal.Table} table
    */
@@ -21,5 +21,5 @@ export class ArqueroDBTable extends DBTable {
 }
 
 Object.keys(aqVerbs).forEach(
-  verb => (ArqueroDBTable.prototype[verb] = (qb, ...params) => new ArqueroDBTable(qb.table[verb](qb, ...params))),
+  verb => (ArqueroTableView.prototype[verb] = (qb, ...params) => new ArqueroTableView(qb.table[verb](qb, ...params))),
 );

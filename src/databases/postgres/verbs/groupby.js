@@ -1,5 +1,5 @@
 /** @typedef {import('./common').Verb} Verb */
-/** @typedef {import('../pg-db-table').PostgresDBTable} PostgresDBTable */
+/** @typedef {import('../pg-table-view').PostgresTableView} PostgresTableView */
 
 import resolve from 'arquero/src/helpers/selection';
 import isFunction from 'arquero/src/util/is-function';
@@ -11,9 +11,9 @@ export const GB_KEY = key => GB_KEY_PREFIX + key + GB_KEY_SUFFIX;
 
 /**
  *
- * @param {PostgresDBTable} query
+ * @param {PostgresTableView} query
  * @param {import('arquero/src/table/transformable').ListEntry[]} keys
- * @returns {PostgresDBTable}
+ * @returns {PostgresTableView}
  */
 export default function (query, keys) {
   if (query.isGrouped()) {
