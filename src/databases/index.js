@@ -1,2 +1,2 @@
 export {Database} from './database';
-export {DBTable} from './query-builder';
+export {DBTable} from './db-table';

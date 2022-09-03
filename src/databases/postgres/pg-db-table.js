@@ -1,5 +1,5 @@
 import {all} from 'arquero';
-import {DBTable} from '../query-builder';
+import {DBTable} from '../db-table';
 import isFunction from 'arquero/src/util/is-function';
 import verbs from './verbs';
 import postgresCodeGen from './pg-code-gen';
