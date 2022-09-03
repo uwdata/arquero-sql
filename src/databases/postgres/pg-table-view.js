@@ -15,16 +15,15 @@ export class PostgresTableView extends TableView {
    */
   constructor(source, schema, clauses, group, order, database) {
     super();
+
     /** @type {Source} */
     this._source = source;
 
     /** @type {string[]} */
     this._columns = schema;
 
-    database = database || source.database;
-    if (typeof source !== 'string' && database !== source.database) {
-      console.log(source._database === database);
-      throw new Error("Database must match with parent's database");
+    if (typeof source !== 'string') {
+      database = source._database;
     }
     /** @type {import('./pg-database').PostgresDatabase} */
     this._database = database;
@@ -59,7 +58,6 @@ export class PostgresTableView extends TableView {
       clauses !== undefined ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : this._clauses,
       group != undefined ? (isFunction(group) ? group(this._group) : group) : this._group,
       order != undefined ? (isFunction(order) ? order(this._order) : order) : this._order,
-      this._database,
     );
   }
 
@@ -74,7 +72,6 @@ export class PostgresTableView extends TableView {
       clauses !== undefined ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : {},
       group !== undefined ? (isFunction(group) ? group(this._group) : group) : this._group,
       order !== undefined ? (isFunction(order) ? order(this._order) : order) : this._order,
-      this._database,
     );
   }
 
