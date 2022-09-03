@@ -1,8 +1,8 @@
-/** @typedef { import('../pg-db-table').PostgresDBTable} PostgresDBTable */
+/** @typedef { import('../pg-table-view').PostgresTableView} PostgresTableView */
 
 /**
  *
- * @param {PostgresDBTable} query
+ * @param {PostgresTableView} query
  */
 export default function (query) {
   return query.isGrouped() ? query._wrap({columns: query.columnNames(), group: null}) : query;

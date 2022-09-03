@@ -8,7 +8,7 @@ export class Database {
 
   /**
    * @param {string} name
-   * @returns {AsyncDBTable}
+   * @returns {DBTable}
    */
   // eslint-disable-next-line no-unused-vars
   table(name) {
@@ -16,22 +16,23 @@ export class Database {
   }
 
   /**
-   * @param {string} table
-   * @returns {Promise<string[]>}
+   * @param {string} path
+   * @param {{name: string, type: string}[]} schema
+   * @param {string} [name]
+   * @returns {DBTable}
    */
   // eslint-disable-next-line no-unused-vars
-  async getColumnNames(table) {
+  fromCSV(path, schema, name) {
     throw new Error('Not implemented');
   }
 
   /**
-   * Execute Query to Database
-   * @param {string} text A query string to be executed
-   * @param {string[]?} values
-   * @returns {Promise<import('pg').QueryResult>} execution results
+   * @param {import('arquero').internal.Table} table
+   * @param {string} [name]
+   * @returns {DBTable}
    */
   // eslint-disable-next-line no-unused-vars
-  async query(text, values) {
+  fromArquero(table, name) {
     throw new Error('Not implemented');
   }
 

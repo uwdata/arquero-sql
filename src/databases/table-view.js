@@ -1,6 +1,6 @@
 import {internal} from 'arquero';
 
-export class DBTable extends internal.Transformable {
+export class TableView extends internal.Transformable {
   /**
    * @typedef {object} ObjectsOptions
    * @property {number} [limit=Infinity]

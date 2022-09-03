@@ -1,7 +1,7 @@
 import tape from './tape-wrapper';
 // import {SqlQueryBuilder} from '../src';
 // import {all} from 'arquero';
-// import {copy, toAst} from './sql-db-table/common';
+// import {copy, toAst} from './sql-table-view/common';
 // import createColumn from '../src/utils/create-column';
 
 tape('optimizer', t => {

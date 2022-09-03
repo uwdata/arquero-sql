@@ -1,8 +1,8 @@
-/** @typedef { import('../pg-db-table').PostgresDBTable} PostgresDBTable */
+/** @typedef { import('../pg-table-view').PostgresTableView} PostgresTableView */
 
 /**
  *
- * @param {PostgresDBTable} query
+ * @param {PostgresTableView} query
  */
 export default function (query) {
   return query._order ? query._wrap({order: null}) : query;

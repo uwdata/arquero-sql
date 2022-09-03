@@ -1,5 +1,5 @@
 /** @typedef {import('./common').Verb} Verb */
-/** @typedef {import('../pg-db-table').PostgresDBTable} PostgresDBTable */
+/** @typedef {import('../pg-table-view').PostgresTableView} PostgresTableView */
 
 import {internal, not} from 'arquero';
 import {ARQUERO_AGGREGATION_FN, ARQUERO_WINDOW_FN} from '../visitors/gen-expr';
@@ -9,9 +9,9 @@ const TMP_COL = '___arquero_sql_predicate___';
 
 /**
  *
- * @param {PostgresDBTable} query
+ * @param {PostgresTableView} query
  * @param {import('arquero/dist/types/table/transformable').TableExpr|string} criteria
- * @returns {PostgresDBTable}
+ * @returns {PostgresTableView}
  */
 export default function (query, criteria) {
   const _criteria = internal.parse({p: criteria}, {ast: true}).exprs[0];

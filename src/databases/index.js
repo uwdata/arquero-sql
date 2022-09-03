@@ -1,2 +1,2 @@
 export {Database} from './database';
-export {DBTable} from './db-table';
+export {TableView} from './table-view';

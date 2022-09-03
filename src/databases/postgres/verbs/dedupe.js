@@ -1,4 +1,4 @@
-/** @typedef {import('../pg-db-table').PostgresDBTable} PostgresDBTable */
+/** @typedef {import('../pg-table-view').PostgresTableView} PostgresTableView */
 /** @typedef {import('arquero/src/table/transformable').ListEntry} ListEntry */
 
 import {not, op} from 'arquero';
@@ -7,9 +7,9 @@ const ROW_NUMBER = '___arquero_sql_row_number___';
 
 /**
  *
- * @param {PostgresDBTable} query
+ * @param {PostgresTableView} query
  * @param {ListEntry[]} keys
- * @returns {PostgresDBTable}
+ * @returns {PostgresTableView}
  */
 export default function (query, keys = []) {
   return query
