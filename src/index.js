@@ -1,4 +1,4 @@
-import {ArqueroDatabase} from './database/arquero';
+import {ArqueroDatabase} from './databases/arquero';
 import {PostgresDatabase} from './databases/postgres';
 
 export {DBTable} from './db-table';
