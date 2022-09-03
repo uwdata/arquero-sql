@@ -2,9 +2,9 @@ import {Pool} from 'pg';
 import {v4 as uuid} from 'uuid';
 import * as fs from 'fs';
 import * as fastcsv from 'fast-csv';
-import {DBTable} from '../../db-table';
+import {AsyncDBTable} from '../../async-db-table';
 import {Database} from '../database';
-import {PostgresQueryBuilder} from './pg-query-builder';
+import {PostgresDBTable} from './pg-db-table';
 
 /** @typedef {'TEXT' | 'BOOLEAN' | 'JSONB' | 'TIMESTAMPZ' | 'DOUBLE PRECISION'} PGType */
 
@@ -60,20 +60,20 @@ export class PostgresDatabase extends Database {
 
   /**
    * @param {string} name
-   * @returns {DBTable}
+   * @returns {AsyncDBTable}
    */
   table(name) {
     const pbuilder = this.getColumnNames(name).then(
-      colNames => new PostgresQueryBuilder(name, colNames, null, null, null, this),
+      colNames => new PostgresDBTable(name, colNames, null, null, null, this),
     );
-    return new DBTable(pbuilder);
+    return new AsyncDBTable(pbuilder);
   }
 
   /**
    * @param {string} path
    * @param {{name: string, type: PGType}[]} schema
    * @param {string?} name
-   * @returns {DBTable}
+   * @returns {AsyncDBTable}
    */
   fromCSV(path, schema, name) {
     name = name || `__aq__table__${uuid().split('-').join('')}__`;
@@ -106,7 +106,7 @@ export class PostgresDatabase extends Database {
   /**
    * @param {import('arquero').internal.Table} table
    * @param {string?} name
-   * @returns {DBTable}
+   * @returns {AsyncDBTable}
    */
   fromArquero(table, name) {
     name = name || `__aq__table__${uuid().split('-').join('')}__`;
@@ -185,6 +185,6 @@ export class PostgresDatabase extends Database {
 function getTableAfter(db, promise, name) {
   const pbuilder = promise
     .then(() => db.getColumnNames(name))
-    .then(colNames => new PostgresQueryBuilder(name, colNames, null, null, null, db));
-  return new DBTable(pbuilder);
+    .then(colNames => new PostgresDBTable(name, colNames, null, null, null, db));
+  return new AsyncDBTable(pbuilder);
 }

@@ -1,2 +1,2 @@
 export {PostgresDatabase} from './pg-database';
-export {PostgresQueryBuilder} from './pg-query-builder';
+export {PostgresDBTable} from './pg-db-table';

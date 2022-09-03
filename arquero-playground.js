@@ -135,5 +135,5 @@ const out = qb
 //   .groupby('Seattle')
 //   .rollup({max_Chicago: d => op.max(d.Chicago)})
 //   .orderby(desc(d => d.Seattle))
-//   .join((new QueryBuilder("test")), (a, b) => op.equal(a.Seattle, b.Chicago), ['test1'])
+//   .join((new DBTable("test")), (a, b) => op.equal(a.Seattle, b.Chicago), ['test1'])
 // console.log(JSON.stringify(out.toAST(), null, 2));

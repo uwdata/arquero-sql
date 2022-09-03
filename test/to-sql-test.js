@@ -1,10 +1,10 @@
 import tape from './tape-wrapper';
-// import {SqlQueryBuilder} from '../src';
+// import {SqlDBTable} from '../src';
 // import {internal} from 'arquero';
 // const {Verbs} = internal;
 
 tape('to-sql : well printed', t => {
-  // const test = new SqlQueryBuilder(
+  // const test = new SqlDBTable(
   //   'table',
   //   null,
   //   // Verbs.select(['d => mean(d.foo)'])},

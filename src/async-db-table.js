@@ -1,15 +1,15 @@
 import * as aq from 'arquero';
 import aqVerbs from 'arquero/src/verbs';
 
-export class DBTable extends aq.internal.Transformable {
+export class AsyncDBTable extends aq.internal.Transformable {
   /**
-   * @param {Promise<import('./databases/query-builder').QueryBuilder>} builder
+   * @param {Promise<import('./databases/db-table').DBTable>} table
    */
-  constructor(builder) {
+  constructor(table) {
     super({});
 
-    /** @type {Promise<import('./databases/query-builder').QueryBuilder>} */
-    this._builder = builder;
+    /** @type {Promise<import('./databases/db-table').DBTable>} */
+    this._table = table;
   }
 
   /**
@@ -49,7 +49,7 @@ export class DBTable extends aq.internal.Transformable {
    * @param {ObjectsOptions} [options]
    */
   async objects(options = {}) {
-    return await this._builder.then(b => b.objects(options));
+    return await this._table.then(b => b.objects(options));
   }
 
   /**
@@ -64,32 +64,32 @@ export class DBTable extends aq.internal.Transformable {
 // eslint-disable-next-line no-unused-vars
 const {__except, __concat, __intersect, __union, ...verbs} = aqVerbs;
 
-Object.keys(verbs).forEach(verb => (DBTable.prototype[verb] = callFactory(verb)));
+Object.keys(verbs).forEach(verb => (AsyncDBTable.prototype[verb] = callFactory(verb)));
 
 ['concat', 'intersect', 'except', 'union']
   .map(verb => '__' + verb)
-  .forEach(verb => (DBTable.prototype[verb] = callWithOthersFactory(verb)));
+  .forEach(verb => (AsyncDBTable.prototype[verb] = callWithOthersFactory(verb)));
 
 /**
  * @param {string} verb
  */
 function callFactory(verb) {
   /**
-   * @param {DBTable} table
+   * @param {AsyncDBTable} table
    * @param  {...any} params
    */
   function fn(table, ...params) {
     const pparams = params.map(param => {
-      if (param instanceof DBTable) {
-        return param._builder;
+      if (param instanceof AsyncDBTable) {
+        return param._table;
       } else {
         return Promise.resolve(param);
       }
     });
-    const pbuilder = Promise.all([table._builder, ...pparams]).then(([builder, ...resolves]) =>
+    const pbuilder = Promise.all([table._table, ...pparams]).then(([builder, ...resolves]) =>
       builder[verb](builder, ...resolves),
     );
-    return new DBTable(pbuilder);
+    return new AsyncDBTable(pbuilder);
   }
 
   return fn;
@@ -100,14 +100,14 @@ function callFactory(verb) {
  */
 function callWithOthersFactory(verb) {
   /**
-   * @param {DBTable} table
+   * @param {AsyncDBTable} table
    * @param  {...any} params
    */
   function fn(table, others, ...params) {
     const pbuilder = Promise.all([table, ...others].map(o => o._builder)).then(([builder, ...otherBuilders]) =>
       builder[verb](builder, otherBuilders, ...params),
     );
-    return new DBTable(pbuilder);
+    return new AsyncDBTable(pbuilder);
   }
 
   return fn;

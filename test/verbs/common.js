@@ -1,11 +1,11 @@
-import {PostgresQueryBuilder} from '../../src/databases/postgres';
+import {PostgresDBTable} from '../../src/databases/postgres';
 import {internal} from 'arquero';
 
 export const {Verbs} = internal;
-export const base = new PostgresQueryBuilder('base', ['a', 'b', 'c', 'd']);
-export const base2 = new PostgresQueryBuilder('base2', ['a', 'b', 'c', 'd', 'e']);
-export const base3 = new PostgresQueryBuilder('base3', ['a', 'b', 'c', 'e']);
-// export const noschema = new PostgresQueryBuilder('no-schema');
+export const base = new PostgresDBTable('base', ['a', 'b', 'c', 'd']);
+export const base2 = new PostgresDBTable('base2', ['a', 'b', 'c', 'd', 'e']);
+export const base3 = new PostgresDBTable('base3', ['a', 'b', 'c', 'e']);
+// export const noschema = new PostgresDBTable('no-schema');
 export const group = base.groupby('a', 'b');
 
 /**
@@ -66,7 +66,7 @@ export function deepEqualAll(t, actuals, expecteds) {
 /**
  *
  * @param {object} t
- * @param {PostgresQueryBuilder} actual
+ * @param {PostgresDBTable} actual
  * @param {string[]} expectedClauses
  */
 export function onlyContainClsuses(t, actual, expectedClauses) {

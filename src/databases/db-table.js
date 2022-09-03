@@ -1,6 +1,6 @@
 import {internal} from 'arquero';
 
-export class QueryBuilder extends internal.Transformable {
+export class DBTable extends internal.Transformable {
   /**
    * @typedef {object} ObjectsOptions
    * @property {number} [limit=Infinity]

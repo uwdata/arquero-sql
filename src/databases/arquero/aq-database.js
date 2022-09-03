@@ -1,9 +1,9 @@
 import * as aq from 'arquero';
 import {v4 as uuid} from 'uuid';
 import * as fs from 'fs';
-import {DBTable} from '../../db-table';
+import {AsyncDBTable} from '../../async-db-table';
 import {Database} from '../database';
-import {ArqueroQueryBuilder} from './aq-query-builder';
+import {ArqueroDBTable} from './aq-db-table';
 
 export class ArqueroDatabase extends Database {
   constructor() {
@@ -17,8 +17,8 @@ export class ArqueroDatabase extends Database {
    * @param {string} name
    */
   table(name) {
-    const pbuilder = Promise.resolve(new ArqueroQueryBuilder(this.tables.get(name), this));
-    return new DBTable(pbuilder);
+    const pbuilder = Promise.resolve(new ArqueroDBTable(this.tables.get(name), this));
+    return new AsyncDBTable(pbuilder);
   }
 
   /**
@@ -34,17 +34,17 @@ export class ArqueroDatabase extends Database {
       return table;
     });
 
-    return new DBTable(result.then(table => new ArqueroQueryBuilder(table, this)));
+    return new AsyncDBTable(result.then(table => new ArqueroDBTable(table, this)));
   }
 
   /**
    * @param {import('arquero').internal.Table} table
    * @param {string?} name
-   * @returns {DBTable}
+   * @returns {AsyncDBTable}
    */
   fromArquero(table, name) {
     this.tables.set(name, table);
-    return new DBTable(Promise.resolve(new ArqueroQueryBuilder(table, this)));
+    return new AsyncDBTable(Promise.resolve(new ArqueroDBTable(table, this)));
   }
 
   async close() {}
