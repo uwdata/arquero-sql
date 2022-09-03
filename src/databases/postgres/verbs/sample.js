@@ -1,14 +1,14 @@
 /** @typedef {import('./common').Verb} Verb */
-/** @typedef {import('../pg-query-builder').PostgresQueryBuilder} PostgresQueryBuilder */
+/** @typedef {import('../pg-db-table').PostgresDBTable} PostgresDBTable */
 
 import {op} from 'arquero';
 
 /**
  *
- * @param {PostgresQueryBuilder} query
+ * @param {PostgresDBTable} query
  * @param {number|import('arquero/src/table/transformable').TableExpr} size
  * @param {import('arquero/src/table/transformable').SampleOptions} options
- * @returns {PostgresQueryBuilder}
+ * @returns {PostgresDBTable}
  */
 export default function (query, size, options = {}) {
   if (typeof size !== 'number') {

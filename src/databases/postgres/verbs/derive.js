@@ -1,5 +1,5 @@
 /** @typedef {import('./common').Verb} Verb */
-/** @typedef {import('../pg-query-builder').PostgresQueryBuilder} PostgresQueryBuilder */
+/** @typedef {import('../pg-db-table').PostgresDBTable} PostgresDBTable */
 
 import {internal} from 'arquero';
 import error from 'arquero/src/util/error';
@@ -10,10 +10,10 @@ import {GB_KEY} from './groupby';
 
 /**
  *
- * @param {PostgresQueryBuilder} query
+ * @param {PostgresDBTable} query
  * @param {import('arquero/src/table/transformable').ExprObject} values
  * @param {import('arquero/src/table/transformable').DeriveOptions} [options]
- * @returns {PostgresQueryBuilder}
+ * @returns {PostgresDBTable}
  */
 export default function (query, values, options = {}) {
   if (Object.keys(options).length > 0) {

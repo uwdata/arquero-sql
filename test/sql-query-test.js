@@ -1,13 +1,13 @@
 import tape from './tape-wrapper';
-import {PostgresQueryBuilder} from '../src/databases/postgres';
+import {PostgresDBTable} from '../src/databases/postgres';
 import {copy} from './verbs/common';
 import verbs from '../src/databases/postgres/verbs';
 import {op} from 'arquero';
 
 tape('sql-query: interface', t => {
-  const table1 = new PostgresQueryBuilder('table1', ['Seattle', 'Chicago', 'New York']);
-  const table2 = new PostgresQueryBuilder('table2', ['Seattle', 'Chicago', 'New York']);
-  const table3 = new PostgresQueryBuilder('table3', ['Seattle', 'Chicago', 'New York']);
+  const table1 = new PostgresDBTable('table1', ['Seattle', 'Chicago', 'New York']);
+  const table2 = new PostgresDBTable('table2', ['Seattle', 'Chicago', 'New York']);
+  const table3 = new PostgresDBTable('table3', ['Seattle', 'Chicago', 'New York']);
 
   let actual, expected;
 

@@ -8,7 +8,7 @@ export class Database {
 
   /**
    * @param {string} name
-   * @returns {DBTable}
+   * @returns {AsyncDBTable}
    */
   // eslint-disable-next-line no-unused-vars
   table(name) {

@@ -1,5 +1,5 @@
 /** @typedef {import('./common').Verb} Verb */
-/** @typedef {import('../pg-query-builder').PostgresQueryBuilder} PostgresQueryBuilder */
+/** @typedef {import('../pg-db-table').PostgresDBTable} PostgresDBTable */
 
 import parseValue from 'arquero/src/verbs/util/parse';
 import {inferKeys} from 'arquero/src/verbs/join';
@@ -21,12 +21,12 @@ const optParse = {join: true, ast: true};
 
 /**
  *
- * @param {PostgresQueryBuilder} query
- * @param {PostgresQueryBuilder} other
+ * @param {PostgresDBTable} query
+ * @param {PostgresDBTable} other
  * @param {import('arquero/src/table/transformable').JoinPredicate} on
  * @param {import('arquero/src/table/transformable').JoinValues} values
  * @param {import('arquero/src/table/transformable').JoinOptions} options
- * @returns {PostgresQueryBuilder}
+ * @returns {PostgresDBTable}
  */
 export default function (query, other, on, values, options = {}) {
   on = inferKeys(query, other, on);
@@ -69,7 +69,7 @@ export default function (query, other, on, values, options = {}) {
 
 /**
  *
- * @param {PostgresQueryBuilder} queryL
+ * @param {PostgresDBTable} queryL
  * @param {import('arquero/src/table/transformable').JoinKey[]} onL
  * @param {import('arquero/src/table/transformable').JoinKey[]} onR
  * @param {import('arquero/src/table/transformable').JoinOptions} options
@@ -97,8 +97,8 @@ function inferValues(tableL, onL, onR, options) {
 
 /**
  *
- * @param {PostgresQueryBuilder} tableL
- * @param {PostgresQueryBuilder} tableR
+ * @param {PostgresDBTable} tableL
+ * @param {PostgresDBTable} tableR
  * @param {import('arquero/src/table/transformable').JoinValues} values
  * @param {object} optParse
  * @param {string[]} suffix

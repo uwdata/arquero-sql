@@ -1,4 +1,4 @@
-/** @typedef {import('./pg-query-builder').PosgresQueryBuilder} PosgresQueryBuilder */
+/** @typedef {import('./pg-db-table').PosgresDBTable} PosgresDBTable */
 
 import isString from 'arquero/src/util/is-string';
 import createColumn from './utils/create-column';
@@ -7,7 +7,7 @@ import {genExpr} from './visitors/gen-expr';
 
 /**
  *
- * @param {PosgresQueryBuilder|string} query
+ * @param {PosgresDBTable|string} query
  * @param {string} [indentStr]
  * @param {number} [indentLvl]
  * @param {Counter} [counter]
@@ -24,7 +24,7 @@ export default function postgresCodeGen(query, indentStr = '  ', indentLvl = 0, 
     return code.join('');
   }
 
-  /** @type {PosgresQueryBuilder} */
+  /** @type {PosgresDBTable} */
   const {_clauses, _columns, _group, _order} = query;
 
   const tables = ['table' + counter.next(), _clauses.join ? 'table' + counter.next() : null];
@@ -142,7 +142,7 @@ export class Counter {
 
 /**
  *
- * @param {import('./pg-query-builder').OrderInfo} orderby
+ * @param {import('./pg-db-table').OrderInfo} orderby
  * @param {import('../../visitors/gen-expr').GenExprOpt} opt
  * @returns {string}
  */
@@ -153,7 +153,7 @@ function genOrderClause(orderby, opt) {
 
 /**
  *
- * @param {import('./pg-query-builder').AstNode[]} list
+ * @param {import('./pg-db-table').AstNode[]} list
  * @param {import('../../visitors/gen-expr').GenExprOpt} opt
  * @param {string} delim
  */

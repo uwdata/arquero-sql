@@ -1,10 +1,10 @@
 import {all} from 'arquero';
-import {QueryBuilder} from '../query-builder';
+import {DBTable} from '../query-builder';
 import isFunction from 'arquero/src/util/is-function';
 import verbs from './verbs';
 import postgresCodeGen from './pg-code-gen';
 
-export class PostgresQueryBuilder extends QueryBuilder {
+export class PostgresDBTable extends DBTable {
   /**
    * @param {Source} source source table or another sql query
    * @param {string[]} schema object of table schema
@@ -52,7 +52,7 @@ export class PostgresQueryBuilder extends QueryBuilder {
    * @param {WrapParams} param0
    */
   _append({columns, clauses, group, order}) {
-    return new PostgresQueryBuilder(
+    return new PostgresDBTable(
       this._source,
       columns !== undefined ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
       clauses !== undefined ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : this._clauses,
@@ -66,7 +66,7 @@ export class PostgresQueryBuilder extends QueryBuilder {
    * @param {WrapParams} param0
    */
   _wrap({columns, clauses, group, order}) {
-    return new PostgresQueryBuilder(
+    return new PostgresDBTable(
       this,
       columns !== undefined ? (isFunction(columns) ? columns(this._columns) : columns) : this._columns,
       clauses !== undefined ? (isFunction(clauses) ? clauses(this._clauses) : clauses) : {},
@@ -112,7 +112,7 @@ export class PostgresQueryBuilder extends QueryBuilder {
     return this._columns[index];
   }
 
-  _build() {
+  _sql() {
     return postgresCodeGen(
       this.ungroup()
         .select(all())
@@ -138,14 +138,14 @@ export class PostgresQueryBuilder extends QueryBuilder {
       t = t._append({clauses: c => ({...c, offset: offset})});
     }
 
-    const results = await t._database.query(t._build());
+    const results = await t._database.query(t._sql());
     return results.rows;
   }
 }
 
-Object.assign(PostgresQueryBuilder.prototype, verbs);
+Object.assign(PostgresDBTable.prototype, verbs);
 
-/** @typedef {string | PostgresQueryBuilder} Source _source in PostgresQueryBuilder */
+/** @typedef {string | PostgresDBTable} Source _source in PostgresDBTable */
 
 /**
  * @typedef {object} AstNode
@@ -159,7 +159,7 @@ Object.assign(PostgresQueryBuilder.prototype, verbs);
 /**
  * @typedef {object} JoinInfo
  * @prop {AstNode} on
- * @prop {PostgresQueryBuilder} other
+ * @prop {PostgresDBTable} other
  * @prop {JoinType} join_type
  */
 
@@ -170,7 +170,7 @@ Object.assign(PostgresQueryBuilder.prototype, verbs);
  */
 
 /**
- * @typedef {object} Clauses _clauses in PostgresQueryBuilder
+ * @typedef {object} Clauses _clauses in PostgresDBTable
  * @prop {AstNode[]} [select]
  * @prop {AstNode[]} [where]
  * @prop {AstNode[] | boolean} [groupby]
@@ -186,7 +186,7 @@ Object.assign(PostgresQueryBuilder.prototype, verbs);
  */
 
 /**
- * @typedef {object} Schema _schema in PostgresQueryBuilder
+ * @typedef {object} Schema _schema in PostgresDBTable
  * @prop {string[]} columns
  * @prop {string[]} [groupby]
  */

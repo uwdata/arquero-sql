@@ -1,12 +1,12 @@
 /** @typedef {import('arquero').internal.Table} Table */
-/** @typedef {import('../pg-query-builder').PostgresQueryBuilder} PostgresQueryBuilder */
+/** @typedef {import('../pg-db-table').PostgresDBTable} PostgresDBTable */
 
 import createColumn from '../utils/create-column';
 
 /**
  *
  * @param {'concat' | 'except' | 'intersect' | 'union'} verb
- * @returns {(query: PostgresQueryBuilder, others: PostgresQueryBuilder[]) => PostgresQueryBuilder}
+ * @returns {(query: PostgresDBTable, others: PostgresDBTable[]) => PostgresDBTable}
  */
 export function set_verb(verb) {
   return (table, others) => {
