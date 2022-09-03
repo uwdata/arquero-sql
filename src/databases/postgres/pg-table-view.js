@@ -23,7 +23,7 @@ export class PostgresTableView extends TableView {
 
     database = database || source.database;
     if (typeof source !== 'string' && database !== source.database) {
-      console.log(source._database, database);
+      console.log(source._database === database);
       throw new Error("Database must match with parent's database");
     }
     /** @type {import('./pg-database').PostgresDatabase} */
