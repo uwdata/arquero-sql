@@ -72,8 +72,10 @@ export default function postgresCodeGen(query, indentStr = '  ', indentLvl = 0, 
       code.push(')');
     }
     code.push(' AS ', tables[1]);
-    code.push(' ON ');
-    code.push(genExpr(_clauses.join.on, opt));
+    if (_clauses.join.on) {
+      code.push(' ON ');
+      code.push(genExpr(_clauses.join.on, opt));
+    }
   }
   code.push(nl);
 

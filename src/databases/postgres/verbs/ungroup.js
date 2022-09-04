@@ -2,8 +2,8 @@
 
 /**
  *
- * @param {PostgresTableView} query
+ * @param {PostgresTableView} table
  */
-export default function (query) {
-  return query.isGrouped() ? query._wrap({columns: query.columnNames(), group: null}) : query;
+export default function (table) {
+  return table.isGrouped() ? table._wrap({columns: table.columnNames(), group: null}) : table;
 }

@@ -112,6 +112,11 @@ export class PostgresTableView extends TableView {
     return this._columns[index];
   }
 
+  // eslint-disable-next-line no-unused-vars
+  column(name) {
+    return [];
+  }
+
   _sql() {
     return postgresCodeGen(
       this.ungroup()

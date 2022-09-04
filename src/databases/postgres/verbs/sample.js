@@ -5,12 +5,12 @@ import {op} from 'arquero';
 
 /**
  *
- * @param {PostgresTableView} query
+ * @param {PostgresTableView} table
  * @param {number|import('arquero/src/table/transformable').TableExpr} size
  * @param {import('arquero/src/table/transformable').SampleOptions} options
  * @returns {PostgresTableView}
  */
-export default function (query, size, options = {}) {
+export default function (table, size, options = {}) {
   if (typeof size !== 'number') {
     // TODO: calculate the size -> then use the calculated size as limit
     throw new Error('sample only support constant sample size');
@@ -26,7 +26,7 @@ export default function (query, size, options = {}) {
   }
 
   console.warn('Sampling will produce output with different ordering of rows');
-  return query
+  return table
     .orderby([() => op.random()])
     ._append({clauses: c => ({...c, limit: size})})
     .unorder();

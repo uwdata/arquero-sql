@@ -10,18 +10,18 @@ import {GB_KEY} from './groupby';
 
 /**
  *
- * @param {PostgresTableView} query
- * @param {import('arquero/src/table/transformable').ExprObject} [keys]
+ * @param {PostgresTableView} table
+ * @param {import('arquero/src/table/transformable').ExprObject} [values]
  * @returns {PostgresTableView}
  */
-export default function (query, keys = []) {
+export default function (table, values = []) {
   /** @type {Map<string, object>} */
   const columns = new Map();
-  if (query.isGrouped()) {
-    query._group.forEach(key => columns.set(key, createColumn(GB_KEY(key), key)));
+  if (table.isGrouped()) {
+    table._group.forEach(key => columns.set(key, createColumn(GB_KEY(key), key)));
   }
 
-  const {exprs, names} = internal.parse(keys, {ast: true, argonly: true});
+  const {exprs, names} = internal.parse(values, {ast: true, argonly: true});
   exprs.forEach((expr, idx) => {
     if (hasFunction(expr, ARQUERO_WINDOW_FN)) {
       error('Cannot rollup an expression containing a window fundtion');
@@ -31,10 +31,10 @@ export default function (query, keys = []) {
     columns.set(as, {...expr, as});
   });
 
-  return query._wrap({
+  return table._wrap({
     clauses: {
       select: [...columns.values()],
-      groupby: !query.isGrouped() || query._group.map(g => createColumn(GB_KEY(g))),
+      groupby: !table.isGrouped() || table._group.map(g => createColumn(GB_KEY(g))),
     },
     columns: [...columns.keys()],
     group: null,

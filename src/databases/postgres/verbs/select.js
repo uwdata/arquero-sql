@@ -9,17 +9,17 @@ import {GB_KEY} from './groupby';
 
 /**
  *
- * @param {PostgresTableView} query
+ * @param {PostgresTableView} table
  * @param {import('arquero/src/table/transformable').SelectEntry[]} columns
  * @returns {PostgresTableView}
  */
-export default function (query, columns) {
+export default function (table, columns) {
   /** @type {ColumnType[]} */
   const cols = [];
-  resolve(query, columns).forEach((next, curr) => {
+  resolve(table, columns).forEach((next, curr) => {
     next = isString(next) ? next : curr;
     if (next) {
-      if (!query._columns.includes(curr)) {
+      if (!table._columns.includes(curr)) {
         throw new Error(`Unrecognized column: ${curr}`);
       }
       cols.push(createColumn(curr, next));
@@ -27,11 +27,11 @@ export default function (query, columns) {
   });
 
   let groupby_cols = [];
-  if (query.isGrouped()) {
-    groupby_cols = query._group.map(key => createColumn(GB_KEY(key)));
+  if (table.isGrouped()) {
+    groupby_cols = table._group.map(key => createColumn(GB_KEY(key)));
   }
 
-  return query._wrap({
+  return table._wrap({
     clauses: {select: [...cols, ...groupby_cols]},
     columns: cols.map(col => col.as || col.name),
   });

@@ -10,12 +10,12 @@ import {GB_KEY} from './groupby';
 
 /**
  *
- * @param {PostgresTableView} query
+ * @param {PostgresTableView} table
  * @param {import('arquero/src/table/transformable').ExprObject} values
  * @param {import('arquero/src/table/transformable').DeriveOptions} [options]
  * @returns {PostgresTableView}
  */
-export default function (query, values, options = {}) {
+export default function (table, values, options = {}) {
   if (Object.keys(options).length > 0) {
     error("Arquero-SQL does not support derive's option");
   }
@@ -23,7 +23,7 @@ export default function (query, values, options = {}) {
   /** @type {Map<string, object>} */
   const columns = new Map();
   const {exprs, names} = internal.parse(values, {ast: true});
-  query.columnNames().forEach(columnName => columns.set(columnName, createColumn(columnName)));
+  table.columnNames().forEach(columnName => columns.set(columnName, createColumn(columnName)));
   exprs.forEach((expr, idx) => {
     if ([ARQUERO_AGGREGATION_FN, ARQUERO_WINDOW_FN].every(f => hasFunction(expr, f))) {
       error('Cannot derive an expression containing both an aggregation function and a window fundtion');
@@ -34,7 +34,7 @@ export default function (query, values, options = {}) {
     columns.set(as, {...expr, as});
   });
 
-  if (query.isGrouped()) {
+  if (table.isGrouped()) {
     console.warn('Deriving with group may produce output with different ordering of rows');
 
     if ([...columns.values()].some(v => hasFunction(v, ARQUERO_WINDOW_FN))) {
@@ -45,10 +45,10 @@ export default function (query, values, options = {}) {
   }
 
   let groupby_cols = [];
-  if (query.isGrouped()) {
-    groupby_cols = query._group.map(key => createColumn(GB_KEY(key)));
+  if (table.isGrouped()) {
+    groupby_cols = table._group.map(key => createColumn(GB_KEY(key)));
   }
-  return query._wrap({
+  return table._wrap({
     clauses: {select: [...columns.values(), ...groupby_cols]},
     columns: [...columns.keys()],
   });

@@ -21,15 +21,15 @@ const optParse = {join: true, ast: true};
 
 /**
  *
- * @param {PostgresTableView} query
- * @param {PostgresTableView} other
+ * @param {PostgresTableView} tableL
+ * @param {PostgresTableView} tableR
  * @param {import('arquero/src/table/transformable').JoinPredicate} on
  * @param {import('arquero/src/table/transformable').JoinValues} values
  * @param {import('arquero/src/table/transformable').JoinOptions} options
  * @returns {PostgresTableView}
  */
-export default function (query, other, on, values, options = {}) {
-  on = inferKeys(query, other, on);
+export default function (tableL, tableR, on, values, options = {}) {
+  on = inferKeys(tableL, tableR, on);
 
   if (isArray(on)) {
     const [onL, onR] = on.map(toArray);
@@ -39,29 +39,29 @@ export default function (query, other, on, values, options = {}) {
 
     const body = onL
       .map((l, i) => {
-        l = isNumber(l) ? query.columnName(l) : l;
-        const r = isNumber(onR[i]) ? other.columnName(onR[i]) : l;
+        l = isNumber(l) ? tableL.columnName(l) : l;
+        const r = isNumber(onR[i]) ? tableR.columnName(onR[i]) : l;
         return `a["${l}"] === b["${r}"]`;
       })
       .join(' && ');
     on = `(a, b) => ${body}`;
 
     if (!values) {
-      values = inferValues(query, onL, onR, options);
+      values = inferValues(tableL, onL, onR, options);
     }
   } else if (!values) {
     values = [all(), all()];
   }
   on = internal.parse({on}, {ast: true, join: true}).exprs[0];
 
-  const {exprs, names} = parseValues(query, other, values, optParse, options.suffix);
+  const {exprs, names} = parseValues(tableL, tableR, values, optParse, options.suffix);
   exprs.forEach((expr, i) => (expr.name === names[i] ? null : (expr.as = names[i])));
 
   const join_type = JOIN_TYPES[(~~options.left << 1) + ~~options.right];
-  return query._wrap({
+  return tableL._wrap({
     clauses: {
       select: exprs,
-      join: {other, on, join_type},
+      join: {other: tableR, on, join_type},
     },
     columns: exprs.map(c => c.as || c.name),
   });
