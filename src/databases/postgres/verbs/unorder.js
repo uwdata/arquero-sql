@@ -2,8 +2,8 @@
 
 /**
  *
- * @param {PostgresTableView} query
+ * @param {PostgresTableView} table
  */
-export default function (query) {
-  return query._order ? query._wrap({order: null}) : query;
+export default function (table) {
+  return table._order ? table._wrap({order: null}) : table;
 }

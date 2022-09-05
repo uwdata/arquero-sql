@@ -11,31 +11,33 @@ export const GB_KEY = key => GB_KEY_PREFIX + key + GB_KEY_SUFFIX;
 
 /**
  *
- * @param {PostgresTableView} query
- * @param {import('arquero/src/table/transformable').ListEntry[]} keys
+ * @param {PostgresTableView} table
+ * @param {import('arquero/src/table/transformable').ListEntry[]} values
  * @returns {PostgresTableView}
  */
-export default function (query, keys) {
-  if (query.isGrouped()) {
-    query = query.ungroup();
+export default function (table, values) {
+  if (table.isGrouped()) {
+    table = table.ungroup();
   }
 
+  // TODO: use Arquero's parse function?
+
   const _keys = {};
-  keys.forEach(key => {
+  values.forEach(key => {
     if (isFunction(key)) {
       // selection
-      const sel = resolve(query, key);
+      const sel = resolve(table, key);
       sel.forEach((v, k) => (_keys[GB_KEY(k)] = `d => d["${v}"]`));
     } else if (typeof key === 'object') {
       // derive
       Object.entries(key).forEach(([k, v]) => (_keys[GB_KEY(k)] = v));
     } else {
       // column
-      key = isNumber(key) ? query.columnName(key) : key;
+      key = isNumber(key) ? table.columnName(key) : key;
       _keys[GB_KEY(key)] = `d => d["${key}"]`;
     }
   });
 
   const group = Object.keys(_keys).map(key => key.substring(GB_KEY_PREFIX.length, key.length - GB_KEY_SUFFIX.length));
-  return query.derive(_keys)._append({group, columns: query.columnNames()});
+  return table.derive(_keys)._append({group, columns: table.columnNames()});
 }

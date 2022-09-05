@@ -7,13 +7,13 @@ const ROW_NUMBER = '___arquero_sql_row_number___';
 
 /**
  *
- * @param {PostgresTableView} query
+ * @param {PostgresTableView} table
  * @param {ListEntry[]} keys
  * @returns {PostgresTableView}
  */
-export default function (query, keys = []) {
-  return query
-    .groupby(...(keys.length ? keys : query.columnNames()))
+export default function (table, keys = []) {
+  return table
+    .groupby(...(keys.length ? keys : table.columnNames()))
     .filter(() => op.row_number() === 1)
     .ungroup()
     .select(not(ROW_NUMBER));

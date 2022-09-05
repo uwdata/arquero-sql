@@ -3,6 +3,7 @@ import __dedupe from './dedupe';
 import __derive from './derive';
 import __except from './except';
 import __filter from './filter';
+import __fold from './fold';
 import __groupby from './groupby';
 import __intersect from './intersect';
 import __join from './join';
@@ -31,7 +32,7 @@ export default {
   __derive,
   __except,
   __filter,
-  // __fold,
+  __fold,
   // __impute,
   __intersect,
   __join,

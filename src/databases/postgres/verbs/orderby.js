@@ -10,12 +10,12 @@ import isString from 'arquero/src/util/is-string';
 
 /**
  *
- * @param {PostgresTableView} query
+ * @param {PostgresTableView} table
  * @param {import('arquero/src/table/transformable').OrderKey[]} keys
  * @returns {PostgresTableView}
  */
-export default function (query, keys) {
-  return query._wrap({order: parseValues(query, keys)});
+export default function (table, keys) {
+  return table._wrap({order: parseValues(table, keys)});
 }
 
 function parseValues(table, params) {
