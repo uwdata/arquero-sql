@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "arquero": "^3.0.0",
+    "duckdb": "^0.5.1",
     "fast-csv": "^4.3.6",
     "pg": "^8.5.1",
     "uuid": "^8.3.2"
